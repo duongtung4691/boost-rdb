@@ -1,6 +1,8 @@
 
 #ifdef _WIN32
 
+#pragma warning(disable: 4996)
+
 #include <windows.h>
 #include <boost/iostreams/stream.hpp>
 #include <iostream>

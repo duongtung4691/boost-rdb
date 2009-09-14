@@ -114,3 +114,5 @@
 
 # Visual Studio
 \.ncb$
+\.suo$
+\.user$

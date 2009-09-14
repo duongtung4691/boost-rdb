@@ -1,6 +1,13 @@
 #include <windows.h>
 #include <boost/rdb/rdb.hpp>
 #include <boost/rdb/odbc.hpp>
+#include <boost/format.hpp>
+
+#ifdef _MSC_VER
+#pragma warning(disable: 4996)
+#endif
+
+using namespace std;
 
 namespace boost { namespace rdb { namespace odbc {
 
@@ -18,12 +25,41 @@ inline void sql_check(SQLSMALLINT handle_type, SQLHANDLE handle, long rc) {
 
 error::error(SQLSMALLINT handle_type, SQLHANDLE handle, long rc) : rc(rc) {
   sprintf(msg, "rc %d", rc);
-  //SQLSMALLINT mlen;
-  //cout << SQLGetDiagField(handle_type, handle, 1, SQL_DIAG_MESSAGE_TEXT, (SQLPOINTER) msg, sizeof msg, &mlen);
+  SQLSMALLINT mlen;
+  SQLGetDiagField(handle_type, handle, 1, SQL_DIAG_MESSAGE_TEXT, (SQLPOINTER) msg, sizeof msg, &mlen);
+  cout << msg << endl;
+}
+
+void database::connect(const string& dsn, const string& user, const string& password) {
+
+  dsn_ = dsn;
+  user_ = user;
+  password_ = password;
+  henv_ = SQL_NULL_HANDLE;
+  hdbc_ = SQL_NULL_HANDLE;
+
+  sql_check(SQL_HANDLE_ENV, SQL_NULL_HANDLE, SQLAllocEnv(&henv_));
+
+  SQLSetEnvAttr(henv_, SQL_ATTR_ODBC_VERSION, (void*)SQL_OV_ODBC3, 0);
+
+  sql_check(SQL_HANDLE_ENV, henv_, SQLAllocConnect(henv_, &hdbc_));
+
+  SQLSetConnectAttr(hdbc_, SQL_LOGIN_TIMEOUT, (SQLPOINTER*) 5, 0);
+
+  sql_check(SQL_HANDLE_DBC, hdbc_,
+    SQLConnect(hdbc_, (SQLCHAR*) dsn.c_str(), SQL_NTS,
+      (SQLCHAR*) user.c_str(), SQL_NTS,
+      (SQLCHAR*) password.c_str(), SQL_NTS));
+
+  //  sql_check<Resource_Error>(hdbc_, SQLAllocHandle(SQL_HANDLE_STMT, hdbc_, &hstmt_));
+  sql_check(SQL_HANDLE_DBC, hdbc_, SQLAllocStmt(hdbc_, &hstmt_));
+
+  //SQLSMALLINT res;
+  //SQLGetInfo(hdbc_, SQL_TXN_CAPABLE, &res, sizeof res, NULL);
 }
 
 const char* error::what() const throw() {
-  return reinterpret_cast<const char*>(msg);
+  return msg;
 }
 
 } } }
@@ -56,37 +92,6 @@ namespace Tangram {
       Resource_Error::Resource_Error(SQLSMALLINT handle_type, SQLHENV henv, long rc) : error(handle_type, henv, rc) {
       }
 
-      void Storage::odbc_connect(const string& dsn, const string& user, const string& password) {
-
-        dsn_ = dsn;
-        user_ = user;
-        password_ = password;
-        henv_ = SQL_NULL_HANDLE;
-        hdbc_ = SQL_NULL_HANDLE;
-
-        sql_check<Resource_Error>(SQL_HANDLE_ENV, SQL_NULL_HANDLE, SQLAllocEnv(&henv_));
-
-        SQLSetEnvAttr(henv_, SQL_ATTR_ODBC_VERSION, (void*)SQL_OV_ODBC3, 0);
-
-        sql_check<Resource_Error>(SQL_HANDLE_ENV, henv_, SQLAllocConnect(henv_, &hdbc_));
-
-        SQLSetConnectAttr(hdbc_, SQL_LOGIN_TIMEOUT, (SQLPOINTER*) 5, 0);
-
-        sql_check<Connection_Error>(SQL_HANDLE_DBC, hdbc_,
-                                    SQLConnect(hdbc_, (SQLCHAR*) dsn.c_str(), SQL_NTS,
-                                               (SQLCHAR*) user.c_str(), SQL_NTS,
-                                               (SQLCHAR*) password.c_str(), SQL_NTS));
-
-        //  sql_check<Resource_Error>(hdbc_, SQLAllocHandle(SQL_HANDLE_STMT, hdbc_, &hstmt_));
-        sql_check<Resource_Error>(SQL_HANDLE_DBC, hdbc_, SQLAllocStmt(hdbc_, &hstmt_));
-
-        SQLSMALLINT res;
-        SQLGetInfo(hdbc_, SQL_TXN_CAPABLE, &res, sizeof res, NULL);
-        tx_capable_ = res != SQL_TC_NONE;
-
-        if (tx_capable_)
-          SQLSetConnectOption(hdbc_, SQL_AUTOCOMMIT, SQL_AUTOCOMMIT_OFF);
-      }
 
       void Storage::create(const Schema* schema, const string& dsn, const string& user, const string& password) {
         start(schema);
