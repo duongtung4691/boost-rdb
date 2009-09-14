@@ -1,47 +1,49 @@
 #include <iostream>
+#include <sstream>
 #include <boost/test/minimal.hpp>
 #include <boost/rdb/rdb.hpp>
 
 using namespace std;
 using namespace boost::rdb;
 
-#ifdef _WIN32
-
-#include <windows.h>
-#include <boost/iostreams/stream.hpp>
-
-using namespace boost::iostreams;
-
-class debug_output_sink : public boost::iostreams::sink {
-public:
-    debug_output_sink(int) { }
-    std::streamsize write(const char* s, std::streamsize n);
-};
-
-streamsize debug_output_sink::write(const char* s, streamsize n)
-{
-  TCHAR chunk[1000 + 1];
-  streamsize remain(n);
-  
-  while (remain)
-  {
-    streamsize chunk_size(min(remain, sizeof chunk - 1));
-    *copy(s, s + chunk_size, chunk) = 0;
-    OutputDebugString(chunk);
-    remain -= chunk_size;
-  }
-  
-  return n;
+template<typename Table>
+std::string create() {
+  std::ostringstream os;
+  create<Table>(os);
+  return os.str();
 }
 
-#endif
+template<class SelectList, class FromList, class WhereList>
+std::string str(const select_type<SelectList, FromList, WhereList>& select) {
+  std::ostringstream os;
+  select.str(os);
+  return os.str();
+}
+
+#define scope
 
 int test_main( int, char *[] )
 {
-#ifdef _WIN32
-  static stream_buffer<debug_output_sink> buf(0);
-  cout.rdbuf(&buf);
-#endif
+  using namespace boost::rdb;
+
+  BOOST_CHECK(
+    create<person>()
+    == "create table person(id integer, name varchar(20))");
+
+  scope {
+    person husband;
+    BOOST_CHECK(str(
+      select(husband.id).from(husband)
+      ) == "select id from person");
+  }
+
+  scope {
+    person husband;
+    person_<1> wife("wife");
+    BOOST_CHECK(str(
+      select(husband.id)(wife.name).from(husband)(wife)
+      ) == "select id, wife.name from person, person as wife");
+  }
       
   return 0;
 }

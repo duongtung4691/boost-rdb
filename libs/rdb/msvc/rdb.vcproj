@@ -170,6 +170,10 @@
 	</References>
 	<Files>
 		<File
+			RelativePath=".\cout2dbg.cpp"
+			>
+		</File>
+		<File
 			RelativePath="..\build\Jamfile.v2"
 			>
 		</File>
