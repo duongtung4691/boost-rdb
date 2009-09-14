@@ -43,6 +43,12 @@ int test_main( int, char *[] )
   }
 
   scope {
+    BOOST_CHECK(str(
+      select(person::_.id).from(person::_)
+      ) == "select id from person");
+  }
+
+  scope {
     person husband;
     person_<1> wife("wife");
     BOOST_CHECK(str(
