@@ -22,6 +22,11 @@ std::string str(const select_type<SelectList, FromList, WhereList>& select) {
 
 #define scope
 
+BOOST_RDB_BEGIN_TABLE(person) 
+  BOOST_RDB_COLUMN(id, integer)
+  BOOST_RDB_COLUMN(name, varchar<20>)
+BOOST_RDB_END_TABLE(person) 
+
 int test_main( int, char *[] )
 {
   using namespace boost::rdb;

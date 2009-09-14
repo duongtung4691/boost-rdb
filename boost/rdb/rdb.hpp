@@ -84,70 +84,35 @@ struct varchar
   static void str(std::ostream& os) { os << "varchar(" << N << ")"; }
 };
 
-template<int Alias>
-struct person_ : any_table, singleton< person_<Alias> > {
-  typedef person_<Alias> this_table;
+#define BOOST_RDB_COLUMN(name, sql_type) \
+members_before_##name;  \
+typedef column<this_table, sql_type> name##_type;  \
+name##_type name;  \
+struct name##_member {  \
+  typedef std::string type;  \
+  static name##_type& ref(this_table& obj) { return obj.name; }  \
+  static const name##_type& ref(const this_table& obj) { return obj.name; }  \
+  static void initialize(this_table* table) { table->name.initialize(table, #name); }  \
+};  \
+typedef typename boost::mpl::push_back<members_before_##name, name##_member>::type
 
-  static const char* table_name() { return "person"; }
-  person_() : any_table(table_name()) { initialize(); }
-  person_(const std::string& alias) : any_table(table_name(), alias) { initialize(); }
-  person_(const this_table& other) { initialize(); }
-
+#define BOOST_RDB_BEGIN_TABLE(NAME)  \
+template<int Alias>  \
+struct NAME##_ : any_table, singleton< NAME##_<Alias> > {  \
+  typedef NAME##_<Alias> this_table;  \
+  static const char* table_name() { return #NAME; }  \
+  person_() : any_table(table_name()) { initialize(); }  \
+  person_(const std::string& alias) : any_table(table_name(), alias) { initialize(); }  \
+  person_(const this_table& other) { initialize(); }  \
   typedef boost::mpl::vector0<>
 
-  #if 1
-    #define BOOST_RDB_COLUMN(name, sql_type) \
-    members_before_##name;  \
-    typedef column<this_table, sql_type> name##_type;  \
-    name##_type name;  \
-    struct name##_member {  \
-      typedef std::string type;  \
-      static name##_type& ref(this_table& obj) { return obj.name; }  \
-      static const name##_type& ref(const this_table& obj) { return obj.name; }  \
-      static void initialize(this_table* table) { table->name.initialize(table, #name); }  \
-    };  \
-    typedef typename boost::mpl::push_back<members_before_##name, name##_member>::type
-    
-    BOOST_RDB_COLUMN(id, integer)
-  #else
-  members_before_id;
-  typedef column<this_table, int> id_type;
-  id_type id;
-  struct id_member {
-    typedef int type;
-    static id_type& ref(this_table& obj) { return obj.id; }
-    static void initialize(this_table* table) { table->id.initialize(table, "id"); }
-  };
-  typedef typename boost::mpl::push_back<members_before_id, id_member>::type
-  #endif
-
-  #if 1
-    BOOST_RDB_COLUMN(name, varchar<20>)
-  #else
-    members_before_name;
-    typedef column<this_table, std::string> name_type;
-    name_type name;
-    struct name_member {
-      typedef std::string type;
-      //static const char* str() { return "name"; }
-      static name_type& ref(this_table& obj) { return obj.name; }
-      static void initialize(this_table* table) { table->name.initialize(table, "name"); }
-      //static void initialize(this_table* table) { table->name.table = table;; table->name.name = str();  }
-    };
-    typedef typename boost::mpl::push_back<members_before_name, name_member>::type
-  #endif
-
-  column_members;
-
-  //typedef typename boost::mpl::transform<column_members, get_type>::type types;
-  //typedef typename tuple_from_vector<typename this_table::types>::type tuple;
-
-  void initialize() {
-    boost::mpl::for_each<this_table::column_members>(initialize_columns<this_table>(this));
-  }
-};
-
-typedef person_<0> person;
+#define BOOST_RDB_END_TABLE(NAME)  \
+  column_members; \
+  void initialize() { \
+    boost::mpl::for_each<this_table::column_members>(initialize_columns<this_table>(this)); \
+  } \
+}; \
+typedef NAME##_<0> NAME;
 
 template<class SelectList, class FromList, class WhereList>
 struct select_type;
@@ -243,12 +208,6 @@ select(const Expr& expr) {
     void, void
   >(boost::fusion::make_vector(boost::cref(expr)));
 }
-
-struct dump {
-  dump(person& obj) : obj(obj) { }
-  template<typename T> void operator ()(T) { cout << T::ref(obj) << endl; }
-  person& obj;
-};
 
 template<typename Table>
 struct table_column_output : comma_output  {
