@@ -82,14 +82,17 @@ int test_main( int, char *[] )
       "select p1.age + 1 from person as p1");
 
     BOOST_RDB_CHECK_SQL(
+      select(1 + p1.age).from(p1),
+      "select 1 + p1.age from person as p1");
+
+    BOOST_RDB_CHECK_SQL(
       select(p1.age + p2.age / 2).from(p1)(p2),
       "select p1.age + p2.age / 2 from person as p1, person as p2");
-
-    (p1.age + p2.age) / 2;
-
+/*
     BOOST_RDB_CHECK_SQL(
       select((p1.age + p2.age) / 2).from(p1)(p2),
       "select (p1.age + p2.age) / 2 from person as p1, person as p2");
+*/
   }
       
   return 0;

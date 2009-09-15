@@ -8,6 +8,7 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/transform.hpp>
+#include <boost/mpl/bool.hpp>
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/make_vector.hpp>
 #include <boost/fusion/include/for_each.hpp>
@@ -65,15 +66,22 @@ struct any_column {
   const std::string& name() const { return name_; }
 };
 
-template<class X>
+template<class Expr>
 struct Expression
 {
-  X expr;
+  Expr expr;
   std::ostream& stream;
+  typedef typename Expr::sql_type sql_type;
   
   BOOST_CONCEPT_USAGE(Expression) {
     expr.str(stream);
   }
+};
+
+template<class Expr>
+struct NumericExpression : Expression<Expr>
+{
+  typedef typename Expr::sql_type::is_numeric is_numeric;
 };
 
 template<class Expr>
@@ -121,6 +129,14 @@ struct integer
   static void str(std::ostream& os) { os << "integer"; }
   typedef literal<int> literal_type;
   static literal_type make_literal(int val) { return literal_type(val); }
+  typedef boost::mpl::true_::type is_numeric;
+};
+
+struct boolean
+{
+  static void str(std::ostream& os) { os << "boolean"; }
+  typedef literal<bool> literal_type;
+  static literal_type make_literal(bool val) { return literal_type(val); }
 };
 
 template<int N>
@@ -131,8 +147,12 @@ struct varchar
   static literal_type make_literal(const char* str) { return literal_type(str); }
 };
 
+struct comparison {
+  typedef boolean sql_type;
+};
+
 template<class Expr1, class Expr2>
-struct equal {
+struct equal : comparison {
   equal(const Expr1& expr1, const Expr2& expr2) : expr1_(expr1), expr2_(expr2) { }
   
   void str(std::ostream& os) const {
