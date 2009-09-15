@@ -19,25 +19,23 @@
 
 namespace boost { namespace rdb {
 
-struct standard {
-  template<typename Iter>
-  static void quote_text(std::ostream& os, Iter iter, Iter last) {
-    os << "'";
-    while (iter != last) {
-      Iter::value_type c = *iter++;
-      if (c == '\'')
-        os << c;
+template<typename Iter>
+void quote_text(std::ostream& os, Iter iter, Iter last) {
+  os << "'";
+  while (iter != last) {
+    Iter::value_type c = *iter++;
+    if (c == '\'')
       os << c;
-    }
+    os << c;
   }
-};
+  os << "'";
+}
 
 struct any_table {
   any_table(const std::string& name) : name_(name) { }
   any_table(const std::string& name, const std::string& alias) : name_(name), alias_(alias) { }
   std::string name_, alias_;
 
-  template<class Dialect>  
   void str(std::ostream& os) const {
     if (has_alias())
       os << name_ << " as " << alias_;
@@ -52,7 +50,6 @@ struct any_column {
   const any_table* table_;
   std::string name_;
   
-  template<class Dialect>
   void str(std::ostream& os) const {
     if (table_->has_alias())
       os << table_->alias() << '.' << name_;
@@ -75,7 +72,7 @@ struct Expression
   std::ostream& stream;
   
   BOOST_CONCEPT_USAGE(Expression) {
-    expr.str<standard>(stream);
+    expr.str(stream);
   }
 };
 
@@ -108,8 +105,7 @@ template<>
 struct literal<std::string> {
   literal(const char* value) : value_(value) { }
   literal(const std::string& value) : value_(value) { }
-  template<class Dialect>
-  void str(std::ostream& os) const { Dialect::quote_text(os, value_.begin(), value_.end()); }
+  void str(std::ostream& os) const { quote_text(os, value_.begin(), value_.end()); }
   std::string value_;
 };
 
@@ -130,11 +126,10 @@ template<class Expr1, class Expr2>
 struct equal {
   equal(const Expr1& expr1, const Expr2& expr2) : expr1_(expr1), expr2_(expr2) { }
   
-  template<class Dialect>
   void str(std::ostream& os) const {
-    expr1_.str<Dialect>(os);
+    expr1_.str(os);
     os << " = ";
-    expr2_.str<Dialect>(os);
+    expr2_.str(os);
   }
   
   Expr1 expr1_;
@@ -199,7 +194,6 @@ struct select_type;
 
 typedef boost::fusion::vector<> empty_vector;
 
-template<class Dialect>
 struct comma_output {
   comma_output(std::ostream& os) : os_(os), comma_("") { }
   std::ostream& os_;
@@ -210,7 +204,7 @@ struct comma_output {
     return os_;
   }
   template<typename Item> void operator ()(const Item& i) const {
-    i.str<Dialect>(item());
+    i.str(item());
   }
 };
 
@@ -222,10 +216,9 @@ struct select_type<SelectList, void, void> {
   select_type(const SelectList& exprs) : exprs(exprs) { }
   SelectList exprs;
 
-  template<class Dialect>
   void str(std::ostream& os) const {
     os << "select ";
-    boost::fusion::for_each(exprs, comma_output<Dialect>(os));
+    boost::fusion::for_each(exprs, comma_output(os));
   }
 
   template<typename Expr>
@@ -293,11 +286,10 @@ struct select_type<SelectList, FromList, void> : select_type<SelectList, void, v
     >(exprs, tables, pred);
   }
 
-  template<class Dialect>
   void str(std::ostream& os) const {
-    just_select::str<Dialect>(os);
+    just_select::str(os);
     os << " from ";
-    boost::fusion::for_each(tables, comma_output<Dialect>(os));
+    boost::fusion::for_each(tables, comma_output(os));
   }
 };
 
@@ -309,11 +301,10 @@ struct select_type : select_type<SelectList, FromList, void> {
 
   const Predicate& pred;
 
-  template<class Dialect>
   void str(std::ostream& os) const {
-    select_from::str<Dialect>(os);
+    select_from::str(os);
     os << " where ";
-    pred.str<Dialect>(os);
+    pred.str(os);
   }
 };
 
@@ -331,7 +322,7 @@ select(const Expr& expr) {
 }
 
 template<typename Table>
-struct table_column_output : comma_output<standard>  {
+struct table_column_output : comma_output {
   table_column_output(std::ostream& os, const Table& table) : comma_output(os), table_(table) { }
   
   template<typename Column> void operator ()(Column) {

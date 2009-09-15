@@ -40,11 +40,11 @@ void database::connect(const string& dsn, const string& user, const string& pass
 
   sql_check(SQL_HANDLE_ENV, SQL_NULL_HANDLE, SQLAllocEnv(&henv_));
 
-  SQLSetEnvAttr(henv_, SQL_ATTR_ODBC_VERSION, (void*)SQL_OV_ODBC3, 0);
+  //SQLSetEnvAttr(henv_, SQL_ATTR_ODBC_VERSION, (void*)SQL_OV_ODBC3, 0);
 
   sql_check(SQL_HANDLE_ENV, henv_, SQLAllocConnect(henv_, &hdbc_));
 
-  SQLSetConnectAttr(hdbc_, SQL_LOGIN_TIMEOUT, (SQLPOINTER*) 5, 0);
+  //SQLSetConnectAttr(hdbc_, SQL_LOGIN_TIMEOUT, (SQLPOINTER*) 5, 0);
 
   sql_check(SQL_HANDLE_DBC, hdbc_,
     SQLConnect(hdbc_, (SQLCHAR*) dsn.c_str(), SQL_NTS,

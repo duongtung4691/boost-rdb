@@ -16,7 +16,7 @@ std::string str(const Statement& statement) {
 template<class SelectList, class FromList, class WhereList>
 std::string str(const select_type<SelectList, FromList, WhereList>& select) {
   std::ostringstream os;
-  select.str<standard>(os);
+  select.str(os);
   return os.str();
 }
 
