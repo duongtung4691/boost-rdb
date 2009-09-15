@@ -20,6 +20,15 @@
 
 namespace boost { namespace rdb {
 
+namespace precedence_level {
+  enum {
+    add,
+    multiply,
+    compare,
+    highest
+  };
+}
+
 template<typename Iter>
 void quote_text(std::ostream& os, Iter iter, Iter last) {
   os << "'";
@@ -50,6 +59,7 @@ struct any_table {
 struct any_column {
   const any_table* table_;
   std::string name_;
+  enum { precedence = precedence_level::highest };
   
   void str(std::ostream& os) const {
     if (table_->has_alias())
@@ -72,7 +82,8 @@ struct Expression
   Expr expr;
   std::ostream& stream;
   typedef typename Expr::sql_type sql_type;
-  
+  enum { precedence = Expr::precedence };
+
   BOOST_CONCEPT_USAGE(Expression) {
     expr.str(stream);
   }
@@ -97,20 +108,24 @@ struct column : any_column {
   static void str_type(std::ostream& os) { SqlType::str(os); }
 };
 
+struct any_literal {
+  enum { precedence = precedence_level::highest };
+};
+
 template<typename T>
-struct literal {
+struct literal : any_literal {
   literal(const T& value) : value_(value) { }
   T value_;
 };
 
 template<>
-struct literal<const char*> {
+struct literal<const char*> : any_literal  {
   literal(const char* value) : value_(value) { }
   const char* value_;
 };
 
 template<>
-struct literal<std::string> {
+struct literal<std::string> : any_literal  {
   literal(const char* value) : value_(value) { }
   literal(const std::string& value) : value_(value) { }
   void str(std::ostream& os) const { quote_text(os, value_.begin(), value_.end()); }
@@ -118,7 +133,7 @@ struct literal<std::string> {
 };
 
 template<>
-struct literal<int> {
+struct literal<int> : any_literal  {
   literal(int value) : value_(value) { }
   void str(std::ostream& os) const { os << value_; }
   int value_;
@@ -149,6 +164,7 @@ struct varchar
 
 struct comparison {
   typedef boolean sql_type;
+  enum { precedence = precedence_level::compare };
 };
 
 template<class Expr1, class Expr2>
@@ -171,24 +187,52 @@ operator ==(const expression<Expr>& expr, const T& val) {
   return expression<equal<Expr, typename Expr::sql_type::literal_type> >(expr, Expr::sql_type::make_literal(val));
 }
 
+template<class Expr1, class Expr2, int Precedence>
+struct binary_operation {
+
+  enum { precedence = Precedence };
+
+  static void write(std::ostream& os, const Expr1& expr1, const char* op, const Expr2& expr2) {
+    write(os, expr1, boost::mpl::bool_<Expr1::precedence < precedence>());
+    os << op;
+    write(os, expr2, boost::mpl::bool_<Expr2::precedence < precedence>());
+  }
+
+  template<class Expr>
+  static void write(std::ostream& os, const Expr& expr, boost::mpl::true_) {
+    os << "(";
+    expr.str(os);
+    os << ")";
+  }
+
+  template<class Expr>
+  static void write(std::ostream& os, const Expr& expr, boost::mpl::false_) {
+    expr.str(os);
+  }
+};
+
 #define BOOST_RDB_OPERATOR +
 #define BOOST_RDB_OPERATOR_STRING " + "
 #define BOOST_RDB_OPERATOR_CLASS plus
+#define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::add
 #include "boost/rdb/details/arithmetic_operator.hpp"
 
 #define BOOST_RDB_OPERATOR -
 #define BOOST_RDB_OPERATOR_STRING " - "
 #define BOOST_RDB_OPERATOR_CLASS minus
+#define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::add
 #include "boost/rdb/details/arithmetic_operator.hpp"
 
 #define BOOST_RDB_OPERATOR *
 #define BOOST_RDB__OPERATORSTRING " * "
 #define BOOST_RDB_OPERATOR_CLASS times
+#define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::multiply
 #include "boost/rdb/details/arithmetic_operator.hpp"
 
 #define BOOST_RDB_OPERATOR /
 #define BOOST_RDB_OPERATOR_STRING " / "
 #define BOOST_RDB_OPERATOR_CLASS divide
+#define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::multiply
 #include "boost/rdb/details/arithmetic_operator.hpp"
 
 template<class Table>

@@ -1,15 +1,13 @@
 
 template<class Expr1, class Expr2, class SqlType>
-struct BOOST_RDB_OPERATOR_CLASS {
+struct BOOST_RDB_OPERATOR_CLASS : binary_operation<Expr1, Expr2, BOOST_RDB_OPERATOR_PRECEDENCE> {
 
   BOOST_RDB_OPERATOR_CLASS(const Expr1& expr1, const Expr2& expr2) : expr1_(expr1), expr2_(expr2) { }
 
   typedef SqlType sql_type;
   
   void str(std::ostream& os) const {
-    expr1_.str(os);
-    os << BOOST_RDB_OPERATOR_STRING;
-    expr2_.str(os);
+    write(os, expr1_, BOOST_RDB_OPERATOR_STRING, expr2_);
   }
   
   Expr1 expr1_;
@@ -44,3 +42,4 @@ operator BOOST_RDB_OPERATOR(const expression<Expr1>& expr1, const expression<Exp
 #undef BOOST_RDB_OPERATOR
 #undef BOOST_RDB_OPERATOR_STRING
 #undef BOOST_RDB_OPERATOR_CLASS
+#undef BOOST_RDB_OPERATOR_PRECEDENCE
