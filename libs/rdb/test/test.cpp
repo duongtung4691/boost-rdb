@@ -28,45 +28,45 @@ BOOST_RDB_BEGIN_TABLE(person)
   BOOST_RDB_COLUMN(age, integer)
 BOOST_RDB_END_TABLE(person) 
 
+#define BOOST_RDB_CHECK_SQL(expr, sql) BOOST_CHECK(str(expr) == sql)
+
 int test_main( int, char *[] )
 {
   using namespace boost::rdb;
 
-  BOOST_CHECK(str(
-    create<person>()
-    ) == "create table person(id integer, name varchar(20), age integer)");
+  BOOST_RDB_CHECK_SQL(create<person>(), "create table person(id integer, name varchar(20), age integer)");
 
   scope {
     person husband;
-    BOOST_CHECK(str(
-      select(husband.id).from(husband)
-      ) == "select id from person");
+    BOOST_RDB_CHECK_SQL(
+      select(husband.id).from(husband),
+      "select id from person");
   }
 
   scope {
-    BOOST_CHECK(str(
-      select(person::_.id).from(person::_)
-      ) == "select id from person");
+    BOOST_RDB_CHECK_SQL(
+      select(person::_.id).from(person::_),
+      "select id from person");
   }
 
   scope {
     person husband;
     person_<1> wife("wife");
-    BOOST_CHECK(str(
-      select(husband.id)(wife.name).from(husband)(wife)
-      ) == "select id, wife.name from person, person as wife");
+    BOOST_RDB_CHECK_SQL(
+      select(husband.id)(wife.name).from(husband)(wife),
+      "select id, wife.name from person, person as wife");
   }
   
   scope {
     person p;
     
-    BOOST_CHECK(str(
-      select(p.id).from(p).where(p.name == "Simpson")
-      ) == "select id from person where name = 'Simpson'");
+    BOOST_RDB_CHECK_SQL(
+      select(p.id).from(p).where(p.name == "Simpson"),
+      "select id from person where name = 'Simpson'");
     
-    BOOST_CHECK(str(
-      select(p.id).from(p).where(p.name == "O'Hara")
-      ) == "select id from person where name = 'O''Hara'");
+    BOOST_RDB_CHECK_SQL(
+      select(p.id).from(p).where(p.name == "O'Hara"),
+      "select id from person where name = 'O''Hara'");
   }
       
   return 0;
