@@ -146,6 +146,10 @@
 			RelativePath="..\..\src\odbc.cpp"
 			>
 		</File>
+		<File
+			RelativePath="..\..\..\..\boost\rdb\odbc.hpp"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>
