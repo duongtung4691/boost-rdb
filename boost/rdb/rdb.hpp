@@ -51,10 +51,71 @@ struct any_column {
   const std::string& name() const { return name_; }
 };
 
-template<class Table, typename SqlType>
-struct column : any_column {
-  static void sql_type(std::ostream& os) { SqlType::str(os); }
+template<class Expr>
+struct expression : Expr {
+  expression() { }
+  template<typename T> expression(const T& arg) : Expr(arg) { }
+  template<typename T1, typename T2> expression(const T1& arg1, const T2& arg2) : Expr(arg1, arg2) { }
 };
+
+template<class Table, class SqlType>
+struct column : any_column {
+  typedef SqlType sql_type;
+  static void str_type(std::ostream& os) { SqlType::str(os); }
+};
+
+template<typename T>
+struct literal {
+  literal(const T& value) : value_(value) { }
+  T value_;
+};
+
+template<>
+struct literal<const char*> {
+  literal(const char* value) : value_(value) { }
+  const char* value_;
+};
+
+template<>
+struct literal<std::string> {
+  literal(const char* value) : value_(value) { }
+  literal(const std::string& value) : value_(value) { }
+  void str(std::ostream& os) const { os << "'" << value_ << "'"; }
+  std::string value_;
+};
+
+struct integer
+{
+  static void str(std::ostream& os) { os << "integer"; }
+};
+
+template<int N>
+struct varchar
+{
+  static void str(std::ostream& os) { os << "varchar(" << N << ")"; }
+  typedef literal<std::string> literal_type;
+  static literal_type make_literal(const char* str) { return literal_type(str); }
+};
+
+template<class Expr1, class Expr2>
+struct equal {
+  equal(const Expr1& expr1, const Expr2& expr2) : expr1_(expr1), expr2_(expr2) { }
+  
+  void str(std::ostream& os) const {
+    expr1_.str(os);
+    os << " = ";
+    expr2_.str(os);
+  }
+  
+  Expr1 expr1_;
+  Expr2 expr2_;
+};
+
+template<class Expr, typename T>
+expression< equal<Expr, typename Expr::sql_type::literal_type> >
+operator ==(const expression<Expr>& expr, const T& val) {
+  return expression<equal<Expr, typename Expr::sql_type::literal_type> >(expr, Expr::sql_type::make_literal(val));
+}
 
 template<class Table>
 struct initialize_columns {
@@ -73,20 +134,9 @@ struct singleton {
 template<class T>
 T singleton<T>::_;
 
-struct integer
-{
-  static void str(std::ostream& os) { os << "integer"; }
-};
-
-template<int N>
-struct varchar
-{
-  static void str(std::ostream& os) { os << "varchar(" << N << ")"; }
-};
-
 #define BOOST_RDB_COLUMN(name, sql_type) \
 members_before_##name;  \
-typedef column<this_table, sql_type> name##_type;  \
+typedef expression< column<this_table, sql_type> > name##_type;  \
 name##_type name;  \
 struct name##_member {  \
   typedef std::string type;  \
@@ -179,7 +229,7 @@ struct select_type<SelectList, FromList, void> : select_type<SelectList, void, v
 
   FromList tables;
 
-  template<typename Table>
+  template<class Table>
   select_type<
     SelectList,
     typename boost::fusion::result_of::push_back< const FromList, boost::reference_wrapper<const Table> >::type,
@@ -192,11 +242,39 @@ struct select_type<SelectList, FromList, void> : select_type<SelectList, void, v
       void
     >(exprs, boost::fusion::push_back(tables, boost::cref(table)));
   }
+  
+  template<class Predicate>
+  select_type<
+    SelectList,
+    FromList,
+    Predicate
+  > where(const Predicate& pred) const {
+    return select_type<
+      SelectList,
+      FromList,
+      Predicate
+    >(exprs, tables, pred);
+  }
 
   void str(std::ostream& os) const {
     just_select::str(os);
     os << " from ";
     boost::fusion::for_each(tables, comma_output(os));
+  }
+};
+
+template<class SelectList, class FromList, class Predicate>
+struct select_type : select_type<SelectList, FromList, void> {
+  typedef select_type<SelectList, FromList, void> select_from;
+  select_type(const SelectList& exprs, const FromList& tables, const Predicate& pred)
+    : select_from(exprs, tables), pred(pred) { }
+
+  const Predicate& pred;
+
+  void str(std::ostream& os) const {
+    select_from::str(os);
+    os << " where ";
+    pred.str(os);
   }
 };
 
@@ -216,17 +294,24 @@ struct table_column_output : comma_output  {
   template<typename Column> void operator ()(Column) {
     std::ostream& os = item();
     os << Column::ref(table_).name() << " ";
-    Column::ref(table_).sql_type(os);
+    Column::ref(table_).str_type(os);
   }
   
   const Table& table_;
 };
 
 template<typename Table>
-void create(std::ostream& os) {
+struct create_table_type {
+  void str(std::ostream& os) const {
   os << "create table " << Table::table_name() << "(";
   boost::mpl::for_each<typename Table::column_members>(table_column_output<Table>(os, Table::_));
   os << ")";
+  }
+};
+
+template<typename Table>
+create_table_type<Table> create() {
+  return create_table_type<Table>();
 }
 
 } }
