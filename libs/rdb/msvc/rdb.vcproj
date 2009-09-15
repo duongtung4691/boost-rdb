@@ -87,6 +87,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="&quot;$(TargetPath)&quot;"
 			/>
 		</Configuration>
 		<Configuration
@@ -163,16 +164,13 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="&quot;$(TargetPath)&quot;"
 			/>
 		</Configuration>
 	</Configurations>
 	<References>
 	</References>
 	<Files>
-		<File
-			RelativePath=".\cout2dbg.cpp"
-			>
-		</File>
 		<File
 			RelativePath="..\build\Jamfile.v2"
 			>
