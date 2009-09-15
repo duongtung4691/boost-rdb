@@ -2,10 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="test_rdb"
-	ProjectGUID="{EDD90CDA-AB8D-4B4B-A1F3-03C9F30B59E2}"
-	RootNamespace="test_rdb"
-	Keyword="Win32Proj"
+	Name="rdb"
+	ProjectGUID="{E44E54A8-E591-474D-B60F-AA05FFEEE056}"
+	RootNamespace="rdb"
 	TargetFrameworkVersion="196613"
 	>
 	<Platforms>
@@ -41,13 +40,9 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\.."
-				PreprocessorDefinitions="_SCL_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
-				ExceptionHandling="2"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
 			/>
@@ -62,9 +57,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				LinkIncremental="2"
 				GenerateDebugInformation="true"
-				SubSystem="1"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -87,7 +80,6 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="&quot;$(TargetPath)&quot;"
 			/>
 		</Configuration>
 		<Configuration
@@ -117,12 +109,8 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\.."
-				PreprocessorDefinitions="_SCL_SECURE_NO_WARNINGS"
-				ExceptionHandling="2"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
-				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
 			/>
@@ -137,9 +125,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				LinkIncremental="1"
 				GenerateDebugInformation="true"
-				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				TargetMachine="1"
@@ -164,7 +150,6 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="&quot;$(TargetPath)&quot;"
 			/>
 		</Configuration>
 	</Configurations>
@@ -172,7 +157,11 @@
 	</References>
 	<Files>
 		<File
-			RelativePath="..\..\test\test.cpp"
+			RelativePath="..\..\..\..\boost\rdb\details\arithmetic_operator.hpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\boost\rdb\rdb.hpp"
 			>
 		</File>
 	</Files>

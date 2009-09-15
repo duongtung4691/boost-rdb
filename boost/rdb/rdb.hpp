@@ -15,7 +15,7 @@
 #include <boost/typeof/typeof.hpp>
 #include <boost/ref.hpp>
 #include <boost/concept_check.hpp>
-#include "boost/concept/requires.hpp"
+#include <boost/concept/requires.hpp>
 
 namespace boost { namespace rdb {
 
@@ -109,9 +109,18 @@ struct literal<std::string> {
   std::string value_;
 };
 
+template<>
+struct literal<int> {
+  literal(int value) : value_(value) { }
+  void str(std::ostream& os) const { os << value_; }
+  int value_;
+};
+
 struct integer
 {
   static void str(std::ostream& os) { os << "integer"; }
+  typedef literal<int> literal_type;
+  static literal_type make_literal(int val) { return literal_type(val); }
 };
 
 template<int N>
@@ -141,6 +150,26 @@ expression< equal<Expr, typename Expr::sql_type::literal_type> >
 operator ==(const expression<Expr>& expr, const T& val) {
   return expression<equal<Expr, typename Expr::sql_type::literal_type> >(expr, Expr::sql_type::make_literal(val));
 }
+
+#define BOOST_RDB_OPERATOR +
+#define BOOST_RDB_OPERATOR_STRING " + "
+#define BOOST_RDB_OPERATOR_CLASS plus
+#include "boost/rdb/details/arithmetic_operator.hpp"
+
+#define BOOST_RDB_OPERATOR -
+#define BOOST_RDB_OPERATOR_STRING " - "
+#define BOOST_RDB_OPERATOR_CLASS minus
+#include "boost/rdb/details/arithmetic_operator.hpp"
+
+#define BOOST_RDB_OPERATOR *
+#define BOOST_RDB__OPERATORSTRING " * "
+#define BOOST_RDB_OPERATOR_CLASS times
+#include "boost/rdb/details/arithmetic_operator.hpp"
+
+#define BOOST_RDB_OPERATOR /
+#define BOOST_RDB_OPERATOR_STRING " / "
+#define BOOST_RDB_OPERATOR_CLASS divide
+#include "boost/rdb/details/arithmetic_operator.hpp"
 
 template<class Table>
 struct initialize_columns {

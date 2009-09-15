@@ -22,8 +22,8 @@ int test_main( int, char *[] )
   try {
     //database db("Provider=Microsoft.Jet.OLEDB.4.0; Data Source=test.mdb", "", "");
     //database db("Provider=MSDASQL;Driver={Microsoft Access Driver (*.mdb)};Dbq=c:\\users\\jll\\test.mdb;Uid=;Pwd=;", "", "");
-    database db("Driver={Microsoft Access Driver (*.mdb)}; DBQ=c:\\windows\\system32\\test_odbc\\test.mdb", "", "");
-    //database db("RDBTest", "", "");
+    //database db("Driver={Microsoft Access Driver (*.mdb)}; DBQ=c:\\windows\\system32\\test_odbc\\test.mdb", "", "");
+    database db("RDBTest", "", "");
     //database db("Driver={Microsoft Text Driver (*.txt; *.csv)};Dbq=c:\\users\\jll\\test\\;Extensions=asc,csv,tab,txt;", "", "");
   } catch (error& e) {
     cout << e.what() << endl;
