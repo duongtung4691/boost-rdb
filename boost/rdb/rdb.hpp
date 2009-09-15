@@ -14,6 +14,8 @@
 #include <boost/fusion/include/push_back.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <boost/ref.hpp>
+#include <boost/concept_check.hpp>
+#include "boost/concept/requires.hpp"
 
 namespace boost { namespace rdb {
 
@@ -49,6 +51,17 @@ struct any_column {
   }
   
   const std::string& name() const { return name_; }
+};
+
+template<class X>
+struct Expression
+{
+  X expr;
+  std::ostream& stream;
+  
+  BOOST_CONCEPT_USAGE(Expression) {
+    expr.str(stream);
+  }
 };
 
 template<class Expr>
@@ -197,10 +210,12 @@ struct select_type<SelectList, void, void> {
   }
 
   template<typename Expr>
-  select_type<
-    typename boost::fusion::result_of::push_back< const SelectList, boost::reference_wrapper<const Expr> >::type,
-    void, void
-  > operator ()(const Expr& expr) const {
+  BOOST_CONCEPT_REQUIRES(
+    ((Expression<Expr>)),
+    (select_type<
+      typename boost::fusion::result_of::push_back< const SelectList, boost::reference_wrapper<const Expr> >::type,
+      void, void
+    >)) operator ()(const Expr& expr) const {
     return select_type<
       typename boost::fusion::result_of::push_back< const SelectList, boost::reference_wrapper<const Expr> >::type,
       void, void
@@ -243,16 +258,19 @@ struct select_type<SelectList, FromList, void> : select_type<SelectList, void, v
     >(exprs, boost::fusion::push_back(tables, boost::cref(table)));
   }
   
-  template<class Predicate>
-  select_type<
-    SelectList,
-    FromList,
-    Predicate
-  > where(const Predicate& pred) const {
+  template<class Pred>
+  BOOST_CONCEPT_REQUIRES(
+    ((Expression<Pred>)),
+    (select_type<
+      SelectList,
+      FromList,
+      Pred>)
+    )
+  where(const Pred& pred) const {
     return select_type<
       SelectList,
       FromList,
-      Predicate
+      Pred
     >(exprs, tables, pred);
   }
 
@@ -279,7 +297,11 @@ struct select_type : select_type<SelectList, FromList, void> {
 };
 
 template<class Expr>
-select_type<typename boost::fusion::result_of::make_vector< boost::reference_wrapper<const Expr> >::type, void, void>
+BOOST_CONCEPT_REQUIRES(
+  ((Expression<Expr>)),
+  (select_type<
+    typename boost::fusion::result_of::make_vector< boost::reference_wrapper<const Expr> >::type,
+    void, void>))
 select(const Expr& expr) {
   return select_type<
     typename boost::fusion::result_of::make_vector< boost::reference_wrapper<const Expr> >::type,
