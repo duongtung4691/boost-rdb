@@ -387,9 +387,9 @@ template<int Alias>  \
 struct NAME##_ : any_table, singleton< NAME##_<Alias> > {  \
   typedef NAME##_<Alias> this_table;  \
   static const char* table_name() { return #NAME; }  \
-  person_() : any_table(table_name()) { initialize(); }  \
-  person_(const std::string& alias) : any_table(table_name(), alias) { initialize(); }  \
-  person_(const this_table& other) { initialize(); }  \
+  NAME##_() : any_table(table_name()) { initialize(); }  \
+  NAME##_(const std::string& alias) : any_table(table_name(), alias) { initialize(); }  \
+  NAME##_(const this_table& other) { initialize(); }  \
   typedef boost::mpl::vector0<>
 
 #define BOOST_RDB_END_TABLE(NAME)  \
