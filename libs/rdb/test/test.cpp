@@ -121,6 +121,24 @@ int test_main( int, char *[] )
       select(p1.id).from(p1)(p2).where((p1.id + p2.age) > p1.age),
       "select p1.id from person as p1, person as p2 where (p1.id + p2.age) > p1.age");
   }
-      
+
+  scope {
+  
+    person p("p");
+
+    BOOST_RDB_CHECK_SQL(
+      select(p.id).from(p).where(!(p.age > 18)),
+      "select p.id from person as p where not (p.age > 18)");
+  }
+
+  scope {
+  
+    person p("p");
+
+    BOOST_RDB_CHECK_SQL(
+      select(p.id).from(p).where(p.age > 18 && p.age < 65),
+      "select p.id from person as p where (p.age > 18) and (p.age < 65)");
+  }
+        
   return 0;
 }

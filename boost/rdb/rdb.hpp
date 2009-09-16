@@ -9,7 +9,6 @@
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/bool.hpp>
-#include <boost/mpl/bool.hpp>
 #include <boost/mpl/assert.hpp>
 #include <boost/type_traits/is_same.hpp>
 #include <boost/fusion/container/vector.hpp>
@@ -28,6 +27,8 @@ namespace precedence_level {
     add,
     multiply,
     compare,
+    boolean,
+    not,
     highest
   };
 }
@@ -175,6 +176,14 @@ struct boolean
   static literal_type make_literal(bool val) { return literal_type(val); }
 };
 
+template<class Expr>
+struct BooleanExpression : Expression<Expr>
+{
+  BOOST_CONCEPT_USAGE(BooleanExpression) {
+    BOOST_MPL_ASSERT((boost::is_same<typename Expr::sql_type, boolean>));
+  }
+};
+
 struct char_comparable_type;
 
 template<int N>
@@ -296,6 +305,51 @@ struct binary_operation {
 #define BOOST_RDB_OPERATOR_CLASS ge
 #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::compare
 #include "boost/rdb/details/comparison_operator.hpp"
+
+#define BOOST_RDB_OPERATOR &&
+#define BOOST_RDB_OPERATOR_STRING " and "
+#define BOOST_RDB_OPERATOR_CLASS and
+#include "boost/rdb/details/boolean_operator.hpp"
+
+#define BOOST_RDB_OPERATOR ||
+#define BOOST_RDB_OPERATOR_STRING " or "
+#define BOOST_RDB_OPERATOR_CLASS or
+#include "boost/rdb/details/boolean_operator.hpp"
+
+template<class Expr>
+struct not {
+
+  not(const Expr& expr) : expr_(expr) { }
+
+  typedef boolean sql_type;
+
+  enum { precedence = precedence_level::not };
+  
+  void str(std::ostream& os) const {
+    write(os, boost::mpl::bool_<Expr::precedence < precedence>());
+  }
+
+  void write(std::ostream& os, boost::mpl::true_) const {
+    os << "not (";
+    expr_.str(os);
+    os << ")";
+  }
+
+  void write(std::ostream& os, boost::mpl::false_) const {
+    os << "not ";
+    expr_.str(os);
+  }
+  
+  Expr expr_;
+};
+
+template<class Expr>
+BOOST_CONCEPT_REQUIRES(
+  ((BooleanExpression<Expr>)),
+  (expression< not<Expr> >))
+operator !(const expression<Expr>& expr) {
+  return expression< not<Expr> >(expr);
+}
 
 template<class Table>
 struct initialize_columns {

@@ -161,6 +161,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\..\..\boost\rdb\details\boolean_operator.hpp"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\..\boost\rdb\details\comparison_operator.hpp"
 			>
 		</File>
