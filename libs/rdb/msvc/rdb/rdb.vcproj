@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="rdb"
 	ProjectGUID="{E44E54A8-E591-474D-B60F-AA05FFEEE056}"
 	RootNamespace="rdb"
@@ -158,6 +158,10 @@
 	<Files>
 		<File
 			RelativePath="..\..\..\..\boost\rdb\details\arithmetic_operator.hpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\boost\rdb\details\comparison_operator.hpp"
 			>
 		</File>
 		<File

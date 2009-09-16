@@ -9,6 +9,9 @@
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/bool.hpp>
+#include <boost/mpl/bool.hpp>
+#include <boost/mpl/assert.hpp>
+#include <boost/type_traits/is_same.hpp>
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/make_vector.hpp>
 #include <boost/fusion/include/for_each.hpp>
@@ -96,6 +99,21 @@ struct NumericExpression : Expression<Expr>
 };
 
 template<class Expr>
+struct ComparableExpression : Expression<Expr>
+{
+  typedef typename Expr::sql_type::comparable_type comparable_type;
+};
+
+template<class Expr, typename T>
+struct CompatibleLiteral
+{
+  const T& value;
+  BOOST_CONCEPT_USAGE(CompatibleLiteral) {
+    Expr::sql_type::make_literal(value);
+  }
+};
+
+template<class Expr>
 struct expression : Expr {
   expression() { }
   template<typename T> expression(const T& arg) : Expr(arg) { }
@@ -139,12 +157,15 @@ struct literal<int> : any_literal  {
   int value_;
 };
 
+struct num_comparable_type;
+
 struct integer
 {
   static void str(std::ostream& os) { os << "integer"; }
   typedef literal<int> literal_type;
   static literal_type make_literal(int val) { return literal_type(val); }
   typedef boost::mpl::true_::type is_numeric;
+  typedef num_comparable_type comparable_type;
 };
 
 struct boolean
@@ -154,18 +175,23 @@ struct boolean
   static literal_type make_literal(bool val) { return literal_type(val); }
 };
 
+struct char_comparable_type;
+
 template<int N>
 struct varchar
 {
   static void str(std::ostream& os) { os << "varchar(" << N << ")"; }
   typedef literal<std::string> literal_type;
   static literal_type make_literal(const char* str) { return literal_type(str); }
+  typedef char_comparable_type comparable_type;
 };
 
 struct comparison {
   typedef boolean sql_type;
   enum { precedence = precedence_level::compare };
 };
+
+/*
 
 template<class Expr1, class Expr2>
 struct equal : comparison {
@@ -186,7 +212,7 @@ expression< equal<Expr, typename Expr::sql_type::literal_type> >
 operator ==(const expression<Expr>& expr, const T& val) {
   return expression<equal<Expr, typename Expr::sql_type::literal_type> >(expr, Expr::sql_type::make_literal(val));
 }
-
+*/
 template<class Expr1, class Expr2, int Precedence>
 struct binary_operation {
 
@@ -234,6 +260,42 @@ struct binary_operation {
 #define BOOST_RDB_OPERATOR_CLASS divide
 #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::multiply
 #include "boost/rdb/details/arithmetic_operator.hpp"
+
+#define BOOST_RDB_OPERATOR ==
+#define BOOST_RDB_OPERATOR_STRING " = "
+#define BOOST_RDB_OPERATOR_CLASS eq
+#define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::compare
+#include "boost/rdb/details/comparison_operator.hpp"
+
+#define BOOST_RDB_OPERATOR !=
+#define BOOST_RDB_OPERATOR_STRING " <> "
+#define BOOST_RDB_OPERATOR_CLASS ne
+#define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::compare
+#include "boost/rdb/details/comparison_operator.hpp"
+
+#define BOOST_RDB_OPERATOR <
+#define BOOST_RDB_OPERATOR_STRING " < "
+#define BOOST_RDB_OPERATOR_CLASS lt
+#define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::compare
+#include "boost/rdb/details/comparison_operator.hpp"
+
+#define BOOST_RDB_OPERATOR <=
+#define BOOST_RDB_OPERATOR_STRING " <= "
+#define BOOST_RDB_OPERATOR_CLASS le
+#define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::compare
+#include "boost/rdb/details/comparison_operator.hpp"
+
+#define BOOST_RDB_OPERATOR >
+#define BOOST_RDB_OPERATOR_STRING " > "
+#define BOOST_RDB_OPERATOR_CLASS gt
+#define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::compare
+#include "boost/rdb/details/comparison_operator.hpp"
+
+#define BOOST_RDB_OPERATOR >=
+#define BOOST_RDB_OPERATOR_STRING " >= "
+#define BOOST_RDB_OPERATOR_CLASS ge
+#define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::compare
+#include "boost/rdb/details/comparison_operator.hpp"
 
 template<class Table>
 struct initialize_columns {
