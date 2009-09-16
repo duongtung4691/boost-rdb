@@ -3,8 +3,11 @@
 #include <boost/test/minimal.hpp>
 #include <boost/rdb/rdb.hpp>
 
+#include "test_tables.hpp"
+
 using namespace std;
 using namespace boost::rdb;
+using namespace boost::rdb::test::springfield;
 
 template<class Statement>
 std::string str(const Statement& statement) {
@@ -22,19 +25,14 @@ std::string str(const select_type<SelectList, FromList, WhereList>& select) {
 
 #define scope
 
-BOOST_RDB_BEGIN_TABLE(person) 
-  BOOST_RDB_COLUMN(id, integer)
-  BOOST_RDB_COLUMN(name, varchar<20>)
-  BOOST_RDB_COLUMN(age, integer)
-BOOST_RDB_END_TABLE(person) 
-
 #define BOOST_RDB_CHECK_SQL(expr, sql) BOOST_CHECK(str(expr) == sql)
 
 int test_main( int, char *[] )
 {
   using namespace boost::rdb;
 
-  BOOST_RDB_CHECK_SQL(create_table<person>(), "create table person(id integer, name varchar(20), age integer)");
+  BOOST_RDB_CHECK_SQL(create_table<person>(),
+    "create table person(id integer, name varchar(20), first_name varchar(20), age integer)");
 
   scope {
     person husband;
@@ -151,6 +149,18 @@ int test_main( int, char *[] )
     BOOST_RDB_CHECK_SQL(
       select((p.id, p.name, p.age)).from(p),
       "select p.id, p.name, p.age from person as p");
+  }
+
+  scope {
+    person p;
+
+    BOOST_RDB_CHECK_SQL(
+      insert_into<person>(p.id)(p.name),
+      "insert into person (id, name)");
+
+    #if 0 // this won't compile
+    insert_into<person>(partner::_.husband);
+    #endif
   }
       
   return 0;

@@ -4,15 +4,13 @@
 #include <boost/rdb/rdb.hpp>
 #include <boost/rdb/odbc.hpp>
 
+#include "test_tables.hpp"
+
 using namespace std;
 using namespace boost::rdb;
+using namespace boost::rdb::test::springfield;
 
 #define scope
-
-BOOST_RDB_BEGIN_TABLE(person) 
-  BOOST_RDB_COLUMN(id, integer)
-  BOOST_RDB_COLUMN(name, varchar<20>)
-BOOST_RDB_END_TABLE(person) 
 
 int test_main( int, char *[] )
 {
@@ -20,8 +18,15 @@ int test_main( int, char *[] )
   using namespace boost::rdb::odbc;
 
   database db("boost", "boost", "boost");
-  db.drop_table<person>();
+
+  try {
+    db.drop_table<person>();
+    db.drop_table<partner>();
+  } catch (error) {
+  }
+
   db.create_table<person>();
+  db.create_table<partner>();
       
   return 0;
 }

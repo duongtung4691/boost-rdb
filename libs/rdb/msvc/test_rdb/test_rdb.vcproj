@@ -175,6 +175,10 @@
 			RelativePath="..\..\test\test.cpp"
 			>
 		</File>
+		<File
+			RelativePath="..\..\test\test_tables.hpp"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

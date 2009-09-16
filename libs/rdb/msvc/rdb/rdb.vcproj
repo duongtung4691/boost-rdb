@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="rdb"
 	ProjectGUID="{E44E54A8-E591-474D-B60F-AA05FFEEE056}"
 	RootNamespace="rdb"
@@ -169,7 +169,15 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\..\..\boost\rdb\insert.hpp"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\..\boost\rdb\rdb.hpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\boost\rdb\select.hpp"
 			>
 		</File>
 	</Files>
