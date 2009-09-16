@@ -30,6 +30,10 @@ error::error(SQLSMALLINT handle_type, SQLHANDLE handle, long rc) : rc(rc) {
   cout << msg << endl;
 }
 
+database::~database() {
+  disconnect();
+}
+
 void database::connect(const string& dsn, const string& user, const string& password) {
 
   dsn_ = dsn;
@@ -56,6 +60,24 @@ void database::connect(const string& dsn, const string& user, const string& pass
 
   //SQLSMALLINT res;
   //SQLGetInfo(hdbc_, SQL_TXN_CAPABLE, &res, sizeof res, NULL);
+}
+
+void database::disconnect() {
+  if (hstmt_ != SQL_NULL_HANDLE)
+    SQLFreeHandle(SQL_HANDLE_STMT, hstmt_);
+
+  if (hdbc_ != SQL_NULL_HANDLE) {
+    SQLDisconnect(hdbc_);
+    SQLFreeHandle(SQL_HANDLE_DBC, hdbc_);
+  }
+
+  if (henv_ != SQL_NULL_HANDLE)
+    SQLFreeHandle(SQL_HANDLE_ENV, henv_);
+}
+
+void database::execute(const string& sql) {
+  //TR << sql << endl;
+  sql_check(SQL_HANDLE_STMT, hstmt_, SQLExecDirect(hstmt_, (SQLCHAR*) sql.c_str(), SQL_NTS));
 }
 
 const char* error::what() const throw() {
@@ -93,25 +115,25 @@ namespace Tangram {
       }
 
 
-      void Storage::create(const Schema* schema, const string& dsn, const string& user, const string& password) {
+      void database::create(const Schema* schema, const string& dsn, const string& user, const string& password) {
         start(schema);
         odbc_connect(dsn, user, password);
         odbc_create();
       }
 
-      void Storage::create(const Schema* schema, const Specific_Mapping* mapping, const string& dsn, const string& user, const string& password) {
+      void database::create(const Schema* schema, const Specific_Mapping* mapping, const string& dsn, const string& user, const string& password) {
         start(schema, mapping);
         odbc_connect(dsn, user, password);
         odbc_create();
       }
 
-      void Storage::create(Specific_Engine* engine, const string& dsn, const string& user, const string& password) {
+      void database::create(Specific_Engine* engine, const string& dsn, const string& user, const string& password) {
         start(engine);
         odbc_connect(dsn, user, password);
         odbc_create();
       }
 
-      void Storage::odbc_create() {
+      void database::odbc_create() {
         SQLSMALLINT res;
         SQLGetInfo(hdbc_, SQL_TXN_CAPABLE, &res, sizeof res, NULL);
 
@@ -124,64 +146,47 @@ namespace Tangram {
           SQLSetConnectOption(hdbc_, SQL_AUTOCOMMIT, SQL_AUTOCOMMIT_OFF);
       }
 
-      void Storage::connect(const Schema* schema, const string& dsn, const string& user, const string& password) {
+      void database::connect(const Schema* schema, const string& dsn, const string& user, const string& password) {
         start(schema);
         odbc_connect(dsn, user, password);
       }
 
-      void Storage::connect(const Schema* schema, const Specific_Mapping* mapping, const string& dsn, const string& user, const string& password) {
+      void database::connect(const Schema* schema, const Specific_Mapping* mapping, const string& dsn, const string& user, const string& password) {
         start(schema, mapping);
         odbc_connect(dsn, user, password);
       }
 
-      void Storage::connect(Specific_Engine* engine, const string& dsn, const string& user, const string& password) {
+      void database::connect(Specific_Engine* engine, const string& dsn, const string& user, const string& password) {
         start(engine);
         odbc_connect(dsn, user, password);
       }
 
-      Storage::~Storage() {
-        disconnect();
-      }
+      void database::clear(const string& dsn, const string& user, const string& password) {
 
-      void Storage::disconnect() {
-        if (hstmt_ != SQL_NULL_HANDLE)
-          SQLFreeHandle(SQL_HANDLE_STMT, hstmt_);
-  
-        if (hdbc_ != SQL_NULL_HANDLE) {
-          SQLDisconnect(hdbc_);
-          SQLFreeHandle(SQL_HANDLE_DBC, hdbc_);
-        }
-  
-        if (henv_ != SQL_NULL_HANDLE)
-          SQLFreeHandle(SQL_HANDLE_ENV, henv_);
-      }
+        database database;
 
-      void Storage::clear(const string& dsn, const string& user, const string& password) {
+        database.odbc_connect(dsn, user, password);
 
-        Storage storage;
-
-        storage.odbc_connect(dsn, user, password);
-
-        sql_check<error>(SQL_HANDLE_STMT, storage.hstmt_, SQLTables(storage.hstmt_, NULL, 0, (SQLCHAR*) "%", SQL_NTS, (SQLCHAR*) "%", SQL_NTS, (SQLCHAR*) "TABLE", SQL_NTS));
+        sql_check<error>(SQL_HANDLE_STMT, database.hstmt_, SQLTables(database.hstmt_, NULL, 0, (SQLCHAR*) "%", SQL_NTS, (SQLCHAR*) "%", SQL_NTS, (SQLCHAR*) "TABLE", SQL_NTS));
         char buf[1024];
         vector<string> tables;
         SQLLEN actual_length;
-        sql_check<error>(SQL_HANDLE_STMT, storage.hstmt_, SQLBindCol(storage.hstmt_, 3, SQL_C_CHAR, (PTR) buf, sizeof buf, &actual_length));
-        while (SQLFetch(storage.hstmt_) == SQL_SUCCESS) {
+        sql_check<error>(SQL_HANDLE_STMT, database.hstmt_, SQLBindCol(database.hstmt_, 3, SQL_C_CHAR, (PTR) buf, sizeof buf, &actual_length));
+        while (SQLFetch(database.hstmt_) == SQL_SUCCESS) {
           tables.push_back(buf);
         }
-        sql_check<error>(SQL_HANDLE_STMT, storage.hstmt_, SQLFreeStmt(storage.hstmt_, SQL_CLOSE));
+        sql_check<error>(SQL_HANDLE_STMT, database.hstmt_, SQLFreeStmt(database.hstmt_, SQL_CLOSE));
         vector<string>::const_iterator iter = tables.begin(), last = tables.end();
-        if (storage.tx_capable_)
-          SQLSetConnectOption(storage.hdbc_, SQL_AUTOCOMMIT, SQL_AUTOCOMMIT_ON);
+        if (database.tx_capable_)
+          SQLSetConnectOption(database.hdbc_, SQL_AUTOCOMMIT, SQL_AUTOCOMMIT_ON);
         while (iter != last) {
           string sql = "DROP TABLE " + *iter++;
           TR << sql << endl;
-          sql_check<error>(SQL_HANDLE_STMT, storage.hstmt_, SQLExecDirect(storage.hstmt_, (SQLCHAR*) sql.c_str(), SQL_NTS));
+          sql_check<error>(SQL_HANDLE_STMT, database.hstmt_, SQLExecDirect(database.hstmt_, (SQLCHAR*) sql.c_str(), SQL_NTS));
         }
       }
 
-      void Storage::test() {
+      void database::test() {
         try { sql_do("DROP TABLE Person"); } catch (...) { }
         sql_do("CREATE TABLE Person (name VARCHAR(255))");
         sql_do("INSERT INTO Person (name) VALUES ('Homer')");
@@ -197,28 +202,28 @@ namespace Tangram {
         */
       }
 
-      void Storage::sql_do(const string& sql) {
+      void database::sql_do(const string& sql) {
         TR << sql << endl;
         sql_check<error>(SQL_HANDLE_STMT, hstmt_, SQLExecDirect(hstmt_, (SQLCHAR*) sql.c_str(), SQL_NTS));
       }
 
-      void Storage::sql_tx_begin() {
-        TR << trace_this("ODBC::Storage", this) << " : begin tx" << endl;
+      void database::sql_tx_begin() {
+        TR << trace_this("ODBC::database", this) << " : begin tx" << endl;
       }
 
-      void Storage::sql_tx_commit() {
-        TR << trace_this("ODBC::Storage", this) << " : commit tx" << endl;
+      void database::sql_tx_commit() {
+        TR << trace_this("ODBC::database", this) << " : commit tx" << endl;
         SQLTransact(henv_, hdbc_, SQL_COMMIT);
       }
 
-      void Storage::sql_tx_rollback() {
-        TR << trace_this("ODBC::Storage", this) << " : rollback tx" << endl;
+      void database::sql_tx_rollback() {
+        TR << trace_this("ODBC::database", this) << " : rollback tx" << endl;
         SQLTransact(henv_, hdbc_, SQL_ROLLBACK);
       }
 	  
       struct ODBC_Prepared_Statement : Prepared_Statement {
 
-        ODBC_Prepared_Statement(Storage* storage) : Prepared_Statement(storage) { }
+        ODBC_Prepared_Statement(database* database) : Prepared_Statement(database) { }
 
         vector< pair<int, int> > string_buffers;
         vector<SQLLEN*> length;
@@ -339,7 +344,7 @@ namespace Tangram {
         for_each(length.rbegin(), length.rend(), delete_ptr<SQLLEN>);
       }
 
-      Prepared_Statement* Storage::make_statement() {
+      Prepared_Statement* database::make_statement() {
         auto_ptr<ODBC_Prepared_Statement> statement(new ODBC_Prepared_Statement(this));
         statement->hstmt_ = SQL_NULL_HANDLE;
         sql_check<Resource_Error>(SQL_HANDLE_DBC, hdbc_, SQLAllocStmt(hdbc_, &statement->hstmt_));

@@ -16,18 +16,28 @@ namespace boost { namespace rdb { namespace odbc {
       };
 
   template<class Specific>
-  struct generic_database {
+  class generic_database {
+    Specific& spec() { return static_cast<Specific&>(*this); }
+  public:
+    template<typename Table>
+    void create_table() { spec().execute(rdb::create_table<Table>().str()); }
+
+    template<typename Table>
+    void drop_table() { spec().execute(std::string("drop table ") + Table::table_name()); }
   };
 
   class database : public generic_database<database> {
   public:
     database() { }
+    ~database();
 
     database(const std::string& dsn, const std::string& user, const std::string& password) {
       connect(dsn, user, password);
     }
 
     void connect(const std::string& dsn, const std::string& user, const std::string& password);
+    void disconnect();
+    void execute(const std::string& sql);
 
   private:
     std::string dsn_, user_, password_;

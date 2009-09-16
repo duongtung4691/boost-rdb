@@ -2,6 +2,7 @@
 #define BOOST_RDB_HPP
 
 #include <iostream>
+#include <sstream>
 #include <boost/format.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/push_back.hpp>
@@ -119,6 +120,7 @@ struct expression : Expr {
   expression() { }
   template<typename T> expression(const T& arg) : Expr(arg) { }
   template<typename T1, typename T2> expression(const T1& arg1, const T2& arg2) : Expr(arg1, arg2) { }
+  const Expr& unwrap() const { return *this; }
 };
 
 template<class Table, class SqlType>
@@ -523,11 +525,82 @@ BOOST_CONCEPT_REQUIRES(
   (select_type<
     typename boost::fusion::result_of::make_vector< boost::reference_wrapper<const Expr> >::type,
     void, void>))
-select(const Expr& expr) {
+select(const expression<Expr>& expr) {
   return select_type<
     typename boost::fusion::result_of::make_vector< boost::reference_wrapper<const Expr> >::type,
     void, void
   >(boost::fusion::make_vector(boost::cref(expr)));
+}
+
+template<class ExprList>
+struct expression_list : ExprList {
+  typedef ExprList expression_list_type;
+  expression_list(const ExprList& exprs) : ExprList(exprs) { }
+  const ExprList& unwrap() const { return *this; }
+};
+
+namespace result_of {
+  template<class Expr1, class Expr2>
+  struct make_expression_list {
+    typedef typename expression_list<
+      typename boost::fusion::result_of::make_vector<
+        boost::reference_wrapper<const Expr1>,
+        boost::reference_wrapper<const Expr2>
+      >::type
+    > type;
+  };
+
+  template<class ExprList, class Expr>
+  struct extend_expression_list {
+    typedef typename expression_list<
+      typename boost::fusion::result_of::push_back<
+        const ExprList,
+        boost::reference_wrapper<const Expr>
+      >::type
+    > type;
+  };
+}
+
+template<class Expr1, class Expr2>
+typename result_of::make_expression_list<Expr1, Expr2>::type
+make_expression_list(const expression<Expr1>& expr1, const expression<Expr2>& expr2) {
+  typedef typename result_of::make_expression_list<Expr1, Expr2>::type type;
+  return type(boost::fusion::make_vector(boost::cref(expr1), boost::cref(expr2)));
+}
+
+template<class ExprList, class Expr>
+typename result_of::extend_expression_list<ExprList, Expr>::type
+extend_expression_list(const expression_list<ExprList>& exprs, const expression<Expr>& expr) {
+  typedef typename result_of::extend_expression_list<ExprList, Expr>::type result_type;
+  return boost::fusion::push_back(exprs.unwrap(), boost::cref(expr.unwrap()));
+}
+
+namespace result_of {
+  template<class ExprList>
+  struct select {
+    typedef select_type<ExprList, void, void> type;
+  };
+}
+
+template<class ExprList>
+typename result_of::select<ExprList>::type select(const expression_list<ExprList>& exprs) {
+  typedef typename result_of::select<ExprList>::type result_type;
+  return result_type(exprs);
+}
+
+namespace comma {
+
+  template<class Expr1, class Expr2>
+  typename result_of::make_expression_list<Expr1, Expr2>::type
+    operator ,(const expression<Expr1>& expr1, const expression<Expr2>& expr2) {
+    return make_expression_list(expr1, expr2);
+  }
+
+  template<class ExprList, class Expr>
+  typename result_of::extend_expression_list<ExprList, Expr>::type
+  operator ,(const expression_list<ExprList>& exprs, const expression<Expr>& expr) {
+      return extend_expression_list(exprs, expr);
+  }
 }
 
 template<typename Table>
@@ -543,6 +616,13 @@ struct table_column_output : comma_output {
   const Table& table_;
 };
 
+template<class Statement>
+std::string as_string(const Statement& statement) {
+  std::ostringstream os;
+  statement.str(os);
+  return os.str();
+}
+
 template<typename Table>
 struct create_table_type {
   void str(std::ostream& os) const {
@@ -550,10 +630,11 @@ struct create_table_type {
   boost::mpl::for_each<typename Table::column_members>(table_column_output<Table>(os, Table::_));
   os << ")";
   }
+  std::string str() const { return as_string(*this); }
 };
 
 template<typename Table>
-create_table_type<Table> create() {
+create_table_type<Table> create_table() {
   return create_table_type<Table>();
 }
 

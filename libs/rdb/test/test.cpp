@@ -34,7 +34,7 @@ int test_main( int, char *[] )
 {
   using namespace boost::rdb;
 
-  BOOST_RDB_CHECK_SQL(create<person>(), "create table person(id integer, name varchar(20), age integer)");
+  BOOST_RDB_CHECK_SQL(create_table<person>(), "create table person(id integer, name varchar(20), age integer)");
 
   scope {
     person husband;
