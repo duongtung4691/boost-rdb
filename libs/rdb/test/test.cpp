@@ -139,6 +139,19 @@ int test_main( int, char *[] )
       select(p.id).from(p).where(p.age > 18 && p.age < 65),
       "select p.id from person as p where (p.age > 18) and (p.age < 65)");
   }
-        
+
+  scope {
+    using namespace boost::rdb::comma;
+    person p("p");
+
+    BOOST_RDB_CHECK_SQL(
+      select((p.id, p.name)).from(p),
+      "select p.id, p.name from person as p");
+
+    BOOST_RDB_CHECK_SQL(
+      select((p.id, p.name, p.age)).from(p),
+      "select p.id, p.name, p.age from person as p");
+  }
+      
   return 0;
 }
