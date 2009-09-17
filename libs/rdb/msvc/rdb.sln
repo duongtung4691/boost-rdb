@@ -36,7 +36,9 @@ Global
 		{EDD90CDA-AB8D-4B4B-A1F3-03C9F30B59E2}.Release|Win32.ActiveCfg = Release|Win32
 		{EDD90CDA-AB8D-4B4B-A1F3-03C9F30B59E2}.Release|Win32.Build.0 = Release|Win32
 		{E44E54A8-E591-474D-B60F-AA05FFEEE056}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E44E54A8-E591-474D-B60F-AA05FFEEE056}.Debug|Win32.Build.0 = Debug|Win32
 		{E44E54A8-E591-474D-B60F-AA05FFEEE056}.Release|Win32.ActiveCfg = Release|Win32
+		{E44E54A8-E591-474D-B60F-AA05FFEEE056}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
