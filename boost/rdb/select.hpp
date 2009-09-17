@@ -160,7 +160,7 @@ namespace boost { namespace rdb {
     }
   };
   
-  extern select_type<details::empty_vector, void, void> select;
+  extern select_type<details::empty, void, void> select;
 
   namespace comma {
 

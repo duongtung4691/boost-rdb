@@ -33,7 +33,7 @@ int test_main( int, char *[] )
   using boost::rdb::select;
 
   BOOST_RDB_CHECK_SQL(create_table<person>(),
-    "create table person(id integer, name varchar(20), first_name varchar(20), age integer)");
+    "create table person(id integer, name varchar(20), first_name varchar(30), age integer)");
 
   scope {
     person husband;
@@ -156,12 +156,40 @@ int test_main( int, char *[] )
     person p;
 
     BOOST_RDB_CHECK_SQL(
-      insert_into<person>(p.id)(p.name),
-      "insert into person (id, name)");
+      insert_into<person>(p.name).values(p.first_name),
+      "insert into person (name) values (first_name)");
 
-    #if 0 // this won't compile
-    insert_into<person>(partner::_.husband);
-    #endif
+    BOOST_RDB_CHECK_SQL(
+      insert_into<person>(p.id)(p.name).values(p.age)(p.first_name), // meaningless but...
+      "insert into person (id, name) values (age, first_name)");
+
+    BOOST_RDB_CHECK_SQL(
+      insert_into<person>(p.id).values(1),
+      "insert into person (id) values (1)");
+
+    BOOST_RDB_CHECK_SQL(
+      insert_into<person>(p.first_name).values("Homer"),
+      "insert into person (first_name) values ('Homer')");
+
+    BOOST_RDB_CHECK_SQL(
+      insert_into<person>(p.first_name)(p.name).values("Homer")("Simpson"),
+      "insert into person (first_name, name) values ('Homer', 'Simpson')");
+
+    BOOST_RDB_CHECK_SQL(
+      insert_into<person>(p.id)(p.age).values(1)(46),
+      "insert into person (id, age) values (1, 46)");
+
+    BOOST_RDB_CHECK_SQL(
+      insert_into<person>(p.id)(p.first_name).values(1)("Homer"),
+      "insert into person (id, first_name) values (1, 'Homer')");
+
+    BOOST_RDB_CHECK_SQL(
+      insert_into<person>(p.id)(p.first_name)(p.name).values(1)("Homer")("Simpson"),
+      "insert into person (id, first_name, name) values (1, 'Homer', 'Simpson')");
+
+    // these won't compile
+    //insert_into<person>(partner::_.husband); // not in same table
+    //insert_into<person>(p.name).values(p.id); // type mismatch
   }
       
   return 0;

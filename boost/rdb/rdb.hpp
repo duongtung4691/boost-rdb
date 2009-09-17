@@ -12,11 +12,16 @@
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/assert.hpp>
 #include <boost/type_traits/is_same.hpp>
+#include <boost/type_traits/remove_reference.hpp>
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/make_vector.hpp>
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/push_back.hpp>
 #include <boost/fusion/include/join.hpp>
+#include <boost/fusion/include/begin.hpp>
+#include <boost/fusion/include/next.hpp>
+#include <boost/fusion/include/deref.hpp>
+#include <boost/fusion/include/front.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <boost/ref.hpp>
 #include <boost/concept_check.hpp>
@@ -25,7 +30,7 @@
 namespace boost { namespace rdb {
 
   namespace details {
-    typedef boost::fusion::vector<> empty_vector;
+    typedef boost::fusion::vector<> empty;
   }
 
   namespace precedence_level {
@@ -193,6 +198,9 @@ namespace boost { namespace rdb {
   };
 
   struct num_comparable_type;
+  struct numeric_type;
+  struct char_type;
+  struct boolean_type;
 
   struct integer
   {
@@ -201,6 +209,7 @@ namespace boost { namespace rdb {
     static literal_type make_literal(int val) { return literal_type(val); }
     typedef boost::mpl::true_::type is_numeric;
     typedef num_comparable_type comparable_type;
+    typedef numeric_type kind;
   };
 
   struct boolean
@@ -208,6 +217,7 @@ namespace boost { namespace rdb {
     static void str(std::ostream& os) { os << "boolean"; }
     typedef literal<bool> literal_type;
     static literal_type make_literal(bool val) { return literal_type(val); }
+    typedef boolean_type kind;
   };
 
   template<class Expr>
@@ -227,6 +237,7 @@ namespace boost { namespace rdb {
     typedef literal<std::string> literal_type;
     static literal_type make_literal(const char* str) { return literal_type(str); }
     typedef char_comparable_type comparable_type;
+    typedef char_type kind;
   };
 
   struct comparison {
