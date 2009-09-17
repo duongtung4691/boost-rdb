@@ -16,12 +16,17 @@
 #include <boost/fusion/include/make_vector.hpp>
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/push_back.hpp>
+#include <boost/fusion/include/join.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <boost/ref.hpp>
 #include <boost/concept_check.hpp>
 #include <boost/concept/requires.hpp>
 
 namespace boost { namespace rdb {
+
+  namespace details {
+    typedef boost::fusion::vector<> empty_vector;
+  }
 
   namespace precedence_level {
     enum {
@@ -229,28 +234,6 @@ namespace boost { namespace rdb {
     enum { precedence = precedence_level::compare };
   };
 
-  /*
-
-  template<class Expr1, class Expr2>
-  struct equal : comparison {
-    equal(const Expr1& expr1, const Expr2& expr2) : expr1_(expr1), expr2_(expr2) { }
-    
-    void str(std::ostream& os) const {
-      expr1_.str(os);
-      os << " = ";
-      expr2_.str(os);
-    }
-    
-    Expr1 expr1_;
-    Expr2 expr2_;
-  };
-
-  template<class Expr, typename T>
-  expression< equal<Expr, typename Expr::sql_type::literal_type> >
-  operator ==(const expression<Expr>& expr, const T& val) {
-    return expression<equal<Expr, typename Expr::sql_type::literal_type> >(expr, Expr::sql_type::make_literal(val));
-  }
-  */
   template<class Expr1, class Expr2, int Precedence>
   struct binary_operation {
 

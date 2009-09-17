@@ -6,6 +6,49 @@
 
 namespace boost { namespace rdb {
 
+  template<class ExprList>
+  struct expression_list : ExprList {
+    typedef ExprList expression_list_type;
+    expression_list(const ExprList& exprs) : ExprList(exprs) { }
+    const ExprList& unwrap() const { return *this; }
+  };
+
+  namespace result_of {
+    template<class Expr1, class Expr2>
+    struct make_expression_list {
+      typedef typename expression_list<
+        typename boost::fusion::result_of::make_vector<
+          boost::reference_wrapper<const Expr1>,
+          boost::reference_wrapper<const Expr2>
+        >::type
+      > type;
+    };
+
+    template<class ExprList, class Expr>
+    struct extend_expression_list {
+      typedef typename expression_list<
+        typename boost::fusion::result_of::push_back<
+          const ExprList,
+          boost::reference_wrapper<const Expr>
+        >::type
+      > type;
+    };
+  }
+
+  template<class Expr1, class Expr2>
+  typename result_of::make_expression_list<Expr1, Expr2>::type
+  make_expression_list(const expression<Expr1>& expr1, const expression<Expr2>& expr2) {
+    typedef typename result_of::make_expression_list<Expr1, Expr2>::type type;
+    return type(boost::fusion::make_vector(boost::cref(expr1), boost::cref(expr2)));
+  }
+
+  template<class ExprList, class Expr>
+  typename result_of::extend_expression_list<ExprList, Expr>::type
+  extend_expression_list(const expression_list<ExprList>& exprs, const expression<Expr>& expr) {
+    typedef typename result_of::extend_expression_list<ExprList, Expr>::type result_type;
+    return boost::fusion::push_back(exprs.unwrap(), boost::cref(expr.unwrap()));
+  }
+
   template<class SelectList, class FromList, class WhereList>
   struct select_type;
 
@@ -28,11 +71,23 @@ namespace boost { namespace rdb {
       (select_type<
         typename boost::fusion::result_of::push_back< const SelectList, boost::reference_wrapper<const Expr> >::type,
         void, void
-      >)) operator ()(const Expr& expr) const {
+      >)) operator ()(const expression<Expr>& expr) const {
       return select_type<
         typename boost::fusion::result_of::push_back< const SelectList, boost::reference_wrapper<const Expr> >::type,
         void, void
-      >(boost::fusion::push_back(exprs, boost::cref(expr)));
+      >(boost::fusion::push_back(exprs, boost::cref(expr.unwrap())));
+    }
+    
+    template<class ExprList>
+    select_type<
+      typename boost::fusion::result_of::join<const SelectList, const ExprList>::type,
+      void, void
+    >
+    operator ()(const expression_list<ExprList>& more) const {
+      return select_type<
+        typename boost::fusion::result_of::join<const SelectList, const ExprList>::type,
+        void, void
+      >(boost::fusion::join(exprs, more.unwrap()));
     }
 
     template<typename Table>
@@ -108,75 +163,8 @@ namespace boost { namespace rdb {
       pred.str(os);
     }
   };
-
-  template<class Expr>
-  BOOST_CONCEPT_REQUIRES(
-    ((Expression<Expr>)),
-    (select_type<
-      typename boost::fusion::result_of::make_vector< boost::reference_wrapper<const Expr> >::type,
-      void, void>))
-  select(const expression<Expr>& expr) {
-    return select_type<
-      typename boost::fusion::result_of::make_vector< boost::reference_wrapper<const Expr> >::type,
-      void, void
-    >(boost::fusion::make_vector(boost::cref(expr)));
-  }
-
-  template<class ExprList>
-  struct expression_list : ExprList {
-    typedef ExprList expression_list_type;
-    expression_list(const ExprList& exprs) : ExprList(exprs) { }
-    const ExprList& unwrap() const { return *this; }
-  };
-
-  namespace result_of {
-    template<class Expr1, class Expr2>
-    struct make_expression_list {
-      typedef typename expression_list<
-        typename boost::fusion::result_of::make_vector<
-          boost::reference_wrapper<const Expr1>,
-          boost::reference_wrapper<const Expr2>
-        >::type
-      > type;
-    };
-
-    template<class ExprList, class Expr>
-    struct extend_expression_list {
-      typedef typename expression_list<
-        typename boost::fusion::result_of::push_back<
-          const ExprList,
-          boost::reference_wrapper<const Expr>
-        >::type
-      > type;
-    };
-  }
-
-  template<class Expr1, class Expr2>
-  typename result_of::make_expression_list<Expr1, Expr2>::type
-  make_expression_list(const expression<Expr1>& expr1, const expression<Expr2>& expr2) {
-    typedef typename result_of::make_expression_list<Expr1, Expr2>::type type;
-    return type(boost::fusion::make_vector(boost::cref(expr1), boost::cref(expr2)));
-  }
-
-  template<class ExprList, class Expr>
-  typename result_of::extend_expression_list<ExprList, Expr>::type
-  extend_expression_list(const expression_list<ExprList>& exprs, const expression<Expr>& expr) {
-    typedef typename result_of::extend_expression_list<ExprList, Expr>::type result_type;
-    return boost::fusion::push_back(exprs.unwrap(), boost::cref(expr.unwrap()));
-  }
-
-  namespace result_of {
-    template<class ExprList>
-    struct select {
-      typedef select_type<ExprList, void, void> type;
-    };
-  }
-
-  template<class ExprList>
-  typename result_of::select<ExprList>::type select(const expression_list<ExprList>& exprs) {
-    typedef typename result_of::select<ExprList>::type result_type;
-    return result_type(exprs);
-  }
+  
+  extern select_type<details::empty_vector, void, void> select;
 
   namespace comma {
 
