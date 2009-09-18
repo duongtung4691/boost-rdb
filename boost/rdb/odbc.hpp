@@ -32,11 +32,11 @@ namespace boost { namespace rdb { namespace odbc {
     ~database();
 
     database(const std::string& dsn, const std::string& user, const std::string& password) {
-      connect(dsn, user, password);
+      open(dsn, user, password);
     }
 
-    void connect(const std::string& dsn, const std::string& user, const std::string& password);
-    void disconnect();
+    void open(const std::string& dsn, const std::string& user, const std::string& password);
+    void close();
     void execute(const std::string& sql);
 
   private:

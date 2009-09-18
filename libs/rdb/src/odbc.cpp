@@ -31,10 +31,10 @@ error::error(SQLSMALLINT handle_type, SQLHANDLE handle, long rc) : rc(rc) {
 }
 
 database::~database() {
-  disconnect();
+  close();
 }
 
-void database::connect(const string& dsn, const string& user, const string& password) {
+void database::open(const string& dsn, const string& user, const string& password) {
 
   dsn_ = dsn;
   user_ = user;
@@ -62,7 +62,7 @@ void database::connect(const string& dsn, const string& user, const string& pass
   //SQLGetInfo(hdbc_, SQL_TXN_CAPABLE, &res, sizeof res, NULL);
 }
 
-void database::disconnect() {
+void database::close() {
   if (hstmt_ != SQL_NULL_HANDLE)
     SQLFreeHandle(SQL_HANDLE_STMT, hstmt_);
 
@@ -146,17 +146,17 @@ namespace Tangram {
           SQLSetConnectOption(hdbc_, SQL_AUTOCOMMIT, SQL_AUTOCOMMIT_OFF);
       }
 
-      void database::connect(const Schema* schema, const string& dsn, const string& user, const string& password) {
+      void database::open(const Schema* schema, const string& dsn, const string& user, const string& password) {
         start(schema);
         odbc_connect(dsn, user, password);
       }
 
-      void database::connect(const Schema* schema, const Specific_Mapping* mapping, const string& dsn, const string& user, const string& password) {
+      void database::open(const Schema* schema, const Specific_Mapping* mapping, const string& dsn, const string& user, const string& password) {
         start(schema, mapping);
         odbc_connect(dsn, user, password);
       }
 
-      void database::connect(Specific_Engine* engine, const string& dsn, const string& user, const string& password) {
+      void database::open(Specific_Engine* engine, const string& dsn, const string& user, const string& password) {
         start(engine);
         odbc_connect(dsn, user, password);
       }
