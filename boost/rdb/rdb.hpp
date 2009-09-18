@@ -11,6 +11,7 @@
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/assert.hpp>
+#include <boost/mpl/if.hpp>
 #include <boost/type_traits/is_same.hpp>
 #include <boost/type_traits/remove_reference.hpp>
 #include <boost/fusion/container/vector.hpp>
@@ -19,6 +20,7 @@
 #include <boost/fusion/include/push_back.hpp>
 #include <boost/fusion/include/join.hpp>
 #include <boost/fusion/include/begin.hpp>
+#include <boost/fusion/include/end.hpp>
 #include <boost/fusion/include/next.hpp>
 #include <boost/fusion/include/deref.hpp>
 #include <boost/fusion/include/front.hpp>
@@ -157,6 +159,24 @@ namespace boost { namespace rdb {
     template<typename T> expression(const T& arg) : Expr(arg) { }
     template<typename T1, typename T2> expression(const T1& arg1, const T2& arg2) : Expr(arg1, arg2) { }
     const Expr& unwrap() const { return *this; }
+  };
+
+  template<class St>
+  struct Statement
+  {
+    const St& st;
+    std::ostream& stream;
+
+    BOOST_CONCEPT_USAGE(Statement) {
+      st.str(stream);
+    }
+  };
+
+  template<class Statement>
+  struct statement : Statement {
+    statement() { }
+    template<typename T> statement(const T& arg) : Statement(arg) { }
+    const Statement& unwrap() const { return *this; }
   };
 
   template<class Table, class SqlType>
@@ -452,8 +472,9 @@ namespace boost { namespace rdb {
   };
 
   template<typename Table>
+  
   create_table_type<Table> create_table() {
-    return create_table_type<Table>();
+    return statement< create_table_type<Table> >();
   }
 } }
 

@@ -27,6 +27,9 @@ int test_main( int, char *[] )
 
   db.create_table<person>();
   db.create_table<partner>();
+  
+  person p;
+  db.execute(insert_into<person>(p.id).values(1));
       
   return 0;
 }

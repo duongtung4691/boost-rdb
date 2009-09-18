@@ -153,6 +153,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\..\..\boost\rdb\database.hpp"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\..\boost\rdb\insert.hpp"
 			>
 		</File>

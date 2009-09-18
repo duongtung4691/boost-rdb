@@ -6,8 +6,33 @@
 
 namespace boost { namespace rdb {
 
+  template<class Insert>
+  struct insert_statement : Insert {
+    insert_statement(const typename Insert::col_list_type& cols, const typename Insert::value_list_type& values) 
+      : Insert(cols, values) { }
+  };
+
   template<class Table, class ColList>
-  struct insert_type;
+  struct insert_cols_type;
+  
+  template<class Table, class ColList, class ValueList>
+  struct insert_type : insert_cols_type<Table, ColList> {
+
+    typedef insert_cols_type<Table, ColList> just_cols;
+    typedef ColList col_list_type;
+    typedef ValueList value_list_type;
+    
+    insert_type(const ColList& cols, const ValueList& values) : insert_cols_type(cols), values_(values) { }
+
+    ValueList values_;
+
+    void str(std::ostream& os) const {
+      just_cols::str(os);
+      os << " values (";
+      boost::fusion::for_each(values_, comma_output(os));
+      os << ")";
+    }
+  };
 
   template<class Table, class ColList, class ExprList, class ColIter>
   struct insert_values_expr_type;
@@ -16,9 +41,18 @@ namespace boost { namespace rdb {
     template<class Table, class ColList, class ColIter, class ValueList, class Expr>
     struct insert_values_expr {
       typedef typename boost::fusion::result_of::next<ColIter>::type next_col_iter;
+      
       typedef typename boost::fusion::result_of::push_back<
         const ValueList, Expr>::type values_type;
-      typedef insert_values_expr_type<Table, ColList, values_type, next_col_iter> type;
+        
+      typedef typename boost::mpl::if_<
+        boost::is_same<
+          next_col_iter,
+          typename boost::fusion::result_of::end<ColList>::type
+        >,
+        insert_statement< insert_type<Table, ColList, values_type> >,
+        insert_values_expr_type<Table, ColList, values_type, next_col_iter>
+      >::type type;
     };
 
     template<class Table, class ColList, class ColIter, class ValueList, typename T>
@@ -31,9 +65,9 @@ namespace boost { namespace rdb {
   }
 
   template<class Table, class ColList, class ExprList, class ColIter>
-  struct insert_values_expr_type : insert_type<Table, ColList> {
+  struct insert_values_expr_type : insert_cols_type<Table, ColList> {
 
-    typedef insert_type<Table, ColList> just_cols;
+    typedef insert_cols_type<Table, ColList> just_cols;
 
     insert_values_expr_type(const ColList& cols, const ExprList& values) : just_cols(cols), values_(values) { }
 
@@ -65,9 +99,9 @@ namespace boost { namespace rdb {
   };
 
   template<class Table, class ColList>
-  struct insert_type {
+  struct insert_cols_type {
 
-    insert_type(const ColList& cols) : cols_(cols) { }
+    insert_cols_type(const ColList& cols) : cols_(cols) { }
 
     void str(std::ostream& os) const {
       os << "insert into " << Table::table_name() << " (";
@@ -78,12 +112,12 @@ namespace boost { namespace rdb {
     template<class Col>
     BOOST_CONCEPT_REQUIRES(
       ((Column<Col>)),
-      (insert_type<
+      (insert_cols_type<
         Table,
         typename boost::fusion::result_of::push_back< const ColList, boost::reference_wrapper<const Col> >::type
       >))
     operator ()(const Col& col) const {
-      return insert_type<
+      return insert_cols_type<
         Table,
         typename boost::fusion::result_of::push_back< const ColList, boost::reference_wrapper<const Col> >::type
       >(boost::fusion::push_back(cols_, boost::cref(col)));
@@ -125,12 +159,12 @@ namespace boost { namespace rdb {
   template<class Table, class Col>
   BOOST_CONCEPT_REQUIRES(
     ((Column<Col>)),
-    (insert_type<Table,
+    (insert_cols_type<Table,
       typename boost::fusion::result_of::make_vector< boost::reference_wrapper<const Col> >::type
       >))
   insert_into(const expression<Col>& col) {
     BOOST_MPL_ASSERT((boost::is_same<Table, typename Col::table_type>));
-    return insert_type<Table,
+    return insert_cols_type<Table,
       typename boost::fusion::result_of::make_vector< boost::reference_wrapper<const Col> >::type
       >(boost::fusion::make_vector(boost::cref(col)));
   }
