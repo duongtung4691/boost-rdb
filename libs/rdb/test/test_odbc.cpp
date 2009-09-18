@@ -29,7 +29,14 @@ int test_main( int, char *[] )
   db.create_table<partner>();
   
   person p;
-  db.execute(insert_into<person>(p.id).values(1));
-      
+  db.execute(insert_into<person>(p.id, p.first_name).values(1)("Homer"));
+  //insert_into<person>(p.first_name)(p.name).values("Homer")("Simpson")      
+  /*
+  using namespace boost;
+  BOOST_MPL_ASSERT((boost::is_same<
+    fusion::result_of::make_vector<int, char>::type,
+    fusion::result_of::push_back< fusion::result_of::make_vector<int>::type, char >::type
+    >));
+  */
   return 0;
 }
