@@ -37,7 +37,10 @@ namespace boost { namespace rdb { namespace odbc {
 
     void open(const std::string& dsn, const std::string& user, const std::string& password);
     void close();
-    void execute(const std::string& sql);
+    
+    template<class Statement>
+    BOOST_CONCEPT_REQUIRES((Statement), void)
+    execute(const statement<Statement>& st);
 
   private:
     std::string dsn_, user_, password_;
