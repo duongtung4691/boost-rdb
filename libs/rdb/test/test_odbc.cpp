@@ -29,14 +29,15 @@ int test_main( int, char *[] )
   db.create_table<partner>();
   
   person p;
+  BOOST_AUTO(sel1, insert_into<person>(p.id));//
+  BOOST_AUTO(sel2, insert_into<person>(p.id, p.first_name));//
+  BOOST_AUTO(sel5, insert_into<person>(p.id)(p.first_name));//
+  BOOST_AUTO(sel4, sel2.values(1));//
+  BOOST_AUTO(sel3, insert_into<person>(p.id, p.first_name).values(1));//
+  //BOOST_AUTO(sel3, insert_into<person>(p.id)(p.first_name).values(1)("Homer"));//
   db.execute(insert_into<person>(p.id, p.first_name).values(1)("Homer"));
-  //insert_into<person>(p.first_name)(p.name).values("Homer")("Simpson")      
-  /*
-  using namespace boost;
-  BOOST_MPL_ASSERT((boost::is_same<
-    fusion::result_of::make_vector<int, char>::type,
-    fusion::result_of::push_back< fusion::result_of::make_vector<int>::type, char >::type
-    >));
-  */
+  //db.execute(insert_into<person>(p.id)(p.first_name).values(1)("Homer"));
+  //db.execute(insert_into<person>(p.id, p.first_name, p.name).values(1)("Homer")("Simpson"));
+
   return 0;
 }

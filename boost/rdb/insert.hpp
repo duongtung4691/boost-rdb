@@ -101,7 +101,6 @@ namespace boost { namespace rdb {
   template<class Table, class ColList>
   struct insert_cols_type {
 
-    insert_cols_type(const insert_cols_type&);
     insert_cols_type(const ColList& cols) : cols_(cols) { }
 
     void str(std::ostream& os) const {
@@ -114,22 +113,24 @@ namespace boost { namespace rdb {
     struct with {
       typedef typename insert_cols_type<
         Table,
-        typename boost::fusion::result_of::push_back< const ColList, boost::reference_wrapper<const Col> >::type
+        typename boost::fusion::result_of::push_back<const ColList, Col>::type
       > type;
     };
 
     template<class Col>
+    /*
     BOOST_CONCEPT_REQUIRES(
       ((Column<Col>)),
-      (insert_cols_type<
+      (*/insert_cols_type<
         Table,
-        typename boost::fusion::result_of::push_back< const ColList, boost::reference_wrapper<const Col> >::type
-      >))
+        typename boost::fusion::result_of::push_back<const ColList, Col>::type
+      >
+      //))
     operator ()(const expression<Col>& col) const {
       return insert_cols_type<
         Table,
-        typename boost::fusion::result_of::push_back< const ColList, boost::reference_wrapper<const Col> >::type
-      >(boost::fusion::push_back(cols_, boost::cref(col.unwrap())));
+        typename boost::fusion::result_of::push_back<const ColList, Col>::type
+      >(boost::fusion::push_back(cols_, col.unwrap()));
     }
 
     template<typename T>
@@ -165,25 +166,51 @@ namespace boost { namespace rdb {
     ColList cols_;
   };
 
+  namespace result_of {
+    template<typename T>
+    struct make_list {
+      typedef typename boost::fusion::result_of::push_back<
+        const boost::fusion::vector<>,
+        T
+      >::type type;
+    };
+  }
+
+  template<typename T>
+  typename result_of::make_list<T>::type
+  make_list(const T& val) {
+    return boost::fusion::push_back(boost::fusion::vector<>(), val);
+  }
+
   template<class Table, class Col>
   BOOST_CONCEPT_REQUIRES(
     ((Column<Col>)),
     (insert_cols_type<Table,
-      typename boost::fusion::result_of::make_vector< boost::reference_wrapper<const Col> >::type
+      typename result_of::make_list< Col >::type
       >))
   insert_into(const expression<Col>& col) {
     BOOST_MPL_ASSERT((boost::is_same<Table, typename Col::table_type>));
     return insert_cols_type<Table,
-      typename boost::fusion::result_of::make_vector< boost::reference_wrapper<const Col> >::type
-      >(boost::fusion::make_vector(boost::cref(col.unwrap())));
+      typename result_of::make_list< Col >::type
+      >(make_list(col.unwrap()));
   }
 
   template<class Table, class Col1, class Col2>
   typename insert_cols_type<Table,
-    typename boost::fusion::result_of::make_vector< boost::reference_wrapper<const Col1> >::type
+    typename result_of::make_list< Col1 >::type
   >::with<Col2>::type
   insert_into(const expression<Col1>& col1, const expression<Col2>& col2) {
     return insert_into<Table>(col1)(col2);
+  }
+
+  template<class Table, class Col1, class Col2, class Col3>
+  typename insert_cols_type<Table,
+    typename result_of::make_list< Col1 >::type
+  >
+  ::with<Col2>::type
+  ::with<Col3>::type
+  insert_into(const expression<Col1>& col1, const expression<Col2>& col2, const expression<Col3>& col3) {
+    return insert_into<Table>(col1)(col2)(col3);
   }
 
 } }
