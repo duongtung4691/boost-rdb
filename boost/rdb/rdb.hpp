@@ -10,6 +10,7 @@
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/bool.hpp>
+#include <boost/mpl/size.hpp>
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/if.hpp>
 #include <boost/type_traits/is_same.hpp>
@@ -28,6 +29,7 @@
 #include <boost/ref.hpp>
 #include <boost/concept_check.hpp>
 #include <boost/concept/requires.hpp>
+#include <boost/noncopyable.hpp>
 
 namespace boost { namespace rdb {
 
@@ -72,7 +74,7 @@ namespace boost { namespace rdb {
     }
   };
 
-  struct any_table {
+  struct any_table : boost::noncopyable {
     any_table(const std::string& name) : name_(name) { }
     any_table(const std::string& name, const std::string& alias) : name_(name), alias_(alias) { }
     std::string name_, alias_;
@@ -85,38 +87,6 @@ namespace boost { namespace rdb {
     }
     const std::string& alias() const { return alias_; }
     bool has_alias() const { return !alias_.empty(); }
-  };
-
-  struct any_column {
-    const any_table* table_;
-    std::string name_;
-    enum { precedence = precedence_level::highest };
-    
-    void str(std::ostream& os) const {
-      if (table_->has_alias())
-        os << table_->alias() << '.' << name_;
-      else
-        os << name_;
-    }
-    
-    void initialize(const any_table* table, const char* name) {
-      table_ = table;
-      name_ = name;
-    }
-    
-    const std::string& name() const { return name_; }
-  };
-
-  template<class Col>
-  struct Column
-  {
-    Col col;
-    std::ostream& os;
-    typedef typename Col::table_type table_type;
-
-    BOOST_CONCEPT_USAGE(Column) {
-      col.str(os);
-    }
   };
 
   template<class Expr>
@@ -178,12 +148,41 @@ namespace boost { namespace rdb {
     template<typename T> statement(const T& arg) : Statement(arg) { }
     const Statement& unwrap() const { return *this; }
   };
+  
+  struct any_column {
+    const any_table* table_;
+    enum { precedence = precedence_level::highest };
+    
+    void initialize(const any_table* table) {
+      table_ = table;
+    }
+  };
 
-  template<class Table, class SqlType>
-  struct column : any_column {
+  template<class Table, class SqlType, class Base>
+  struct column : Base {
+    enum { precedence = precedence_level::highest };
     typedef SqlType sql_type;
     typedef Table table_type;
     static void str_type(std::ostream& os) { SqlType::str(os); }
+
+    void str(std::ostream& os) const {
+      if (table_->has_alias())
+        os << table_->alias() << '.' << Base::name();
+      else
+        os << Base::name();
+    }
+  };
+
+  template<class Col>
+  struct Column
+  {
+    Col col;
+    std::ostream& os;
+    typedef typename Col::table_type table_type;
+
+    BOOST_CONCEPT_USAGE(Column) {
+      col.str(os);
+    }
   };
 
   struct any_literal {
@@ -411,17 +410,19 @@ namespace boost { namespace rdb {
   template<class T>
   T singleton<T>::_;
 
-  #define BOOST_RDB_COLUMN(name, sql_type) \
-  members_before_##name;  \
-  typedef expression< column<this_table, sql_type> > name##_type;  \
-  name##_type name;  \
-  struct name##_member {  \
+  #define BOOST_RDB_COLUMN(NAME, sql_type) \
+  members_before_##NAME;  \
+  enum { NAME##_index = boost::mpl::size<members_before_##NAME>::value }; \
+  struct NAME##_base : any_column { static const char* name() { return #NAME; } }; \
+  typedef expression< column<this_table, sql_type, NAME##_base> > NAME##_type;  \
+  NAME##_type NAME;  \
+  struct NAME##_member {  \
     typedef std::string type;  \
-    static name##_type& ref(this_table& obj) { return obj.name; }  \
-    static const name##_type& ref(const this_table& obj) { return obj.name; }  \
-    static void initialize(this_table* table) { table->name.initialize(table, #name); }  \
+    static NAME##_type& ref(this_table& obj) { return obj.NAME; }  \
+    static const NAME##_type& ref(const this_table& obj) { return obj.NAME; }  \
+    static void initialize(this_table* table) { table->NAME.initialize(table); }  \
   };  \
-  typedef typename boost::mpl::push_back<members_before_##name, name##_member>::type
+  typedef typename boost::mpl::push_back<members_before_##NAME, NAME##_member>::type
 
   #define BOOST_RDB_BEGIN_TABLE(NAME)  \
   template<int Alias>  \
