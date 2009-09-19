@@ -12,30 +12,11 @@ namespace boost { namespace rdb {
       : Insert(cols, values) { }
   };
 
-  template<class Table, class ColList>
-  struct insert_cols;
-  
-  template<class Table, class ColList, class ValueList>
-  struct insert_type : insert_cols<Table, ColList> {
-
-    typedef insert_cols<Table, ColList> just_cols;
-    typedef ColList col_list_type;
-    typedef ValueList value_list_type;
-    
-    insert_type(const ColList& cols, const ValueList& values) : insert_cols(cols), values_(values) { }
-
-    ValueList values_;
-
-    void str(std::ostream& os) const {
-      just_cols::str(os);
-      os << " values (";
-      boost::fusion::for_each(values_, comma_output(os));
-      os << ")";
-    }
-  };
-
   template<class Table, class ColList, class ExprList, class ColIter>
   struct insert_vals;
+
+  template<class Table, class ColList, class ValueList>
+  struct insert_type;
 
   namespace result_of {
     template<class Table, class ColList, class ColIter, class ValueList, class Expr>
@@ -64,42 +45,11 @@ namespace boost { namespace rdb {
     };
   }
 
-  template<class Table, class ColList, class ExprList, class ColIter>
-  struct insert_vals : insert_cols<Table, ColList> {
 
-    typedef insert_cols<Table, ColList> just_cols;
-
-    insert_vals(const ColList& cols, const ExprList& values) : just_cols(cols), values_(values) { }
-
-    ExprList values_;
-
-    void str(std::ostream& os) const {
-      just_cols::str(os);
-      os << " values (";
-      boost::fusion::for_each(values_, comma_output(os));
-      os << ")";
-    }
-
-    template<typename T>
-    typename result_of::insert_literal<Table, ColList, ColIter, ExprList, T>::type
-    operator ()(const T& expr) const {
-      typedef typename result_of::insert_literal<Table, ColList, ColIter, ExprList, T>::type result_type;
-      typedef typename boost::remove_reference<boost::fusion::result_of::deref<ColIter>::type>::type col_type;
-      return result_type(cols_, boost::fusion::push_back(values_, col_type::sql_type::make_literal(expr)));
-    }
-
-    template<class Expr>
-    BOOST_CONCEPT_REQUIRES(
-      ((Expression<Expr>)),
-      (typename result_of::insert_expr<Table, ColList, ColIter, ExprList, Expr>::type))
-    operator ()(const expression<Expr>& expr) const {
-      typedef typename result_of::insert_expr<Table, ColList, ColIter, ExprList, Expr>::type result_type;
-      return result_type(cols_, boost::fusion::push_back(values_, expr.unwrap()));
-    }
-  };
-
-  template<class Table, class ColList>
+  template<class Table, class ColList = details::empty>
   struct insert_cols {
+
+    typedef ColList col_list_type;
 
     insert_cols(const ColList& cols) : cols_(cols) { }
 
@@ -133,37 +83,102 @@ namespace boost { namespace rdb {
       >(boost::fusion::push_back(cols_, col.unwrap()));
     }
 
+    ColList cols_;
+
+    typedef insert_vals<Table, ColList, details::empty,
+      typename boost::fusion::result_of::begin<ColList>::type
+      > insert_values0;
+
     template<typename T>
-    typename result_of::insert_literal<Table, ColList, 
-      typename boost::fusion::result_of::begin<ColList>::type,
-      details::empty, T
-    >::type
-    values(const T& expr) const {
-      typedef typename result_of::insert_literal<Table, ColList, 
-        typename boost::fusion::result_of::begin<ColList>::type,
-        details::empty, T
-      >::type result_type;
-      typedef typename boost::remove_reference<boost::fusion::result_of::front<ColList>::type>::type col_type;
-      return result_type(cols_, boost::fusion::push_back(details::empty(),
-        col_type::sql_type::make_literal(expr)));
+    typename insert_values0::with<T>::type
+    values(T expr) const {
+      return insert_values0(cols_, details::empty())(expr);
     }
+
+    template<typename T1, typename T2>
+    typename insert_values0::with<T1>::type::with<T2>::type
+    values(T1 expr1, T2 expr2) const {
+      return insert_values0(cols_, details::empty())(expr1)(expr2);
+    }
+  };
+  
+  template<class Table, class ColList, class ValueList>
+  struct insert_type : insert_cols<Table, ColList> {
+
+    typedef insert_cols<Table, ColList> just_cols;
+    typedef ColList col_list_type;
+    typedef ValueList value_list_type;
+    
+    insert_type(const ColList& cols, const ValueList& values) : insert_cols(cols), values_(values) { }
+
+    ValueList values_;
+
+    void str(std::ostream& os) const {
+      just_cols::str(os);
+      os << " values (";
+      boost::fusion::for_each(values_, comma_output(os));
+      os << ")";
+    }
+  };
+
+  template<class Table, class ColList, class ExprList, class ColIter>
+  struct insert_vals { //: insert_cols<Table, ColList> {
+
+    //typedef insert_cols<Table, ColList> just_cols;
+    typedef insert_vals type;
+    insert_vals(const ColList& cols, const ExprList& values) : cols_(cols), values_(values) { }
+
+    ColList cols_;
+    ExprList values_;
+
+    void str(std::ostream& os) const {
+      just_cols::str(os);
+      os << " values (";
+      boost::fusion::for_each(values_, comma_output(os));
+      os << ")";
+    }
+
+    template<typename T>
+    struct with {
+      typedef typename result_of::insert_literal<Table, ColList, ColIter, ExprList, T>::type type;
+    };
+
+    template<typename T>
+    typename with<T>::type
+    operator ()(const T& expr) const {
+      typedef with<T>::type result_type;
+      typedef typename boost::remove_reference<boost::fusion::result_of::deref<ColIter>::type>::type col_type;
+      return result_type(cols_, boost::fusion::push_back(values_, col_type::sql_type::make_literal(expr)));
+    }
+
+    template<class Expr>
+    struct with< const expression<Expr>& > {
+      typedef typename result_of::insert_expr<Table, ColList, ColIter, ExprList, Expr>::type type;
+    };
+
+    template<class Expr>
+    struct with< expression<Expr>& > {
+      typedef typename result_of::insert_expr<Table, ColList, ColIter, ExprList, Expr>::type type;
+    };
+
+    template<class Expr>
+    struct with< expression<Expr> > {
+      typedef typename result_of::insert_expr<Table, ColList, ColIter, ExprList, Expr>::type type;
+    };
+
+    template<class Expr>
+    struct with< const expression<Expr> > {
+      typedef typename result_of::insert_expr<Table, ColList, ColIter, ExprList, Expr>::type type;
+    };
 
     template<class Expr>
     BOOST_CONCEPT_REQUIRES(
       ((Expression<Expr>)),
-      (typename result_of::insert_expr<Table, ColList, 
-        typename boost::fusion::result_of::begin<ColList>::type,
-        details::empty, Expr>::type))
-    values(const expression<Expr>& expr) const {
-      typedef typename result_of::insert_expr<Table, ColList, 
-        typename boost::fusion::result_of::begin<ColList>::type,
-        details::empty, Expr>::type result_type;
-      typedef typename boost::remove_reference<boost::fusion::result_of::front<ColList>::type>::type col_type;
-      BOOST_MPL_ASSERT((boost::is_same<typename Expr::sql_type::kind, typename col_type::sql_type::kind>));
-      return result_type(cols_, boost::fusion::push_back(details::empty(), expr.unwrap()));
+      (typename with< const expression<Expr>& >::type))
+    operator ()(const expression<Expr>& expr) const {
+      typedef typename with< const expression<Expr>& >::type result_type;
+      return result_type(cols_, boost::fusion::push_back(values_, expr.unwrap()));
     }
-
-    ColList cols_;
   };
 
   namespace result_of {
@@ -185,14 +200,10 @@ namespace boost { namespace rdb {
   template<class Table, class Col>
   BOOST_CONCEPT_REQUIRES(
     ((Column<Col>)),
-    (insert_cols<Table,
-      typename result_of::make_list< Col >::type
-      >))
+    (typename insert_cols<Table>::with<Col>::type))
   insert_into(const expression<Col>& col) {
     BOOST_MPL_ASSERT((boost::is_same<Table, typename Col::table_type>));
-    return insert_cols<Table,
-      typename result_of::make_list< Col >::type
-      >(make_list(col.unwrap()));
+    return insert_cols<Table>(details::empty())(col);
   }
 
   template<class Table, class Col1, class Col2>

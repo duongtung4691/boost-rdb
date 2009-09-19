@@ -164,6 +164,10 @@ int test_main( int, char *[] )
       "insert into person (id, name) values (age, first_name)");
 
     BOOST_RDB_CHECK_SQL(
+      insert_into<person>(p.id, p.name).values(p.age, p.first_name), // meaningless but...
+      "insert into person (id, name) values (age, first_name)");
+
+    BOOST_RDB_CHECK_SQL(
       insert_into<person>(p.id).values(1),
       "insert into person (id) values (1)");
 
@@ -173,6 +177,10 @@ int test_main( int, char *[] )
 
     BOOST_RDB_CHECK_SQL(
       insert_into<person>(p.first_name)(p.name).values("Homer")("Simpson"),
+      "insert into person (first_name, name) values ('Homer', 'Simpson')");
+
+    BOOST_RDB_CHECK_SQL(
+      insert_into<person>(p.first_name, p.name).values("Homer")("Simpson"),
       "insert into person (first_name, name) values ('Homer', 'Simpson')");
 
     BOOST_RDB_CHECK_SQL(
