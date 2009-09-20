@@ -9,6 +9,9 @@ using namespace std;
 using namespace boost::rdb;
 using namespace boost::rdb::test::springfield;
 
+// Visual Studio regex to make error output readable
+// (boost|std|fusion|rdb|test|springfield)\:\:
+
 template<class Statement>
 std::string str(const Statement& statement) {
   std::ostringstream os;
