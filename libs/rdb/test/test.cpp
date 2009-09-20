@@ -86,6 +86,15 @@ int test_main( int, char *[] )
   }
 
   scope {
+    person_<1> p1("p1");
+    person_<2> p2("p2");
+
+    BOOST_RDB_CHECK_SQL(
+      select(p1.id, p2.id).from(p1, p2),
+      "select p1.id, p2.id from person as p1, person as p2");
+  }
+
+  scope {
     person p;
     
     BOOST_RDB_CHECK_SQL(

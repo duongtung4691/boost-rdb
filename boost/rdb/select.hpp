@@ -122,18 +122,25 @@ BOOST_PP_REPEAT_FROM_TO(2, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_SELECT_VALUES, 
       >(boost::fusion::join(exprs, more.unwrap()));
     }
 
-    template<typename Table>
-    select_type<
-      SelectList,
-      typename boost::fusion::result_of::make_vector< boost::reference_wrapper<const Table> >::type,
-      void
-    >
-    from(const Table& table) const {
-      return select_type<
+    template<class Table>
+    struct with_table {
+      typedef select_type<
         SelectList,
         typename boost::fusion::result_of::make_vector< boost::reference_wrapper<const Table> >::type,
         void
-      >(exprs, boost::fusion::make_vector(boost::cref(table)));
+      > type;
+    };
+
+    template<class Table>
+    typename with_table<Table>::type
+    from(const Table& table) const {
+      return typename with_table<Table>::type(exprs, boost::fusion::make_vector(boost::cref(table)));
+    }
+
+    template<class Table0, class Table1>
+    typename with_table<Table0>::type::with<Table1>::type
+    from(const Table0& table0, const Table1& table1) const {
+      return from(table0)(table1);
     }
   };
 
@@ -145,17 +152,20 @@ BOOST_PP_REPEAT_FROM_TO(2, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_SELECT_VALUES, 
     FromList tables;
 
     template<class Table>
-    select_type<
-      SelectList,
-      typename boost::fusion::result_of::push_back< const FromList, boost::reference_wrapper<const Table> >::type,
-      void
-    >
-    operator ()(const Table& table) const {
-      return select_type<
+    struct with {
+      typedef select_type<
         SelectList,
-        typename boost::fusion::result_of::push_back< const FromList, boost::reference_wrapper<const Table> >::type,
+        typename boost::fusion::result_of::push_back<
+          const FromList, boost::reference_wrapper<const Table>
+        >::type,
         void
-      >(exprs, boost::fusion::push_back(tables, boost::cref(table)));
+      > type;
+    };
+
+    template<class Table>
+    typename with<Table>::type
+    operator ()(const Table& table) const {
+      return typename with<Table>::type(exprs, boost::fusion::push_back(tables, boost::cref(table)));
     }
     
     template<class Pred>
