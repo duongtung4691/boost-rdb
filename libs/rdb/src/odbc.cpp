@@ -11,18 +11,6 @@ using namespace std;
 
 namespace boost { namespace rdb { namespace odbc {
 
-inline bool sql_fail(long rc) {
-  return rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO;
-}
-
-inline void sql_check(SQLSMALLINT handle_type, SQLHANDLE handle, long rc) {
-  if (sql_fail(rc)) {
-    error ex(handle_type, handle, rc);
-    //TR << "ODBC Exception: " << ex.what() << endl;
-    throw ex;
-  }
-}
-
 error::error(SQLSMALLINT handle_type, SQLHANDLE handle, long rc) : rc(rc) {
   sprintf(msg, "rc %d", rc);
   SQLSMALLINT mlen;

@@ -3,9 +3,11 @@
 
 #include <iostream>
 #include <sstream>
+#include <deque>
 
 #include <boost/format.hpp>
 #include <boost/ref.hpp>
+#include <boost/typeof/typeof.hpp>
 
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/push_back.hpp>
@@ -22,7 +24,11 @@
 
 #include <boost/fusion/container/list.hpp>
 #include <boost/fusion/include/make_list.hpp>
+#include <boost/fusion/include/vector.hpp>
+#include <boost/fusion/include/make_vector.hpp>
+#include <boost/fusion/include/at.hpp>
 #include <boost/fusion/include/for_each.hpp>
+#include <boost/fusion/include/accumulate.hpp>
 #include <boost/fusion/include/push_back.hpp>
 #include <boost/fusion/include/join.hpp>
 #include <boost/fusion/include/begin.hpp>
@@ -30,7 +36,8 @@
 #include <boost/fusion/include/next.hpp>
 #include <boost/fusion/include/deref.hpp>
 #include <boost/fusion/include/front.hpp>
-#include <boost/typeof/typeof.hpp>
+#include <boost/fusion/include/transform.hpp>
+#include <boost/fusion/include/zip_view.hpp>
 
 #include <boost/concept_check.hpp>
 #include <boost/concept/requires.hpp>
@@ -177,6 +184,7 @@ namespace boost { namespace rdb {
     enum { precedence = precedence_level::highest };
     typedef SqlType sql_type;
     typedef Table table_type;
+    typedef typename sql_type::cpp_type cpp_type;
     static void str_type(std::ostream& os) { SqlType::str(os); }
 
     void str(std::ostream& os) const {
@@ -206,6 +214,8 @@ namespace boost { namespace rdb {
   template<typename T>
   struct literal : any_literal {
     literal(const T& value) : value_(value) { }
+    void str(std::ostream& os) const { os << value_; }
+    typedef T cpp_type;
     T value_;
   };
 
@@ -224,8 +234,8 @@ namespace boost { namespace rdb {
   };
 
   template<>
-  struct literal<int> : any_literal  {
-    literal(int value) : value_(value) { }
+  struct literal<long> : any_literal  {
+    literal(long value) : value_(value) { }
     void str(std::ostream& os) const { os << value_; }
     int value_;
   };
@@ -251,11 +261,12 @@ namespace boost { namespace rdb {
   struct integer
   {
     static void str(std::ostream& os) { os << "integer"; }
-    typedef literal<int> literal_type;
-    static literal_type make_literal(int val) { return literal_type(val); }
+    typedef literal<long> literal_type;
+    static literal_type make_literal(long val) { return literal_type(val); }
     typedef boost::mpl::true_::type is_numeric;
     typedef num_comparable_type comparable_type;
     typedef numeric_type kind;
+    typedef long cpp_type;
   };
 
   struct boolean
@@ -264,6 +275,7 @@ namespace boost { namespace rdb {
     typedef literal<bool> literal_type;
     static literal_type make_literal(bool val) { return literal_type(val); }
     typedef boolean_type kind;
+    typedef bool cpp_type;
   };
 
   template<class Expr>
@@ -284,6 +296,8 @@ namespace boost { namespace rdb {
     static literal_type make_literal(const char* str) { return literal_type(str); }
     typedef char_comparable_type comparable_type;
     typedef char_type kind;
+    typedef std::string cpp_type;
+    enum { size = N };
   };
 
   struct comparison {
@@ -546,6 +560,7 @@ namespace boost { namespace rdb {
 
 } }
 
+#include <boost/rdb/expression.hpp>
 #include <boost/rdb/insert.hpp>
 #include <boost/rdb/select.hpp>
 #include <boost/rdb/database.hpp>

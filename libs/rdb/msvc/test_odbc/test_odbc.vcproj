@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="test_odbc"
 	ProjectGUID="{7C86D04C-8668-4EE1-9BD5-3E5817B737E7}"
 	RootNamespace="test_odbc"
