@@ -30,10 +30,6 @@ std::string str(const select_type<SelectList, FromList, WhereList>& select) {
 
 #define BOOST_RDB_CHECK_SQL(expr, sql) BOOST_CHECK(str(expr) == sql)
 
-boost::fusion::result_of::make_vector<int, int>::type foo() {
-  return boost::fusion::make_vector(1, 2);
-}
-
 int test_main( int, char *[] )
 {
   using namespace boost::rdb;

@@ -20,8 +20,8 @@
 #include <boost/type_traits/is_same.hpp>
 #include <boost/type_traits/remove_reference.hpp>
 
-#include <boost/fusion/container/vector.hpp>
-#include <boost/fusion/include/make_vector.hpp>
+#include <boost/fusion/container/list.hpp>
+#include <boost/fusion/include/make_list.hpp>
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/push_back.hpp>
 #include <boost/fusion/include/join.hpp>
@@ -48,7 +48,7 @@
 namespace boost { namespace rdb {
 
   namespace details {
-    typedef boost::fusion::vector<> empty;
+    typedef boost::fusion::list<> empty;
   }
 
   namespace precedence_level {
@@ -509,7 +509,7 @@ namespace boost { namespace rdb {
     template<typename T>
     struct make_list {
       typedef typename boost::fusion::result_of::push_back<
-        const boost::fusion::vector<>,
+        const boost::fusion::list<>,
         T
       >::type type;
     };
@@ -518,7 +518,7 @@ namespace boost { namespace rdb {
   template<typename T>
   typename result_of::make_list<T>::type
   make_list(const T& val) {
-    return boost::fusion::push_back(boost::fusion::vector<>(), val);
+    return boost::fusion::push_back(boost::fusion::list<>(), val);
   }
 
 } }

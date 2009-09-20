@@ -17,7 +17,7 @@ namespace boost { namespace rdb {
     template<class Expr1, class Expr2>
     struct make_expression_list {
       typedef typename expression_list<
-        typename boost::fusion::result_of::make_vector<
+        typename boost::fusion::result_of::make_list<
           boost::reference_wrapper<const Expr1>,
           boost::reference_wrapper<const Expr2>
         >::type
@@ -39,7 +39,7 @@ namespace boost { namespace rdb {
   typename result_of::make_expression_list<Expr1, Expr2>::type
   make_expression_list(const expression<Expr1>& expr1, const expression<Expr2>& expr2) {
     typedef typename result_of::make_expression_list<Expr1, Expr2>::type type;
-    return type(boost::fusion::make_vector(boost::cref(expr1), boost::cref(expr2)));
+    return type(boost::fusion::make_list(boost::cref(expr1), boost::cref(expr2)));
   }
 
   template<class ExprList, class Expr>
