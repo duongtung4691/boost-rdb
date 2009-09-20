@@ -74,17 +74,30 @@ namespace boost { namespace rdb {
       boost::fusion::for_each(exprs, comma_output(os));
     }
 
-    template<typename Expr>
-    BOOST_CONCEPT_REQUIRES(
-      ((Expression<Expr>)),
-      (select_type<
+    template<class T>
+    struct with {
+      typedef typename select_type<
+        typename boost::fusion::result_of::push_back< const SelectList, literal<T> >::type,
+        void, void
+      > type;
+    };
+
+    template<class Expr>
+    struct with< expression<Expr> > {
+      typedef typename select_type<
         typename boost::fusion::result_of::push_back< const SelectList, Expr>::type,
         void, void
-      >)) operator ()(const expression<Expr>& expr) const {
-      return select_type<
-        typename boost::fusion::result_of::push_back< const SelectList, Expr>::type,
-        void, void
-      >(boost::fusion::push_back(exprs, expr.unwrap()));
+      > type;
+    };
+
+    template<class Expr> struct with< expression<Expr>& > : with< expression<Expr> > { };
+    template<class Expr> struct with< const expression<Expr> > : with< expression<Expr> > { };
+    template<class Expr> struct with< const expression<Expr>& > : with< expression<Expr> > { };
+
+    template<typename T>
+    typename with<T>::type
+    operator ()(const T& expr) const {
+      return typename with<T>::type(boost::fusion::push_back(exprs, as_expression(expr)));
     }
     
     template<class ExprList>

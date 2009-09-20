@@ -55,7 +55,19 @@ int test_main( int, char *[] )
       select(husband.id)(wife.name).from(husband)(wife),
       "select id, wife.name from person, person as wife");
   }
-  
+
+  scope {
+    person p;
+    
+    BOOST_RDB_CHECK_SQL(
+      select(p.id)(1).from(p),
+      "select id, 1 from person");
+    
+    BOOST_RDB_CHECK_SQL(
+      select(1)(p.id).from(p),
+      "select 1, id from person");
+  }    
+
   scope {
     person p;
     
