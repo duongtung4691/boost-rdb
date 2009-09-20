@@ -117,8 +117,8 @@ int test_main( int, char *[] )
       "select (p1.age + p2.age) / 2 from person as p1, person as p2");
 
     BOOST_RDB_CHECK_SQL(
-      select(p1.id).from(p1)(p2).where((p1.id + p2.age) > p1.age),
-      "select p1.id from person as p1, person as p2 where (p1.id + p2.age) > p1.age");
+      select(p1.id).from(p1)(p2).where(p1.id + p2.age > p1.age),
+      "select p1.id from person as p1, person as p2 where p1.id + p2.age > p1.age");
   }
 
   scope {
