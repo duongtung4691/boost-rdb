@@ -3,7 +3,10 @@
 
 #include <iostream>
 #include <sstream>
+
 #include <boost/format.hpp>
+#include <boost/ref.hpp>
+
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/push_back.hpp>
 #include <boost/mpl/at.hpp>
@@ -13,8 +16,10 @@
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/if.hpp>
+
 #include <boost/type_traits/is_same.hpp>
 #include <boost/type_traits/remove_reference.hpp>
+
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/make_vector.hpp>
 #include <boost/fusion/include/for_each.hpp>
@@ -26,10 +31,19 @@
 #include <boost/fusion/include/deref.hpp>
 #include <boost/fusion/include/front.hpp>
 #include <boost/typeof/typeof.hpp>
-#include <boost/ref.hpp>
+
 #include <boost/concept_check.hpp>
 #include <boost/concept/requires.hpp>
 #include <boost/noncopyable.hpp>
+
+#include <boost/preprocessor/repetition.hpp>
+#include <boost/preprocessor/arithmetic/sub.hpp>
+#include <boost/preprocessor/punctuation/comma_if.hpp>
+
+#define BOOST_RDB_MAX_ARG_COUNT 10
+#define BOOST_RDB_PP_WITH(z, n, t) ::with<t##n>::type
+#define BOOST_RDB_PP_CALL(z, n, t) (t##n)
+#define BOOST_RDB_PP_EXPRESSION(z, n, t) BOOST_PP_COMMA_IF(n) const expression<T##t##n>& t##n
 
 namespace boost { namespace rdb {
 

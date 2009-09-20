@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="test_rdb"
 	ProjectGUID="{EDD90CDA-AB8D-4B4B-A1F3-03C9F30B59E2}"
 	RootNamespace="test_rdb"
@@ -171,6 +171,28 @@
 	<References>
 	</References>
 	<Files>
+		<File
+			RelativePath=".\preprocess_rdb.cpp"
+			>
+			<FileConfiguration
+				Name="Debug|Win32"
+				ExcludedFromBuild="true"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					AdditionalOptions="/E"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release|Win32"
+				ExcludedFromBuild="true"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					AdditionalOptions="/E"
+				/>
+			</FileConfiguration>
+		</File>
 		<File
 			RelativePath="..\..\test\test.cpp"
 			>

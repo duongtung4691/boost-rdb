@@ -161,6 +161,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\..\..\boost\rdb\details\pp_variadics.hpp"
+			>
+		</File>
+		<File
 			RelativePath="..\..\src\rdb.cpp"
 			>
 		</File>

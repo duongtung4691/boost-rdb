@@ -88,20 +88,17 @@ namespace boost { namespace rdb {
     typedef insert_vals<Table, ColList, details::empty,
       typename boost::fusion::result_of::begin<ColList>::type
       > insert_values0;
-
-    template<typename T>
-    typename insert_values0::with<T>::type
-    values(T expr) const {
-      return insert_values0(cols_, details::empty())(expr);
+    
+#define BOOST_RDB_PP_INSERT_VALUES(z, n, unused) \
+    template<BOOST_PP_ENUM_PARAMS(n, typename T)> \
+    typename insert_values0 BOOST_PP_REPEAT(n, BOOST_RDB_PP_WITH, T) \
+    values(BOOST_PP_ENUM_BINARY_PARAMS(n, T, arg)) const { \
+      return insert_values0(cols_, details::empty())BOOST_PP_REPEAT(n, BOOST_RDB_PP_CALL, arg); \
     }
 
-    template<typename T1, typename T2>
-    typename insert_values0::with<T1>::type::with<T2>::type
-    values(T1 expr1, T2 expr2) const {
-      return insert_values0(cols_, details::empty())(expr1)(expr2);
-    }
+BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, ~)
   };
-  
+
   template<class Table, class ColList, class ValueList>
   struct insert_type : insert_cols<Table, ColList> {
 
@@ -206,23 +203,15 @@ namespace boost { namespace rdb {
     return insert_cols<Table>(details::empty())(col);
   }
 
-  template<class Table, class Col1, class Col2>
-  typename insert_cols<Table,
-    typename result_of::make_list< Col1 >::type
-  >::with<Col2>::type
-  insert_into(const expression<Col1>& col1, const expression<Col2>& col2) {
-    return insert_into<Table>(col1)(col2);
-  }
+#define BOOST_RDB_PP_INSERT_COLS(z, n, unused) \
+    template<class Table, BOOST_PP_ENUM_PARAMS(n, class Tcol)> \
+    typename insert_cols<Table, typename result_of::make_list< Tcol0 >::type \
+      >BOOST_PP_REPEAT_FROM_TO(1, n, BOOST_RDB_PP_WITH, Tcol) \
+    insert_into(BOOST_PP_REPEAT(n, BOOST_RDB_PP_EXPRESSION, col)) { \
+      return insert_into<Table>BOOST_PP_REPEAT(n, BOOST_RDB_PP_CALL, col); \
+    }
 
-  template<class Table, class Col1, class Col2, class Col3>
-  typename insert_cols<Table,
-    typename result_of::make_list< Col1 >::type
-  >
-  ::with<Col2>::type
-  ::with<Col3>::type
-  insert_into(const expression<Col1>& col1, const expression<Col2>& col2, const expression<Col3>& col3) {
-    return insert_into<Table>(col1)(col2)(col3);
-  }
+  BOOST_PP_REPEAT_FROM_TO(2, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_COLS, ~)
 
 } }
 

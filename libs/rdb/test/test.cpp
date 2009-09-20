@@ -188,11 +188,23 @@ int test_main( int, char *[] )
       "insert into person (id, age) values (1, 46)");
 
     BOOST_RDB_CHECK_SQL(
+      insert_into<person>(p.id, p.age).values(1, 46),
+      "insert into person (id, age) values (1, 46)");
+
+    BOOST_RDB_CHECK_SQL(
+      insert_into<person>(p.id, p.age).values(47, p.id + 1),
+      "insert into person (id, age) values (47, id + 1)");
+
+    BOOST_RDB_CHECK_SQL(
       insert_into<person>(p.id)(p.first_name).values(1)("Homer"),
       "insert into person (id, first_name) values (1, 'Homer')");
 
     BOOST_RDB_CHECK_SQL(
       insert_into<person>(p.id)(p.first_name)(p.name).values(1)("Homer")("Simpson"),
+      "insert into person (id, first_name, name) values (1, 'Homer', 'Simpson')");
+
+    BOOST_RDB_CHECK_SQL(
+      insert_into<person>(p.id, p.first_name, p.name).values(1, "Homer", "Simpson"),
       "insert into person (id, first_name, name) values (1, 'Homer', 'Simpson')");
 
     // these won't compile
