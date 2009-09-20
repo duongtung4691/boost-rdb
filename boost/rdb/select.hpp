@@ -68,6 +68,7 @@ namespace boost { namespace rdb {
   struct select_type<SelectList, void, void> {
     select_type(const SelectList& exprs) : exprs(exprs) { }
     SelectList exprs;
+    typedef select_type<SelectList, void, void> this_type;
 
     void str(std::ostream& os) const {
       os << "select ";
@@ -99,7 +100,16 @@ namespace boost { namespace rdb {
     operator ()(const T& expr) const {
       return typename with<T>::type(boost::fusion::push_back(exprs, as_expression(expr)));
     }
-    
+        
+#define BOOST_RDB_PP_SELECT_VALUES(z, n, unused) \
+    template<BOOST_PP_ENUM_PARAMS(n, typename T)> \
+    typename this_type BOOST_PP_REPEAT(n, BOOST_RDB_PP_WITH, T) \
+    operator ()(BOOST_PP_ENUM_BINARY_PARAMS(n, const T, expr)) const { \
+      return (*this)BOOST_PP_REPEAT(n, BOOST_RDB_PP_CALL, expr); \
+    }
+
+BOOST_PP_REPEAT_FROM_TO(2, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_SELECT_VALUES, ~)
+
     template<class ExprList>
     select_type<
       typename boost::fusion::result_of::join<const SelectList, const ExprList>::type,

@@ -69,6 +69,23 @@ int test_main( int, char *[] )
   }    
 
   scope {
+    using namespace boost::rdb::comma;
+    person p;
+    
+    BOOST_RDB_CHECK_SQL(
+      select(1, p.id).from(p),
+      "select 1, id from person");
+
+    BOOST_RDB_CHECK_SQL(
+      select(p.id, p.name).from(p),
+      "select id, name from person");
+
+    BOOST_RDB_CHECK_SQL(
+      select(p.id, p.name, p.age).from(p),
+      "select id, name, age from person");
+  }
+
+  scope {
     person p;
     
     BOOST_RDB_CHECK_SQL(
