@@ -230,6 +230,19 @@ namespace boost { namespace rdb {
     int value_;
   };
 
+  template<typename T>
+  literal<T> as_expression(const T& value) {
+    return literal<T>(value);
+  }
+
+  template<class Expr>
+  BOOST_CONCEPT_REQUIRES(
+    ((Expression<Expr>)),
+  (const Expr&))
+  as_expression(const expression<Expr>& expr) {
+    return expr.unwrap();
+  }
+
   struct num_comparable_type;
   struct numeric_type;
   struct char_type;
