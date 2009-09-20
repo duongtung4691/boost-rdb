@@ -6,6 +6,7 @@
 
 namespace boost { namespace rdb {
 
+  //select_type<details::empty, void, void> select = details::empty();
   select_type<details::empty, void, void> select = details::empty();
 
 } }

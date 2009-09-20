@@ -30,6 +30,10 @@ std::string str(const select_type<SelectList, FromList, WhereList>& select) {
 
 #define BOOST_RDB_CHECK_SQL(expr, sql) BOOST_CHECK(str(expr) == sql)
 
+boost::fusion::result_of::make_vector<int, int>::type foo() {
+  return boost::fusion::make_vector(1, 2);
+}
+
 int test_main( int, char *[] )
 {
   using namespace boost::rdb;
@@ -91,6 +95,12 @@ int test_main( int, char *[] )
   scope {
     person_<1> p1("p1");
     person_<2> p2("p2");
+    BOOST_AUTO(s1, select(p1.id).from(p1, p2));
+    select(p1.id).from(p1);
+
+    BOOST_RDB_CHECK_SQL(
+      select(p1.id).from(p1),
+      "select p1.id from person as p1");
 
     BOOST_RDB_CHECK_SQL(
       select(p1.id, p2.id).from(p1, p2),

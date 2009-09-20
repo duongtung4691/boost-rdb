@@ -178,22 +178,6 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
     }
   };
 
-  namespace result_of {
-    template<typename T>
-    struct make_list {
-      typedef typename boost::fusion::result_of::push_back<
-        const boost::fusion::vector<>,
-        T
-      >::type type;
-    };
-  }
-
-  template<typename T>
-  typename result_of::make_list<T>::type
-  make_list(const T& val) {
-    return boost::fusion::push_back(boost::fusion::vector<>(), val);
-  }
-
   template<class Table, class Col>
   BOOST_CONCEPT_REQUIRES(
     ((Column<Col>)),

@@ -163,10 +163,10 @@ namespace boost { namespace rdb {
     const Statement& unwrap() const { return *this; }
   };
   
-  struct any_column {
+  struct any_column /*: boost::noncopyable*/ {
     const any_table* table_;
     enum { precedence = precedence_level::highest };
-    
+
     void initialize(const any_table* table) {
       table_ = table;
     }
@@ -504,6 +504,23 @@ namespace boost { namespace rdb {
   create_table_type<Table> create_table() {
     return statement< create_table_type<Table> >();
   }
+
+  namespace result_of {
+    template<typename T>
+    struct make_list {
+      typedef typename boost::fusion::result_of::push_back<
+        const boost::fusion::vector<>,
+        T
+      >::type type;
+    };
+  }
+
+  template<typename T>
+  typename result_of::make_list<T>::type
+  make_list(const T& val) {
+    return boost::fusion::push_back(boost::fusion::vector<>(), val);
+  }
+
 } }
 
 #include <boost/rdb/insert.hpp>
