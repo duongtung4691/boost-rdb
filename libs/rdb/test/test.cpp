@@ -30,10 +30,23 @@ std::string str(const select_type<SelectList, FromList, WhereList>& select) {
 
 #define BOOST_RDB_CHECK_SQL(expr, sql) BOOST_CHECK(str(expr) == sql)
 
+boost::fusion::result_of::make_list<int>::type foo() {
+  return boost::fusion::make_list(1);
+}
+
 int test_main( int, char *[] )
 {
   using namespace boost::rdb;
   using boost::rdb::select;
+
+  person_<1> p1("p1");
+  person_<2> p2("p2");
+
+  BOOST_AUTO(f, foo());
+  select(p1.id, p2.id).from(p1, p2);
+  select(p1.id, p2.id).from(p1, p2);
+
+  return 0;
 
   BOOST_RDB_CHECK_SQL(create_table<person>(),
     "create table person(id integer, name varchar(20), first_name varchar(30), age integer)");
@@ -258,6 +271,6 @@ int test_main( int, char *[] )
     //insert_into<person>(partner::_.husband); // not in same table
     //insert_into<person>(p.name).values(p.id); // type mismatch
   }
-      
+
   return 0;
 }

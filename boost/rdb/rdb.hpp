@@ -504,12 +504,12 @@ namespace boost { namespace rdb {
   create_table_type<Table> create_table() {
     return statement< create_table_type<Table> >();
   }
-
+#if 1
   namespace result_of {
     template<typename T>
     struct make_list {
       typedef typename boost::fusion::result_of::push_back<
-        const boost::fusion::list<>,
+        const details::empty,
         T
       >::type type;
     };
@@ -520,6 +520,29 @@ namespace boost { namespace rdb {
   make_list(const T& val) {
     return boost::fusion::push_back(boost::fusion::list<>(), val);
   }
+  namespace result_of {
+    template<typename T>
+    struct make_list2 {
+      typedef typename boost::fusion::result_of::make_list<T>::type type;
+    };
+  }
+
+  template<typename T>
+  typename result_of::make_list2<T>::type
+  make_list2(const T& val) {
+    return boost::fusion::make_list(val);
+  }
+
+
+#else
+  namespace result_of {
+      using boost::fusion::result_of::make_list;
+  }
+
+  using boost::fusion::make_list;
+
+
+#endif
 
 } }
 
