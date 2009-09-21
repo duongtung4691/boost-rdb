@@ -48,7 +48,7 @@
 #include <boost/preprocessor/punctuation/comma_if.hpp>
 
 #define BOOST_RDB_MAX_ARG_COUNT 10
-#define BOOST_RDB_PP_WITH(z, n, t) ::with<t##n>::type
+#define BOOST_RDB_PP_WITH(z, n, t) ::template with<t##n>::type
 #define BOOST_RDB_PP_CALL(z, n, t) (t##n)
 #define BOOST_RDB_PP_EXPRESSION(z, n, t) BOOST_PP_COMMA_IF(n) const expression<T##t##n>& t##n
 
