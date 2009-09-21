@@ -1,15 +1,12 @@
 #include <iostream>
 #include <sstream>
 
-#define BOOST_TEST_MODULE SqlTest
+#define BOOST_TEST_MODULE sql_composer
 #include <boost/test/unit_test.hpp>
-
+//#define _Swap_adl swap
+//#include <boost/test/included/unit_test.hpp>
 #include <boost/rdb/rdb.hpp>
 #include "test_tables.hpp"
-
-using namespace std;
-using namespace boost::rdb;
-using namespace boost::rdb::test::springfield;
 
 // Visual Studio regex to make error output readable
 // (boost|std|fusion|rdb|test|springfield)\:\:
@@ -21,8 +18,10 @@ std::string str(const Statement& statement) {
   return os.str();
 }
 
+namespace rdb = boost::rdb;
+
 template<class SelectList, class FromList, class WhereList>
-std::string str(const select_type<SelectList, FromList, WhereList>& select) {
+std::string str(const rdb::select_type<SelectList, FromList, WhereList>& select) {
   std::ostringstream os;
   select.str(os);
   return os.str();
@@ -32,18 +31,22 @@ std::string str(const select_type<SelectList, FromList, WhereList>& select) {
 
 #define BOOST_RDB_CHECK_SQL(expr, sql) BOOST_CHECK(str(expr) == sql)
 
-boost::fusion::result_of::make_list<int>::type foo() {
-  return boost::fusion::make_list(1);
-}
+using namespace std;
+using namespace boost::rdb::test::springfield;
 
-BOOST_AUTO_TEST_CASE(sql)
-{
+BOOST_AUTO_TEST_CASE(create_statement) {
+
   using namespace boost::rdb;
-  using boost::rdb::select;
 
   BOOST_RDB_CHECK_SQL(create_table<person>(),
     "create table person(id integer, name varchar(20), first_name varchar(30), age integer)");
+}
 
+BOOST_AUTO_TEST_CASE(select_statement) {
+
+  using namespace boost::rdb;
+  using boost::rdb::select;
+  
   scope {
     person husband;
     BOOST_RDB_CHECK_SQL(
