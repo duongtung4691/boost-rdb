@@ -60,10 +60,10 @@ namespace boost { namespace rdb {
 
   namespace precedence_level {
     enum {
+      boolean,
       compare,
       add,
       multiply,
-      boolean,
       not,
       highest
     };
