@@ -172,6 +172,10 @@
 	</References>
 	<Files>
 		<File
+			RelativePath="..\..\test\Jamfile.v2"
+			>
+		</File>
+		<File
 			RelativePath=".\preprocess_rdb.cpp"
 			>
 			<FileConfiguration

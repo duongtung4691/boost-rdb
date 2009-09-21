@@ -165,6 +165,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\build\Jamfile.v2"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\..\boost\rdb\details\pp_variadics.hpp"
 			>
 		</File>

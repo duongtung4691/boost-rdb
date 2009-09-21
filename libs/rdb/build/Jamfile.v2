@@ -8,12 +8,14 @@
 
 # See library home page at http://www.boost.org/libs/rdb
 
+import testing ;
+
 project boost/rdb
     : source-location ../src
     ;
 
 SOURCES =
-    class_type ;
+    rdb odbc ;
 
 lib boost_rdb
     :

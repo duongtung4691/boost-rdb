@@ -5,6 +5,7 @@
 
 #ifdef _MSC_VER
 #pragma warning(disable: 4996)
+#pragma comment(lib, "odbc32")
 #endif
 
 using namespace std;
