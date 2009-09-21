@@ -132,7 +132,7 @@ BOOST_PP_REPEAT_FROM_TO(2, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_SELECT_VALUES, 
     struct with_table {
       typedef select_type<
         SelectList,
-        typename boost::fusion::result_of::make_list< boost::reference_wrapper<const Table> >::type,
+        typename result_of::make_list< boost::reference_wrapper<const Table> >::type,
         void
       > type;
     };
@@ -140,7 +140,7 @@ BOOST_PP_REPEAT_FROM_TO(2, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_SELECT_VALUES, 
     template<class Table>
     typename with_table<Table>::type
     from(const Table& table) const {
-      return typename with_table<Table>::type(exprs, boost::fusion::make_list(boost::cref(table)));
+      return typename with_table<Table>::type(exprs, make_list(boost::cref(table)));
     }
 
     template<class Table0, class Table1>
