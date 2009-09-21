@@ -64,7 +64,7 @@ namespace boost { namespace rdb {
       compare,
       add,
       multiply,
-      not,
+      logical_not,
       highest
     };
   }
@@ -406,7 +406,7 @@ namespace boost { namespace rdb {
 
     typedef boolean sql_type;
 
-    enum { precedence = precedence_level::not };
+    enum { precedence = precedence_level::logical_not };
     
     void str(std::ostream& os) const {
       write(os, boost::mpl::bool_<Expr::precedence < precedence>());
