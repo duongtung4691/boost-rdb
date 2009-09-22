@@ -3,13 +3,11 @@
 
 #define BOOST_TEST_MODULE sql_composer
 #include <boost/test/unit_test.hpp>
-//#define _Swap_adl swap
-//#include <boost/test/included/unit_test.hpp>
 #include <boost/rdb/rdb.hpp>
 #include "test_tables.hpp"
 
 // Visual Studio regex to make error output readable
-// (boost|std|fusion|rdb|test|springfield)\:\:
+// (boost|std|fusion|rdb|test|springfield|details)\:\:
 
 template<class Statement>
 std::string str(const Statement& statement) {
@@ -104,7 +102,7 @@ BOOST_AUTO_TEST_CASE(insert_values) {
   //insert_into(p)(partner::_.husband); // not in same table
   //insert_into(p)(p.name).values(p.id); // type mismatch
 }
-/*
+
 BOOST_AUTO_TEST_CASE(insert_set) {
 
   using namespace boost::rdb;
@@ -112,14 +110,14 @@ BOOST_AUTO_TEST_CASE(insert_set) {
   person p;
 
   BOOST_RDB_CHECK_SQL(
-    insert_into(p)().set(p.id, 1),
+    insert_into(p).set(p.id, 1),
     "insert into person set id = 1");
 
   BOOST_RDB_CHECK_SQL(
-    insert_into(p)().set(p.id, 1).set(p.first_name, "Homer"),
-    "insert into person set id = 1, first_name = 'Homer')");
+    insert_into(p).set(p.id, 1).set(p.first_name, "Homer"),
+    "insert into person set id = 1, set first_name = 'Homer'");
 }
-*/
+
 BOOST_AUTO_TEST_CASE(select_from) {
 
   using namespace boost::rdb;

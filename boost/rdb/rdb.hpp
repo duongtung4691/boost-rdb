@@ -18,6 +18,7 @@
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/if.hpp>
+#include <boost/utility/enable_if.hpp>
 
 #include <boost/type_traits/is_same.hpp>
 #include <boost/type_traits/remove_reference.hpp>
@@ -80,6 +81,8 @@ namespace boost { namespace rdb {
     }
     os << "'";
   }
+
+  void quote_text(std::ostream& os, const char* str);
 
   struct comma_output {
     comma_output(std::ostream& os) : os_(os), comma_("") { }
@@ -219,9 +222,17 @@ namespace boost { namespace rdb {
     T value_;
   };
 
+  template<int N>
+  struct literal<const char[N]> : any_literal {
+    literal(const char value[N]) : value_(value) { }
+    void str(std::ostream& os) const { quote_text(os, value_); }
+    const char* value_;
+  };
+
   template<>
   struct literal<const char*> : any_literal  {
     literal(const char* value) : value_(value) { }
+    void str(std::ostream& os) const { quote_text(os, value_); }
     const char* value_;
   };
 
@@ -240,9 +251,35 @@ namespace boost { namespace rdb {
     int value_;
   };
 
+  namespace result_of {
+    template<typename T>
+    struct as_expression {
+      typedef literal<T> type;
+    };
+  }
+
   template<typename T>
   literal<T> as_expression(const T& value) {
     return literal<T>(value);
+  }
+
+  namespace result_of {
+    template<class Expr>
+    struct as_expression< const expression<Expr> > {
+      typedef const Expr& type;
+    };
+
+    template<class Expr>
+    struct as_expression< expression<Expr> > {
+      typedef const Expr& type;
+    };
+
+    // remove the expression<> decorator from a Column or an Expression
+    template<class Content>
+    struct unwrap {
+      typedef typename boost::remove_cv<Content>::type type;
+    };
+
   }
 
   template<class Expr>

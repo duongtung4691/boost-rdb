@@ -6,6 +6,16 @@
 
 namespace boost { namespace rdb {
 
+  void quote_text(std::ostream& os, const char* str) {
+    os << "'";
+    while (*str) {
+      if (*str == '\'')
+        os << *str;
+      os << *str++;
+    }
+    os << "'";
+  }
+
   //select_type<details::empty, void, void> select = details::empty();
   select_type<details::empty, void, void> select = details::empty();
 
