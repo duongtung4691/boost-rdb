@@ -77,11 +77,22 @@ namespace boost { namespace rdb {
       >
       //))
     operator ()(const expression<Col>& col) const {
+    BOOST_MPL_ASSERT((boost::is_same<Table, typename Col::table_type>));
       return insert_cols<
         Table,
         typename boost::fusion::result_of::push_back<const ColList, Col>::type
       >(boost::fusion::push_back(cols_, col.unwrap()));
     }
+
+#define BOOST_RDB_PP_INSERT_COLS(z, n, unused) \
+    template<BOOST_PP_ENUM_PARAMS(n, class Tcol)> \
+    typename insert_cols<Table, typename result_of::make_list< Tcol0 >::type \
+      >BOOST_PP_REPEAT_FROM_TO(1, n, BOOST_RDB_PP_WITH, Tcol) \
+    operator ()(BOOST_PP_REPEAT(n, BOOST_RDB_PP_EXPRESSION, col)) { \
+      return (*this)BOOST_PP_REPEAT(n, BOOST_RDB_PP_CALL, col); \
+    }
+
+  BOOST_PP_REPEAT_FROM_TO(2, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_COLS, ~)
 
     ColList cols_;
 
@@ -171,24 +182,11 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
     }
   };
 
-  template<class Table, class Col>
-  BOOST_CONCEPT_REQUIRES(
-    ((Column<Col>)),
-    (typename insert_cols<Table>::template with<Col>::type))
-  insert_into(const expression<Col>& col) {
-    BOOST_MPL_ASSERT((boost::is_same<Table, typename Col::table_type>));
-    return insert_cols<Table>(details::empty())(col);
+  template<class Table>
+  insert_cols<Table>
+  insert_into(const Table& table) {
+    return insert_cols<Table>(details::empty());
   }
-
-#define BOOST_RDB_PP_INSERT_COLS(z, n, unused) \
-    template<class Table, BOOST_PP_ENUM_PARAMS(n, class Tcol)> \
-    typename insert_cols<Table, typename result_of::make_list< Tcol0 >::type \
-      >BOOST_PP_REPEAT_FROM_TO(1, n, BOOST_RDB_PP_WITH, Tcol) \
-    insert_into(BOOST_PP_REPEAT(n, BOOST_RDB_PP_EXPRESSION, col)) { \
-      return insert_into<Table>BOOST_PP_REPEAT(n, BOOST_RDB_PP_CALL, col); \
-    }
-
-  BOOST_PP_REPEAT_FROM_TO(2, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_COLS, ~)
 
 } }
 

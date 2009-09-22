@@ -52,8 +52,8 @@ int test_main( int, char *[] )
   
   person p;
 
-  db.execute(insert_into<person>(p.id, p.first_name, p.name, p.age).values(1, "Homer", "Simpson", 37));
-  db.execute(insert_into<person>(p.id, p.first_name, p.name, p.age).values(2, "Marge", "Simpson", 34));
+  db.execute(insert_into(p)(p.id, p.first_name, p.name, p.age).values(1, "Homer", "Simpson", 37));
+  db.execute(insert_into(p)(p.id, p.first_name, p.name, p.age).values(2, "Marge", "Simpson", 34));
 
   using boost::rdb::select;
 
