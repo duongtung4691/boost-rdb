@@ -5,10 +5,10 @@ struct BOOST_RDB_OPERATOR_CLASS : binary_operation<Expr1, Expr2, BOOST_RDB_OPERA
   BOOST_RDB_OPERATOR_CLASS(const Expr1& expr1, const Expr2& expr2) : expr1_(expr1), expr2_(expr2) { }
 
   typedef SqlType sql_type;
-  typedef typename sql_type cpp_type;
+  typedef typename sql_type::cpp_type cpp_type;
   
   void str(std::ostream& os) const {
-    write(os, expr1_, BOOST_RDB_OPERATOR_STRING, expr2_);
+    this->write(os, expr1_, BOOST_RDB_OPERATOR_STRING, expr2_);
   }
   
   Expr1 expr1_;

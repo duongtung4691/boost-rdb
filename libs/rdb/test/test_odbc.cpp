@@ -63,4 +63,3 @@ int test_main( int, char *[] )
  
   return 0;
 }
-//( ((ostringstream() << db.execute(select(p.id, p.first_name, p.name, p.age).from(p))).str() == "((1 Homer Simpson 37) (2 Marge Simpson 34))") ? static_cast<void>(0) : boost::minimal_test::report_error("(ostringstream() << db.execute(select(p.id, p.first_name, p.name, p.age).from(p))).str() == \"((1 Homer Simpson 37) (2 Marge Simpson 34))\"","c:\\users\\jll\\documents\\visual studio 2008\\projects\\rdb\\libs\\rdb\\test\\test_odbc.cpp",55,  __FUNCSIG__  ) ); 

@@ -1,4 +1,9 @@
+#ifdef WIN32
 #include <windows.h>
+#endif
+
+#include <cstdio>
+
 #include <boost/rdb/rdb.hpp>
 #include <boost/rdb/odbc.hpp>
 #include <boost/format.hpp>
@@ -13,7 +18,7 @@ using namespace std;
 namespace boost { namespace rdb { namespace odbc {
 
 error::error(SQLSMALLINT handle_type, SQLHANDLE handle, long rc) : rc(rc) {
-  sprintf(msg, "rc %d", rc);
+  sprintf(msg, "rc %ld", rc);
   SQLSMALLINT mlen;
   SQLGetDiagField(handle_type, handle, 1, SQL_DIAG_MESSAGE_TEXT, (SQLPOINTER) msg, sizeof msg, &mlen);
   cout << msg << endl;

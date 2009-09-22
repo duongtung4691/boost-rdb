@@ -16,7 +16,7 @@ namespace boost { namespace rdb {
   namespace result_of {
     template<class Expr1, class Expr2>
     struct make_expression_list {
-      typedef typename expression_list<
+      typedef expression_list<
         typename boost::fusion::result_of::make_list<
           boost::reference_wrapper<const Expr1>,
           boost::reference_wrapper<const Expr2>
@@ -26,7 +26,7 @@ namespace boost { namespace rdb {
 
     template<class ExprList, class Expr>
     struct extend_expression_list {
-      typedef typename expression_list<
+      typedef expression_list<
         typename boost::fusion::result_of::push_back<
           const ExprList,
           boost::reference_wrapper<const Expr>

@@ -61,7 +61,7 @@ namespace boost { namespace rdb {
 
     template<class Col>
     struct with {
-      typedef typename insert_cols<
+      typedef insert_cols<
         Table,
         typename boost::fusion::result_of::push_back<const ColList, Col>::type
       > type;
@@ -106,7 +106,7 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
     typedef ColList col_list_type;
     typedef ValueList value_list_type;
     
-    insert_type(const ColList& cols, const ValueList& values) : insert_cols(cols), values_(values) { }
+    insert_type(const ColList& cols, const ValueList& values) : just_cols(cols), values_(values) { }
 
     ValueList values_;
 
@@ -119,7 +119,7 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
   };
 
   template<class Table, class ColList, class ExprList, class ColIter>
-  struct insert_vals { //: insert_cols<Table, ColList> {
+  struct insert_vals {
 
     //typedef insert_cols<Table, ColList> just_cols;
     typedef insert_vals type;
@@ -127,13 +127,6 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
 
     ColList cols_;
     ExprList values_;
-
-    void str(std::ostream& os) const {
-      just_cols::str(os);
-      os << " values (";
-      boost::fusion::for_each(values_, comma_output(os));
-      os << ")";
-    }
 
     template<typename T>
     struct with {
@@ -143,8 +136,8 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
     template<typename T>
     typename with<T>::type
     operator ()(const T& expr) const {
-      typedef with<T>::type result_type;
-      typedef typename boost::remove_reference<boost::fusion::result_of::deref<ColIter>::type>::type col_type;
+      typedef typename with<T>::type result_type;
+      typedef typename boost::remove_reference<typename boost::fusion::result_of::deref<ColIter>::type>::type col_type;
       return result_type(cols_, boost::fusion::push_back(values_, col_type::sql_type::make_literal(expr)));
     }
 
@@ -181,7 +174,7 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
   template<class Table, class Col>
   BOOST_CONCEPT_REQUIRES(
     ((Column<Col>)),
-    (typename insert_cols<Table>::with<Col>::type))
+    (typename insert_cols<Table>::template with<Col>::type))
   insert_into(const expression<Col>& col) {
     BOOST_MPL_ASSERT((boost::is_same<Table, typename Col::table_type>));
     return insert_cols<Table>(details::empty())(col);

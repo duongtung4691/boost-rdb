@@ -83,7 +83,7 @@ namespace boost { namespace rdb {
 
     template<class T>
     struct with {
-      typedef typename select_type<
+      typedef select_type<
         typename boost::fusion::result_of::push_back< const SelectList, literal<T> >::type,
         void, void
       > type;
@@ -91,7 +91,7 @@ namespace boost { namespace rdb {
 
     template<class Expr>
     struct with< expression<Expr> > {
-      typedef typename select_type<
+      typedef select_type<
         typename boost::fusion::result_of::push_back< const SelectList, Expr>::type,
         void, void
       > type;
@@ -144,7 +144,7 @@ BOOST_PP_REPEAT_FROM_TO(2, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_SELECT_VALUES, 
     }
 
     template<class Table0, class Table1>
-    typename with_table<Table0>::type::with<Table1>::type
+    typename with_table<Table0>::type::template with<Table1>::type
     from(const Table0& table0, const Table1& table1) const {
       return from(table0)(table1);
     }
@@ -172,7 +172,7 @@ BOOST_PP_REPEAT_FROM_TO(2, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_SELECT_VALUES, 
     template<class Table>
     typename with<Table>::type
     operator ()(const Table& table) const {
-      return typename with<Table>::type(exprs, boost::fusion::push_back(tables, boost::cref(table)));
+      return typename with<Table>::type(just_select::exprs, boost::fusion::push_back(tables, boost::cref(table)));
     }
     
     template<class Pred>
@@ -188,7 +188,7 @@ BOOST_PP_REPEAT_FROM_TO(2, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_SELECT_VALUES, 
         SelectList,
         FromList,
         Pred
-      >(exprs, tables, pred);
+      >(just_select::exprs, tables, pred);
     }
 
     void str(std::ostream& os) const {

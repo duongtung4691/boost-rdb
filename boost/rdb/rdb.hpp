@@ -59,7 +59,7 @@ namespace boost { namespace rdb {
   }
 
   namespace precedence_level {
-    enum {
+    enum level {
       boolean,
       compare,
       add,
@@ -73,7 +73,7 @@ namespace boost { namespace rdb {
   void quote_text(std::ostream& os, Iter iter, Iter last) {
     os << "'";
     while (iter != last) {
-      Iter::value_type c = *iter++;
+      typename Iter::value_type c = *iter++;
       if (c == '\'')
         os << c;
       os << c;
@@ -188,8 +188,8 @@ namespace boost { namespace rdb {
     static void str_type(std::ostream& os) { SqlType::str(os); }
 
     void str(std::ostream& os) const {
-      if (table_->has_alias())
-        os << table_->alias() << '.' << Base::name();
+      if (this->table_->has_alias())
+        os << this->table_->alias() << '.' << Base::name();
       else
         os << Base::name();
     }
@@ -342,7 +342,7 @@ namespace boost { namespace rdb {
   #include "boost/rdb/details/arithmetic_operator.hpp"
 
   #define BOOST_RDB_OPERATOR *
-  #define BOOST_RDB__OPERATORSTRING " * "
+  #define BOOST_RDB_OPERATOR_STRING " * "
   #define BOOST_RDB_OPERATOR_CLASS times
   #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::multiply
   #include "boost/rdb/details/arithmetic_operator.hpp"
@@ -391,25 +391,25 @@ namespace boost { namespace rdb {
 
   #define BOOST_RDB_OPERATOR &&
   #define BOOST_RDB_OPERATOR_STRING " and "
-  #define BOOST_RDB_OPERATOR_CLASS and
+  #define BOOST_RDB_OPERATOR_CLASS and_
   #include "boost/rdb/details/boolean_operator.hpp"
 
   #define BOOST_RDB_OPERATOR ||
   #define BOOST_RDB_OPERATOR_STRING " or "
-  #define BOOST_RDB_OPERATOR_CLASS or
+  #define BOOST_RDB_OPERATOR_CLASS or_
   #include "boost/rdb/details/boolean_operator.hpp"
 
   template<class Expr>
-  struct not {
+  struct not_ {
 
-    not(const Expr& expr) : expr_(expr) { }
+    not_(const Expr& expr) : expr_(expr) { }
 
     typedef boolean sql_type;
 
     enum { precedence = precedence_level::logical_not };
     
     void str(std::ostream& os) const {
-      write(os, boost::mpl::bool_<Expr::precedence < precedence>());
+      this->write(os, boost::mpl::bool_<Expr::precedence < precedence>());
     }
 
     void write(std::ostream& os, boost::mpl::true_) const {
@@ -429,9 +429,9 @@ namespace boost { namespace rdb {
   template<class Expr>
   BOOST_CONCEPT_REQUIRES(
     ((BooleanExpression<Expr>)),
-    (expression< not<Expr> >))
+    (expression< not_<Expr> >))
   operator !(const expression<Expr>& expr) {
-    return expression< not<Expr> >(expr);
+    return expression< not_<Expr> >(expr);
   }
 
   template<class Table>

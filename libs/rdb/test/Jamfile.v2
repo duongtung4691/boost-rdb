@@ -17,6 +17,6 @@ project
 {
    test-suite "rdb"
         :
-        [ run test.cpp ]
+        [ run test.cpp  ../../test/build//boost_test_exec_monitor  ]
        ;
 }
