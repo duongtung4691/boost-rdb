@@ -112,95 +112,6 @@ namespace boost { namespace rdb {
     }
   };
 
-  struct any_table : boost::noncopyable {
-    any_table(const std::string& name) : name_(name) { }
-    any_table(const std::string& name, const std::string& alias) : name_(name), alias_(alias) { }
-    std::string name_, alias_;
-
-    void str(std::ostream& os) const {
-      if (has_alias())
-        os << name_ << " as " << alias_;
-      else
-        os << name_;
-    }
-    const std::string& alias() const { return alias_; }
-    bool has_alias() const { return !alias_.empty(); }
-  };
-
-  template<class Expr>
-  struct Expression
-  {
-    Expr expr;
-    std::ostream& stream;
-    typedef typename Expr::sql_type sql_type;
-    enum { precedence = Expr::precedence };
-
-    BOOST_CONCEPT_USAGE(Expression) {
-      expr.str(stream);
-    }
-  };
-
-  template<class Expr>
-  struct NumericExpression : Expression<Expr>
-  {
-    typedef typename Expr::sql_type::is_numeric is_numeric;
-  };
-
-  template<class Expr>
-  struct ComparableExpression : Expression<Expr>
-  {
-    typedef typename Expr::sql_type::comparable_type comparable_type;
-  };
-
-  template<class Expr, typename T>
-  struct CompatibleLiteral
-  {
-    const T& value;
-    BOOST_CONCEPT_USAGE(CompatibleLiteral) {
-      Expr::sql_type::make_literal(value);
-    }
-  };
-
-  template<class Expr>
-  struct expression;
-    
-  namespace result_of {
-    template<class Expr, typename T>
-    struct make_expression_ {
-      typedef typename Expr::sql_type::literal_type type;
-      static const type make(const T& value) { return Expr::sql_type::make_literal(value); }
-    };
-  
-    template<class Expr, class Expr2>
-    struct make_expression_< Expr, expression<Expr2> > {
-      typedef Expr2 type;
-      static Expr2 make(const Expr2& expr) { return expr; }
-    };
-  
-    template<class Expr, typename T>
-    struct make_expression : make_expression_<
-      Expr,
-      typename boost::remove_const<
-        typename boost::remove_reference<T>::type
-      >::type
-    > {
-    };
-  }
-
-  template<class Expr>
-  struct expression : Expr {
-    expression() { }
-    template<typename T> expression(const T& arg) : Expr(arg) { }
-    template<typename T1, typename T2> expression(const T1& arg1, const T2& arg2) : Expr(arg1, arg2) { }
-    const Expr& unwrap() const { return *this; }
-    
-    template<typename T>
-    typename result_of::make_expression<Expr, T>::type
-    static make_expression(const T& any) {
-      return result_of::make_expression<Expr, T>::make(any);
-    }
-  };
-
   template<class St>
   struct Statement
   {
@@ -217,43 +128,6 @@ namespace boost { namespace rdb {
     statement() { }
     template<typename T> statement(const T& arg) : Statement(arg) { }
     const Statement& unwrap() const { return *this; }
-  };
-  
-  struct any_column /*: boost::noncopyable*/ {
-    const any_table* table_;
-    enum { precedence = precedence_level::highest };
-
-    void initialize(const any_table* table) {
-      table_ = table;
-    }
-  };
-
-  template<class Table, class SqlType, class Base>
-  struct column : Base {
-    enum { precedence = precedence_level::highest };
-    typedef SqlType sql_type;
-    typedef Table table_type;
-    typedef typename sql_type::cpp_type cpp_type;
-    static void str_type(std::ostream& os) { SqlType::str(os); }
-
-    void str(std::ostream& os) const {
-      if (this->table_->has_alias())
-        os << this->table_->alias() << '.' << Base::name();
-      else
-        os << Base::name();
-    }
-  };
-
-  template<class Col>
-  struct Column
-  {
-    Col col;
-    std::ostream& os;
-    typedef typename Col::table_type table_type;
-
-    BOOST_CONCEPT_USAGE(Column) {
-      col.str(os);
-    }
   };
 
   struct any_literal {
@@ -304,38 +178,6 @@ namespace boost { namespace rdb {
     };
   }
 
-  template<typename T>
-  literal<T> as_expression(const T& value) {
-    return literal<T>(value);
-  }
-
-  namespace result_of {
-    template<class Expr>
-    struct as_expression< const expression<Expr> > {
-      typedef const Expr& type;
-    };
-
-    template<class Expr>
-    struct as_expression< expression<Expr> > {
-      typedef const Expr& type;
-    };
-
-    // remove the expression<> decorator from a Column or an Expression
-    template<class Content>
-    struct unwrap {
-      typedef typename boost::remove_cv<Content>::type type;
-    };
-
-  }
-
-  template<class Expr>
-  BOOST_CONCEPT_REQUIRES(
-    ((Expression<Expr>)),
-  (const Expr&))
-  as_expression(const expression<Expr>& expr) {
-    return expr.unwrap();
-  }
-
   struct num_comparable_type;
   struct numeric_type;
   struct char_type;
@@ -361,14 +203,6 @@ namespace boost { namespace rdb {
     typedef bool cpp_type;
   };
 
-  template<class Expr>
-  struct BooleanExpression : Expression<Expr>
-  {
-    BOOST_CONCEPT_USAGE(BooleanExpression) {
-      BOOST_MPL_ASSERT((boost::is_same<typename Expr::sql_type, boolean>));
-    }
-  };
-
   struct char_comparable_type;
 
   template<int N>
@@ -388,197 +222,6 @@ namespace boost { namespace rdb {
     enum { precedence = precedence_level::compare };
   };
 
-  template<class Expr1, class Expr2, int Precedence>
-  struct binary_operation {
-
-    enum { precedence = Precedence };
-
-    static void write(std::ostream& os, const Expr1& expr1, const char* op, const Expr2& expr2) {
-      write(os, expr1, boost::mpl::bool_<static_cast<int>(Expr1::precedence) < precedence>());
-      os << op;
-      write(os, expr2, boost::mpl::bool_<static_cast<int>(Expr2::precedence) < precedence>());
-    }
-
-    template<class Expr>
-    static void write(std::ostream& os, const Expr& expr, boost::mpl::true_) {
-      os << "(";
-      expr.str(os);
-      os << ")";
-    }
-
-    template<class Expr>
-    static void write(std::ostream& os, const Expr& expr, boost::mpl::false_) {
-      expr.str(os);
-    }
-  };
-
-  #define BOOST_RDB_OPERATOR +
-  #define BOOST_RDB_OPERATOR_STRING " + "
-  #define BOOST_RDB_OPERATOR_CLASS plus
-  #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::add
-  #include "boost/rdb/details/arithmetic_operator.hpp"
-
-  #define BOOST_RDB_OPERATOR -
-  #define BOOST_RDB_OPERATOR_STRING " - "
-  #define BOOST_RDB_OPERATOR_CLASS minus
-  #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::add
-  #include "boost/rdb/details/arithmetic_operator.hpp"
-
-  #define BOOST_RDB_OPERATOR *
-  #define BOOST_RDB_OPERATOR_STRING " * "
-  #define BOOST_RDB_OPERATOR_CLASS times
-  #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::multiply
-  #include "boost/rdb/details/arithmetic_operator.hpp"
-
-  #define BOOST_RDB_OPERATOR /
-  #define BOOST_RDB_OPERATOR_STRING " / "
-  #define BOOST_RDB_OPERATOR_CLASS divide
-  #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::multiply
-  #include "boost/rdb/details/arithmetic_operator.hpp"
-
-  #define BOOST_RDB_OPERATOR ==
-  #define BOOST_RDB_OPERATOR_STRING " = "
-  #define BOOST_RDB_OPERATOR_CLASS eq
-  #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::compare
-  #include "boost/rdb/details/comparison_operator.hpp"
-
-  #define BOOST_RDB_OPERATOR !=
-  #define BOOST_RDB_OPERATOR_STRING " <> "
-  #define BOOST_RDB_OPERATOR_CLASS ne
-  #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::compare
-  #include "boost/rdb/details/comparison_operator.hpp"
-
-  #define BOOST_RDB_OPERATOR <
-  #define BOOST_RDB_OPERATOR_STRING " < "
-  #define BOOST_RDB_OPERATOR_CLASS lt
-  #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::compare
-  #include "boost/rdb/details/comparison_operator.hpp"
-
-  #define BOOST_RDB_OPERATOR <=
-  #define BOOST_RDB_OPERATOR_STRING " <= "
-  #define BOOST_RDB_OPERATOR_CLASS le
-  #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::compare
-  #include "boost/rdb/details/comparison_operator.hpp"
-
-  #define BOOST_RDB_OPERATOR >
-  #define BOOST_RDB_OPERATOR_STRING " > "
-  #define BOOST_RDB_OPERATOR_CLASS gt
-  #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::compare
-  #include "boost/rdb/details/comparison_operator.hpp"
-
-  #define BOOST_RDB_OPERATOR >=
-  #define BOOST_RDB_OPERATOR_STRING " >= "
-  #define BOOST_RDB_OPERATOR_CLASS ge
-  #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::compare
-  #include "boost/rdb/details/comparison_operator.hpp"
-
-  #define BOOST_RDB_OPERATOR &&
-  #define BOOST_RDB_OPERATOR_STRING " and "
-  #define BOOST_RDB_OPERATOR_CLASS and_
-  #include "boost/rdb/details/boolean_operator.hpp"
-
-  #define BOOST_RDB_OPERATOR ||
-  #define BOOST_RDB_OPERATOR_STRING " or "
-  #define BOOST_RDB_OPERATOR_CLASS or_
-  #include "boost/rdb/details/boolean_operator.hpp"
-
-  template<class Expr>
-  struct not_ {
-
-    not_(const Expr& expr) : expr_(expr) { }
-
-    typedef boolean sql_type;
-
-    enum { precedence = precedence_level::logical_not };
-    
-    void str(std::ostream& os) const {
-      this->write(os, boost::mpl::bool_<static_cast<int>(Expr::precedence) < static_cast<int>(precedence)>());
-    }
-
-    void write(std::ostream& os, boost::mpl::true_) const {
-      os << "not (";
-      expr_.str(os);
-      os << ")";
-    }
-
-    void write(std::ostream& os, boost::mpl::false_) const {
-      os << "not ";
-      expr_.str(os);
-    }
-    
-    Expr expr_;
-  };
-
-  template<class Expr>
-  BOOST_CONCEPT_REQUIRES(
-    ((BooleanExpression<Expr>)),
-    (expression< not_<Expr> >))
-  operator !(const expression<Expr>& expr) {
-    return expression< not_<Expr> >(expr);
-  }
-
-  template<class Table>
-  struct initialize_columns {
-    initialize_columns(Table* pt) : pt(pt) { }
-    template<typename T> void operator ()(T) {
-      T::initialize(pt);
-    }
-    Table* pt;
-  };
-
-  template<typename T>
-  struct singleton {
-    static T _;
-  };
-
-  template<class T>
-  T singleton<T>::_;
-
-  #define BOOST_RDB_COLUMN(NAME, sql_type) \
-  members_before_##NAME;  \
-  enum { NAME##_index = boost::mpl::size<members_before_##NAME>::value }; \
-  struct NAME##_base : any_column { static const char* name() { return #NAME; } }; \
-  typedef expression< column<this_table, sql_type, NAME##_base> > NAME##_type;  \
-  NAME##_type NAME;  \
-  struct NAME##_member {  \
-    typedef std::string type;  \
-    static NAME##_type& ref(this_table& obj) { return obj.NAME; }  \
-    static const NAME##_type& ref(const this_table& obj) { return obj.NAME; }  \
-    static void initialize(this_table* table) { table->NAME.initialize(table); }  \
-  };  \
-  typedef typename boost::mpl::push_back<members_before_##NAME, NAME##_member>::type
-
-  #define BOOST_RDB_BEGIN_TABLE(NAME)  \
-  template<int Alias>  \
-  struct NAME##_ : any_table, singleton< NAME##_<Alias> > {  \
-    typedef NAME##_<Alias> this_table;  \
-    static const char* table_name() { return #NAME; }  \
-    NAME##_() : any_table(table_name()) { initialize(); }  \
-    NAME##_(const std::string& alias) : any_table(table_name(), alias) { initialize(); }  \
-    NAME##_(const this_table& other) { initialize(); }  \
-    typedef boost::mpl::vector0<>
-
-  #define BOOST_RDB_END_TABLE(NAME)  \
-    column_members; \
-    void initialize() { \
-      boost::mpl::for_each<this_table::column_members>(initialize_columns<this_table>(this)); \
-    } \
-  }; \
-  typedef NAME##_<0> NAME;
-
-  template<typename Table>
-  struct table_column_output : comma_output {
-    table_column_output(std::ostream& os, const Table& table) : comma_output(os), table_(table) { }
-    
-    template<typename Column> void operator ()(Column) {
-      std::ostream& os = item();
-      os << Column::ref(table_).name() << " ";
-      Column::ref(table_).str_type(os);
-    }
-    
-    const Table& table_;
-  };
-
   template<class Statement>
   std::string as_string(const Statement& statement) {
     std::ostringstream os;
@@ -586,7 +229,6 @@ namespace boost { namespace rdb {
     return os.str();
   }
 
-#if 1
   namespace result_of {
     template<typename T>
     struct make_list {
@@ -615,21 +257,10 @@ namespace boost { namespace rdb {
     return boost::fusion::make_list(val);
   }
 
-
-#else
-  namespace result_of {
-      using boost::fusion::result_of::make_list;
-  }
-
-  using boost::fusion::make_list;
-
-
-#endif
-
 } }
 
-#include <boost/rdb/expression.hpp>
 #include <boost/rdb/table.hpp>
+#include <boost/rdb/expression.hpp>
 #include <boost/rdb/insert.hpp>
 #include <boost/rdb/update.hpp>
 #include <boost/rdb/select.hpp>
