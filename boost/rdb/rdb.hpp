@@ -264,6 +264,7 @@ namespace boost { namespace rdb {
 #include <boost/rdb/insert.hpp>
 #include <boost/rdb/update.hpp>
 #include <boost/rdb/select.hpp>
+#include <boost/rdb/delete.hpp>
 #include <boost/rdb/database.hpp>
 
 #endif // BOOST_RDB_HPP

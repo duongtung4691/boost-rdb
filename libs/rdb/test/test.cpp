@@ -305,3 +305,19 @@ BOOST_AUTO_TEST_CASE(select_comma_operator) {
     select((p.id, p.name, p.age)).from(p),
     "select p.id, p.name, p.age from person as p");
 }
+
+BOOST_AUTO_TEST_CASE(delete_from_table) {
+
+  using namespace boost::rdb;
+
+  person p;
+
+  BOOST_RDB_CHECK_SQL(
+    delete_from(p),
+    "delete from person");
+
+
+  BOOST_RDB_CHECK_SQL(
+    delete_from(p).where(p.id == 1),
+    "delete from person where id = 1");
+}

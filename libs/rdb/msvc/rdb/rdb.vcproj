@@ -157,6 +157,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\..\..\boost\rdb\delete.hpp"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\..\boost\rdb\expression.hpp"
 			>
 		</File>
