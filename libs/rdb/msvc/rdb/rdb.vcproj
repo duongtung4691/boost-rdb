@@ -184,6 +184,10 @@
 			RelativePath="..\..\..\..\boost\rdb\select.hpp"
 			>
 		</File>
+		<File
+			RelativePath="..\..\..\..\boost\rdb\update.hpp"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

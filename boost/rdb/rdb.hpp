@@ -98,6 +98,20 @@ namespace boost { namespace rdb {
     }
   };
 
+  struct assign_output : comma_output {
+    assign_output(std::ostream& os) : comma_output(os) { }
+
+    template<typename First, typename Second>
+    void operator ()(boost::fusion::vector<First, Second>& p) const {
+      ostream& os = this->item();
+      using namespace boost::fusion;
+      os << "set ";
+      at_c<0>(p).str(os);
+      os_ << " = ";
+      at_c<1>(p).str(os);
+    }
+  };
+
   struct any_table : boost::noncopyable {
     any_table(const std::string& name) : name_(name) { }
     any_table(const std::string& name, const std::string& alias) : name_(name), alias_(alias) { }
@@ -628,6 +642,7 @@ namespace boost { namespace rdb {
 
 #include <boost/rdb/expression.hpp>
 #include <boost/rdb/insert.hpp>
+#include <boost/rdb/update.hpp>
 #include <boost/rdb/select.hpp>
 #include <boost/rdb/database.hpp>
 
