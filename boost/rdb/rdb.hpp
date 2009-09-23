@@ -57,6 +57,8 @@ namespace boost { namespace rdb {
 
   namespace details {
     typedef boost::fusion::list<> empty;
+    
+    struct none { };
   }
 
   namespace precedence_level {
