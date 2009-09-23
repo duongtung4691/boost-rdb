@@ -117,9 +117,12 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
     }
   };
 
+  struct insert_tag { };
+
   template<class Table, class ColList, class ExprList, class Syntax>
   struct insert_type : insert_cols<Table, ColList> {
 
+    typedef insert_tag statement_tag;
     typedef insert_cols<Table, ColList> just_cols;
     typedef ColList col_list_type;
     typedef ExprList value_list_type;

@@ -46,9 +46,9 @@ namespace boost { namespace rdb { namespace odbc {
     void open(const std::string& dsn, const std::string& user, const std::string& password);
     void close();
     
-    template<class Statement>
-    BOOST_CONCEPT_REQUIRES(((Statement)), (void))
-    execute(const Statement& st)
+    template<class Stat>
+    BOOST_CONCEPT_REQUIRES(((Statement<Stat>)), (void))
+    execute(const Stat& st)
     { exec_str(as_string(st)); }
 
     template<class SelectList, class FromList, class Predicate>

@@ -121,15 +121,9 @@ namespace boost { namespace rdb {
     std::ostream& stream;
 
     BOOST_CONCEPT_USAGE(Statement) {
+      typedef typename St::statement_tag statement_tag;
       st.str(stream);
     }
-  };
-
-  template<class Statement>
-  struct statement : Statement {
-    statement() { }
-    template<typename T> statement(const T& arg) : Statement(arg) { }
-    const Statement& unwrap() const { return *this; }
   };
 
   struct any_literal {

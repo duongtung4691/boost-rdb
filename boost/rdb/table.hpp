@@ -120,8 +120,11 @@ namespace boost { namespace rdb {
     const Table& table_;
   };
 
+  struct create_table_tag { };
+
   template<typename Table>
   struct create_table_statement {
+    typedef create_table_tag statement_tag;
     void str(std::ostream& os) const {
       os << "create table " << Table::table_name() << "(";
       boost::mpl::for_each<typename Table::column_members>(table_column_output<Table>(os, Table::_));
@@ -135,8 +138,11 @@ namespace boost { namespace rdb {
     return create_table_statement<Table>();
   }
 
+  struct drop_table_tag { };
+
   template<typename Table>
   struct drop_table_statement {
+    typedef drop_table_tag statement_tag;
     void str(std::ostream& os) const {
       os << "drop table " << Table::table_name();
     }

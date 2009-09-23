@@ -6,9 +6,13 @@
 
 namespace boost { namespace rdb {
 
+  struct update_tag { };
+
   template<class Table, class ColList, class ExprList, class Predicate>
   struct update_type {
   
+    typedef update_tag statement_tag;
+
     ColList cols_;
     ExprList values_;
     Predicate where_;

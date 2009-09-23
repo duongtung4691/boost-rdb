@@ -6,6 +6,8 @@
 
 namespace boost { namespace rdb {
 
+  struct select_tag { };
+
   struct make_row {
 
     template<typename T>
@@ -155,6 +157,8 @@ BOOST_PP_REPEAT_FROM_TO(2, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_SELECT_VALUES, 
     typedef select_type<SelectList, void, void> just_select;
     select_type(const SelectList& exprs, const FromList& tables) : just_select(exprs), tables(tables) { }
 
+    typedef select_tag statement_tag;
+
     FromList tables;
     typedef typename select_row<SelectList>::type row_type;
 
@@ -203,6 +207,8 @@ BOOST_PP_REPEAT_FROM_TO(2, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_SELECT_VALUES, 
     typedef select_type<SelectList, FromList, void> select_from;
     select_type(const SelectList& exprs, const FromList& tables, const Predicate& pred)
       : select_from(exprs, tables), pred(pred) { }
+
+    typedef select_tag statement_tag;
 
     const Predicate& pred;
 

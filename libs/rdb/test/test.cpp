@@ -9,19 +9,13 @@
 // Visual Studio regex to make error output readable
 // (boost|std|fusion|rdb|test|springfield|details)\:\:
 
-template<class Statement>
-std::string str(const Statement& statement) {
-  std::ostringstream os;
-  statement.str(os);
-  return os.str();
-}
-
 namespace rdb = boost::rdb;
 
-template<class SelectList, class FromList, class WhereList>
-std::string str(const rdb::select_type<SelectList, FromList, WhereList>& select) {
+template<class Stat>
+BOOST_CONCEPT_REQUIRES(((rdb::Statement<Stat>)), (std::string))
+str(const Stat& statement) {
   std::ostringstream os;
-  select.str(os);
+  statement.str(os);
   return os.str();
 }
 
