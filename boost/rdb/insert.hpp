@@ -6,12 +6,6 @@
 
 namespace boost { namespace rdb {
 
-  template<class Insert>
-  struct insert_statement : Insert {
-    insert_statement(const typename Insert::col_list_type& cols, const typename Insert::value_list_type& values) 
-      : Insert(cols, values) { }
-  };
-
   struct insert_list { };
   struct insert_assign { };
 
@@ -34,7 +28,7 @@ namespace boost { namespace rdb {
           next_col_iter,
           typename boost::fusion::result_of::end<ColList>::type
         >,
-        insert_statement< insert_type<Table, ColList, values_type, insert_list> >,
+        insert_type<Table, ColList, values_type, insert_list>,
         insert_vals<Table, ColList, values_type, next_col_iter>
       >::type type;
     };

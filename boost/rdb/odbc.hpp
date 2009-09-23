@@ -50,9 +50,8 @@ namespace boost { namespace rdb { namespace odbc {
     void open(const std::string& dsn, const std::string& user, const std::string& password);
     void close();
     
-    template<class Insert>
-    BOOST_CONCEPT_REQUIRES(((Statement<Insert>)), (void))
-    execute(const insert_statement<Insert>& st) { execute(as_string(st)); }
+    template<class Table, class ColList, class ValueList, class Syntax>
+    void execute(const insert_type<Table, ColList, ValueList, Syntax>& st) { execute(as_string(st)); }
 
     template<class SelectList, class FromList, class Predicate>
     std::deque<typename select_row<SelectList>::type>
