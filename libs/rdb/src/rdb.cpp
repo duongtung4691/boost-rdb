@@ -16,7 +16,7 @@ namespace boost { namespace rdb {
     os << "'";
   }
 
-  //select_type<details::empty, void, void> select = details::empty();
-  select_type<details::empty, void, void> select = details::empty();
+  //select_statement<details::empty, void, void> select = details::empty();
+  select_statement<details::empty, void, void> select = details::empty();
 
 } }

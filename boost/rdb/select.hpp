@@ -6,7 +6,7 @@
 
 namespace boost { namespace rdb {
 
-  struct select_tag { };
+  struct select_statement_tag { };
 
   struct make_row {
 
@@ -67,16 +67,16 @@ namespace boost { namespace rdb {
 */
 
   template<class SelectList, class FromList, class WhereList>
-  struct select_type;
+  struct select_statement;
 
   template<class SelectList>
-  struct select_type<SelectList, void, void>;
+  struct select_statement<SelectList, void, void>;
 
   template<class SelectList>
-  struct select_type<SelectList, void, void> {
-    select_type(const SelectList& exprs) : exprs(exprs) { }
+  struct select_statement<SelectList, void, void> {
+    select_statement(const SelectList& exprs) : exprs(exprs) { }
     SelectList exprs;
-    typedef select_type<SelectList, void, void> this_type;
+    typedef select_statement<SelectList, void, void> this_type;
 
     void str(std::ostream& os) const {
       os << "select ";
@@ -85,7 +85,7 @@ namespace boost { namespace rdb {
 
     template<class T>
     struct with {
-      typedef select_type<
+      typedef select_statement<
         typename boost::fusion::result_of::push_back< const SelectList, literal<T> >::type,
         void, void
       > type;
@@ -93,7 +93,7 @@ namespace boost { namespace rdb {
 
     template<class Expr>
     struct with< expression<Expr> > {
-      typedef select_type<
+      typedef select_statement<
         typename boost::fusion::result_of::push_back< const SelectList, Expr>::type,
         void, void
       > type;
@@ -119,12 +119,12 @@ namespace boost { namespace rdb {
 BOOST_PP_REPEAT_FROM_TO(2, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_SELECT_VALUES, ~)
 
     template<class ExprList>
-    select_type<
+    select_statement<
       typename boost::fusion::result_of::join<const SelectList, const ExprList>::type,
       void, void
     >
     operator ()(const expression_list<ExprList>& more) const {
-      return select_type<
+      return select_statement<
         typename boost::fusion::result_of::join<const SelectList, const ExprList>::type,
         void, void
       >(boost::fusion::join(exprs, more.unwrap()));
@@ -132,7 +132,7 @@ BOOST_PP_REPEAT_FROM_TO(2, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_SELECT_VALUES, 
 
     template<class Table>
     struct with_table {
-      typedef select_type<
+      typedef select_statement<
         SelectList,
         typename result_of::make_list< boost::reference_wrapper<const Table> >::type,
         void
@@ -153,18 +153,18 @@ BOOST_PP_REPEAT_FROM_TO(2, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_SELECT_VALUES, 
   };
 
   template<class SelectList, class FromList>
-  struct select_type<SelectList, FromList, void> : select_type<SelectList, void, void> {
-    typedef select_type<SelectList, void, void> just_select;
-    select_type(const SelectList& exprs, const FromList& tables) : just_select(exprs), tables(tables) { }
+  struct select_statement<SelectList, FromList, void> : select_statement<SelectList, void, void> {
+    typedef select_statement<SelectList, void, void> just_select;
+    select_statement(const SelectList& exprs, const FromList& tables) : just_select(exprs), tables(tables) { }
 
-    typedef select_tag statement_tag;
+    typedef select_statement_tag statement_tag;
 
     FromList tables;
     typedef typename select_row<SelectList>::type row_type;
 
     template<class Table>
     struct with {
-      typedef select_type<
+      typedef select_statement<
         SelectList,
         typename boost::fusion::result_of::push_back<
           const FromList, boost::reference_wrapper<const Table>
@@ -182,13 +182,13 @@ BOOST_PP_REPEAT_FROM_TO(2, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_SELECT_VALUES, 
     template<class Pred>
     BOOST_CONCEPT_REQUIRES(
       ((Expression<Pred>)),
-      (select_type<
+      (select_statement<
         SelectList,
         FromList,
         Pred>)
       )
     where(const Pred& pred) const {
-      return select_type<
+      return select_statement<
         SelectList,
         FromList,
         Pred
@@ -203,12 +203,12 @@ BOOST_PP_REPEAT_FROM_TO(2, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_SELECT_VALUES, 
   };
 
   template<class SelectList, class FromList, class Predicate>
-  struct select_type : select_type<SelectList, FromList, void> {
-    typedef select_type<SelectList, FromList, void> select_from;
-    select_type(const SelectList& exprs, const FromList& tables, const Predicate& pred)
+  struct select_statement : select_statement<SelectList, FromList, void> {
+    typedef select_statement<SelectList, FromList, void> select_from;
+    select_statement(const SelectList& exprs, const FromList& tables, const Predicate& pred)
       : select_from(exprs, tables), pred(pred) { }
 
-    typedef select_tag statement_tag;
+    typedef select_statement_tag statement_tag;
 
     const Predicate& pred;
 
@@ -219,7 +219,7 @@ BOOST_PP_REPEAT_FROM_TO(2, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_SELECT_VALUES, 
     }
   };
   
-  extern select_type<details::empty, void, void> select;
+  extern select_statement<details::empty, void, void> select;
 
   namespace comma {
 

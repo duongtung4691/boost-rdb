@@ -6,12 +6,12 @@
 
 namespace boost { namespace rdb {
 
-  struct update_tag { };
+  struct update_statement_tag { };
 
   template<class Table, class ColList, class ExprList, class Predicate>
-  struct update_type {
+  struct update_statement {
   
-    typedef update_tag statement_tag;
+    typedef update_statement_tag statement_tag;
 
     ColList cols_;
     ExprList values_;
@@ -20,7 +20,7 @@ namespace boost { namespace rdb {
     typedef ColList col_list_type;
     typedef ExprList value_list_type;
     
-    update_type(const ColList& cols, const ExprList& values, const Predicate& where)
+    update_statement(const ColList& cols, const ExprList& values, const Predicate& where)
       : cols_(cols), values_(values), where_(where) { }
 
     void str(std::ostream& os) const { str(os, boost::is_same<Predicate, details::none>()); }
@@ -41,7 +41,7 @@ namespace boost { namespace rdb {
 
     template<class Col, class Expr>
     struct with {
-      typedef update_type<Table,
+      typedef update_statement<Table,
         typename boost::fusion::result_of::push_back<const ColList, 
           typename result_of::unwrap<Col>::type
         >::type,
@@ -62,17 +62,17 @@ namespace boost { namespace rdb {
     }
 
     template<class Where>
-    update_type<Table, ColList, ExprList, Where>
+    update_statement<Table, ColList, ExprList, Where>
     where(const Where& where) const {
       BOOST_MPL_ASSERT((boost::is_same<Predicate, details::none>));
-      return update_type<Table, ColList, ExprList, Where>(cols_, values_, where);
+      return update_statement<Table, ColList, ExprList, Where>(cols_, values_, where);
     }
   };
 
   template<class Table>
-  update_type<Table, details::empty, details::empty, details::none>
+  update_statement<Table, details::empty, details::empty, details::none>
   update(const Table& table) {
-    return update_type<Table, details::empty, details::empty, details::none>(
+    return update_statement<Table, details::empty, details::empty, details::none>(
       details::empty(), details::empty(), details::none());
   }
 

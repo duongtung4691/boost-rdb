@@ -10,7 +10,7 @@ namespace boost { namespace rdb {
   struct insert_assign { };
 
   template<class Table, class ColList, class ExprList, class Syntax>
-  struct insert_type;
+  struct insert_statement;
 
   template<class Table, class ColList, class ExprList, class ColIter>
   struct insert_vals;
@@ -103,7 +103,7 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
           next_col_iter,
           typename boost::fusion::result_of::end<ColList>::type
         >,
-        insert_type<Table, ColList, values_list_type, insert_list>,
+        insert_statement<Table, ColList, values_list_type, insert_list>,
         insert_vals<Table, ColList, values_list_type, next_col_iter>
       >::type type;
     };
@@ -117,17 +117,17 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
     }
   };
 
-  struct insert_tag { };
+  struct insert_statement_tag { };
 
   template<class Table, class ColList, class ExprList, class Syntax>
-  struct insert_type : insert_cols<Table, ColList> {
+  struct insert_statement : insert_cols<Table, ColList> {
 
-    typedef insert_tag statement_tag;
+    typedef insert_statement_tag statement_tag;
     typedef insert_cols<Table, ColList> just_cols;
     typedef ColList col_list_type;
     typedef ExprList value_list_type;
     
-    insert_type(const ColList& cols, const ExprList& values) : just_cols(cols), values_(values) { }
+    insert_statement(const ColList& cols, const ExprList& values) : just_cols(cols), values_(values) { }
 
     ExprList values_;
 
@@ -149,7 +149,7 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
 
     template<class Col, class Expr>
     struct with {
-      typedef insert_type<Table,
+      typedef insert_statement<Table,
         typename boost::fusion::result_of::push_back<const ColList, 
           typename result_of::unwrap<Col>::type
         >::type,
@@ -189,9 +189,9 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
   };
 
   template<class Table>
-  insert_type<Table, details::empty, details::empty, void>
+  insert_statement<Table, details::empty, details::empty, void>
   insert_into(const Table& table) {
-    return insert_type<Table, details::empty, details::empty, void>(details::empty(), details::empty());
+    return insert_statement<Table, details::empty, details::empty, void>(details::empty(), details::empty());
   }
 
 } }

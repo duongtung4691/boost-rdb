@@ -53,7 +53,7 @@ namespace boost { namespace rdb { namespace odbc {
 
     template<class SelectList, class FromList, class Predicate>
     std::deque<typename select_row<SelectList>::type>
-    execute(const select_type<SelectList, FromList, Predicate>& select)
+    execute(const select_statement<SelectList, FromList, Predicate>& select)
     {
       std::deque<typename select_row<SelectList>::type> results;
       execute(select, results);
@@ -83,7 +83,7 @@ namespace boost { namespace rdb { namespace odbc {
     };
     
     template<class SelectList, class FromList, class Predicate, class ResultSet>
-    void execute(const select_type<SelectList, FromList, Predicate>& select, ResultSet& results)
+    void execute(const select_statement<SelectList, FromList, Predicate>& select, ResultSet& results)
     {
       exec_str(as_string(select));
       typedef typename select_row<SelectList>::type row_type;

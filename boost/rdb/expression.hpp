@@ -296,7 +296,7 @@ namespace boost { namespace rdb {
   namespace result_of {
     template<class ExprList>
     struct select {
-      typedef select_type<ExprList, void, void> type;
+      typedef select_statement<ExprList, void, void> type;
     };
   }
   */
