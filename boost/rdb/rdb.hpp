@@ -153,6 +153,35 @@ namespace boost { namespace rdb {
     template<typename T> expression(const T& arg) : Expr(arg) { }
     template<typename T1, typename T2> expression(const T1& arg1, const T2& arg2) : Expr(arg1, arg2) { }
     const Expr& unwrap() const { return *this; }
+    
+    struct result_of {
+    
+      template<typename T>
+      struct make_expression_ {
+        typedef typename Expr::sql_type::literal_type type;
+        static const type make(const T& value) { return Expr::sql_type::make_literal(value); }
+      };
+    
+      template<class Expr2>
+      struct make_expression_< expression<Expr2> > {
+        typedef Expr2 type;
+        static Expr2 make(const Expr2& expr) { return expr; }
+      };
+    
+      template<typename T>
+      struct make_expression : make_expression_<
+        typename boost::remove_const<
+          typename boost::remove_reference<T>::type
+        >::type
+      > {
+      };
+    };
+    
+    template<typename T>
+    typename result_of::make_expression<T>::type
+    static make_expression(const T& any) {
+      return result_of::make_expression<T>::make(any);
+    }
   };
 
   template<class St>
