@@ -30,12 +30,8 @@ namespace boost { namespace rdb { namespace odbc {
   template<class Specific>
   class generic_database {
     Specific& spec() { return static_cast<Specific&>(*this); }
-  public:
-    template<typename Table>
-    void create_table() { spec().execute(rdb::create_table<Table>().str()); }
 
-    template<typename Table>
-    void drop_table() { spec().execute(std::string("drop table ") + Table::table_name()); }
+  public:
   };
 
   class database : public generic_database<database> {
@@ -50,8 +46,10 @@ namespace boost { namespace rdb { namespace odbc {
     void open(const std::string& dsn, const std::string& user, const std::string& password);
     void close();
     
-    template<class Table, class ColList, class ValueList, class Syntax>
-    void execute(const insert_type<Table, ColList, ValueList, Syntax>& st) { execute(as_string(st)); }
+    template<class Statement>
+    BOOST_CONCEPT_REQUIRES(((Statement)), (void))
+    execute(const Statement& st)
+    { exec_str(as_string(st)); }
 
     template<class SelectList, class FromList, class Predicate>
     std::deque<typename select_row<SelectList>::type>
@@ -87,7 +85,7 @@ namespace boost { namespace rdb { namespace odbc {
     template<class SelectList, class FromList, class Predicate, class ResultSet>
     void execute(const select_type<SelectList, FromList, Predicate>& select, ResultSet& results)
     {
-      execute(as_string(select));
+      exec_str(as_string(select));
       typedef typename select_row<SelectList>::type row_type;
 
       while (true) {
@@ -106,7 +104,7 @@ namespace boost { namespace rdb { namespace odbc {
       }
     }
     
-    void execute(const std::string& sql);
+    void exec_str(const std::string& sql);
 
   private:
     std::string dsn_, user_, password_;

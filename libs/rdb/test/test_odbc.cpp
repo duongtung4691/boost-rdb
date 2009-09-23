@@ -42,13 +42,13 @@ int test_main( int, char *[] )
   database db("boost", "boost", "boost");
 
   try {
-    db.drop_table<person>();
-    db.drop_table<partner>();
+    db.execute(drop_table(person::_));
+    db.execute(drop_table(partner::_));
   } catch (error) {
   }
 
-  db.create_table<person>();
-  db.create_table<partner>();
+  db.execute(create_table(person::_));
+  db.execute(create_table(partner::_));
   
   person p;
 

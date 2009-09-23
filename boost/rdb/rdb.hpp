@@ -586,21 +586,6 @@ namespace boost { namespace rdb {
     return os.str();
   }
 
-  template<typename Table>
-  struct create_table_type {
-    void str(std::ostream& os) const {
-    os << "create table " << Table::table_name() << "(";
-    boost::mpl::for_each<typename Table::column_members>(table_column_output<Table>(os, Table::_));
-    os << ")";
-    }
-    std::string str() const { return as_string(*this); }
-  };
-
-  template<typename Table>
-  
-  create_table_type<Table> create_table() {
-    return statement< create_table_type<Table> >();
-  }
 #if 1
   namespace result_of {
     template<typename T>
@@ -644,6 +629,7 @@ namespace boost { namespace rdb {
 } }
 
 #include <boost/rdb/expression.hpp>
+#include <boost/rdb/table.hpp>
 #include <boost/rdb/insert.hpp>
 #include <boost/rdb/update.hpp>
 #include <boost/rdb/select.hpp>

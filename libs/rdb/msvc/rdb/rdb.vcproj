@@ -185,6 +185,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\..\..\boost\rdb\table.hpp"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\..\boost\rdb\update.hpp"
 			>
 		</File>
