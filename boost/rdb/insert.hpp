@@ -207,12 +207,19 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
 
     template<class Expr>
     struct with< const expression<Expr>& > {
-      typedef typename result_of::insert_expr<Table, ColList, ColIter, ExprList, Expr>::type type;
-    };
-
-    template<class Expr>
-    struct with< expression<Expr>& > {
-      typedef typename result_of::insert_expr<Table, ColList, ColIter, ExprList, Expr>::type type;
+      typedef typename boost::fusion::result_of::next<ColIter>::type next_col_iter;
+      
+      typedef typename boost::fusion::result_of::push_back<
+        const ExprList, Expr>::type values_type;
+        
+      typedef typename boost::mpl::if_<
+        boost::is_same<
+          next_col_iter,
+          typename boost::fusion::result_of::end<ColList>::type
+        >,
+        insert_type<Table, ColList, values_type, insert_list>,
+        insert_vals<Table, ColList, values_type, next_col_iter>
+      >::type type;
     };
 
     template<class Expr>
