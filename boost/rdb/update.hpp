@@ -33,7 +33,7 @@ namespace boost { namespace rdb {
           typename result_of::unwrap<Col>::type
         >::type,
         typename boost::fusion::result_of::push_back<const ExprList,
-          typename expression<Col>::result_of::make_expression<Expr>::type
+          typename result_of::make_expression<expression<Col>, Expr>::type
         >::type
       > type;
     };

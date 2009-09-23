@@ -89,7 +89,7 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
         typename boost::fusion::result_of::deref<ColIter>::type
       >::type col_type;
     
-      typedef typename expression<col_type>::result_of::make_expression<T>::type value_type;
+      typedef typename result_of::make_expression<expression<col_type>, T>::type value_type;
       
       typedef typename boost::fusion::result_of::push_back<
         const ExprList, value_type>::type values_list_type;
@@ -132,7 +132,7 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
 
     void str(std::ostream& os, insert_list) const {
       os << "insert into " << Table::table_name() << " (";
-      boost::fusion::for_each(cols_, comma_output(os));
+      boost::fusion::for_each(just_cols::cols_, comma_output(os));
       os << ") values (";
       boost::fusion::for_each(values_, comma_output(os));
       os << ")";
@@ -141,7 +141,7 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
     void str(std::ostream& os, insert_assign) const {
       os << "insert into " << Table::table_name() << " ";
       typedef boost::fusion::vector<const ColList&, const ExprList&> assignment;
-      boost::fusion::for_each(boost::fusion::zip_view<assignment>(assignment(cols_, values_)), assign_output(os));
+      boost::fusion::for_each(boost::fusion::zip_view<assignment>(assignment(just_cols::cols_, values_)), assign_output(os));
     }
 
     template<class Col, class Expr>
@@ -151,7 +151,7 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
           typename result_of::unwrap<Col>::type
         >::type,
         typename boost::fusion::result_of::push_back<const ExprList,
-          typename expression<Col>::result_of::make_expression<Expr>::type
+          typename result_of::make_expression<expression<Col>, Expr>::type
         >::type,
         insert_assign
       > type;

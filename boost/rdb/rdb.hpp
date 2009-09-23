@@ -102,8 +102,8 @@ namespace boost { namespace rdb {
     assign_output(std::ostream& os) : comma_output(os) { }
 
     template<typename First, typename Second>
-    void operator ()(boost::fusion::vector<First, Second>& p) const {
-      ostream& os = this->item();
+    void operator ()(const boost::fusion::vector<First, Second>& p) const {
+      std::ostream& os = this->item();
       using namespace boost::fusion;
       os << "set ";
       at_c<0>(p).str(os);
@@ -162,39 +162,42 @@ namespace boost { namespace rdb {
   };
 
   template<class Expr>
+  struct expression;
+    
+  namespace result_of {
+    template<class Expr, typename T>
+    struct make_expression_ {
+      typedef typename Expr::sql_type::literal_type type;
+      static const type make(const T& value) { return Expr::sql_type::make_literal(value); }
+    };
+  
+    template<class Expr, class Expr2>
+    struct make_expression_< Expr, expression<Expr2> > {
+      typedef Expr2 type;
+      static Expr2 make(const Expr2& expr) { return expr; }
+    };
+  
+    template<class Expr, typename T>
+    struct make_expression : make_expression_<
+      Expr,
+      typename boost::remove_const<
+        typename boost::remove_reference<T>::type
+      >::type
+    > {
+    };
+  }
+
+  template<class Expr>
   struct expression : Expr {
     expression() { }
     template<typename T> expression(const T& arg) : Expr(arg) { }
     template<typename T1, typename T2> expression(const T1& arg1, const T2& arg2) : Expr(arg1, arg2) { }
     const Expr& unwrap() const { return *this; }
     
-    struct result_of {
-    
-      template<typename T>
-      struct make_expression_ {
-        typedef typename Expr::sql_type::literal_type type;
-        static const type make(const T& value) { return Expr::sql_type::make_literal(value); }
-      };
-    
-      template<class Expr2>
-      struct make_expression_< expression<Expr2> > {
-        typedef Expr2 type;
-        static Expr2 make(const Expr2& expr) { return expr; }
-      };
-    
-      template<typename T>
-      struct make_expression : make_expression_<
-        typename boost::remove_const<
-          typename boost::remove_reference<T>::type
-        >::type
-      > {
-      };
-    };
-    
     template<typename T>
-    typename result_of::make_expression<T>::type
+    typename result_of::make_expression<Expr, T>::type
     static make_expression(const T& any) {
-      return result_of::make_expression<T>::make(any);
+      return result_of::make_expression<Expr, T>::make(any);
     }
   };
 
@@ -391,9 +394,9 @@ namespace boost { namespace rdb {
     enum { precedence = Precedence };
 
     static void write(std::ostream& os, const Expr1& expr1, const char* op, const Expr2& expr2) {
-      write(os, expr1, boost::mpl::bool_<Expr1::precedence < precedence>());
+      write(os, expr1, boost::mpl::bool_<static_cast<int>(Expr1::precedence) < precedence>());
       os << op;
-      write(os, expr2, boost::mpl::bool_<Expr2::precedence < precedence>());
+      write(os, expr2, boost::mpl::bool_<static_cast<int>(Expr2::precedence) < precedence>());
     }
 
     template<class Expr>
@@ -489,7 +492,7 @@ namespace boost { namespace rdb {
     enum { precedence = precedence_level::logical_not };
     
     void str(std::ostream& os) const {
-      this->write(os, boost::mpl::bool_<Expr::precedence < precedence>());
+      this->write(os, boost::mpl::bool_<static_cast<int>(Expr::precedence) < static_cast<int>(precedence)>());
     }
 
     void write(std::ostream& os, boost::mpl::true_) const {
