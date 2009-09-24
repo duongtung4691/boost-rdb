@@ -8,7 +8,7 @@ namespace boost { namespace rdb {
 
   struct insert_statement_tag : statement_tag { };
 
-  template<class Table, class ColList, class ExprList>
+  template<class Table, class AssignList>
   struct insert_assign;
 
   template<class Table, class ColList>
@@ -30,9 +30,9 @@ namespace boost { namespace rdb {
     }
 
     template<class Col, class T>
-    typename insert_assign<Table, details::empty, details::empty>::template with<Col, T>::type
+    typename insert_assign<Table, details::empty>::template with<Col, T>::type
     set(const expression<Col>& col, const T& expr) const {
-      return insert_assign<Table, details::empty, details::empty>().set(col, expr);
+      return insert_assign<Table, details::empty>(details::empty())(col, expr);
     }
 
 #define BOOST_RDB_PP_INSERT_COLS(z, n, unused) \
@@ -95,12 +95,6 @@ namespace boost { namespace rdb {
     }
 
 BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, ~)
-
-    void str(std::ostream& os) const {
-      os << "insert into " << Table::table_name() << " ";
-      typedef boost::fusion::vector<const ColList&, const ExprList&> assignment;
-      boost::fusion::for_each(boost::fusion::zip_view<assignment>(assignment(just_cols::cols_, values_)), assign_output(os));
-    }
   };
 
   template<class Table, class ColList, class ExprList, class ColIter>
@@ -149,37 +143,45 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
     }
   };
 
-  template<class Table, class ColList, class ExprList>
+  template<class Table, class AssignList>
   struct insert_assign {
 
-    insert_assign(const ColList& cols, const ExprList& values) : cols_(cols), values_(values) { }
+    typedef insert_statement_tag tag;
+    typedef void result;
 
-    ColList cols_;
-    ExprList values_;
+    insert_assign(const AssignList& assign) : assigns_(assign) { }
+
+    AssignList assigns_;
 
     template<class Col, class Expr>
     struct with {
       typedef insert_assign<
         Table,
         typename boost::fusion::result_of::push_back<
-          const ColList, 
-          typename result_of::unwrap<Col>::type
-        >::type,
-        typename boost::fusion::result_of::push_back<
-          const ExprList,
-          typename result_of::make_expression<expression<Col>, Expr>::type
+          const AssignList, 
+          typename boost::fusion::result_of::make_vector<
+            typename result_of::unwrap<Col>::type,
+            typename result_of::make_expression<expression<Col>, Expr>::type
+          >::type
         >::type
-      > insert_assign;
+      > type;
     };
 
     template<class Col, class T>
     BOOST_CONCEPT_REQUIRES(
       ((Column<Col>)),
       (typename with<Col, T>::type))
-      set(const expression<Col>& col, const T& expr) const {
+    operator ()(const expression<Col>& col, const T& expr) const {
       return typename with<Col, T>::type(
-        boost::fusion::push_back(cols_, col.unwrap()),
-        boost::fusion::push_back(values_, expression<Col>::make_expression(expr)));
+        boost::fusion::push_back(assigns_,
+          boost::fusion::make_vector(
+            col.unwrap(),
+            expression<Col>::make_expression(expr))));
+    }
+
+    void str(std::ostream& os) const {
+      os << "insert into " << Table::table_name() << " set ";
+      boost::fusion::for_each(assigns_, assign_output(os));
     }
   };
   

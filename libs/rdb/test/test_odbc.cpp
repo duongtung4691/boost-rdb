@@ -55,18 +55,20 @@ int test_main( int, char *[] )
 
   db.execute(insert_into(p)(p.id, p.first_name, p.name, p.age).values(1, "Homer", "Simpson", 37));
   db.execute(insert_into(p)(p.id, p.first_name, p.name, p.age).values(2, "Marge", "Simpson", 34));
+  db.execute(update(p).set(p.age, p.age + 1).where(p.id == 1));
 
   {
     person h("h"), w("w");
     partner p;
-    db.execute(insert_into(p)(p.husband, p.wife)(rdb::select(h.id, w.id).from(h, w).where(h.name == w.name)));
+    db.execute(insert_into(p)(p.husband, p.wife)(rdb::select(h.id, w.id).from(h, w)
+      .where(h.name == w.name && h.id != w.id))); // duplicates couples but it's just a test
   }
 
   using boost::rdb::select;
 
   BOOST_RDB_CHECK_SELECT_RESULTS(
     db.execute(select(p.id, p.first_name, p.name, p.age).from(p)),
-    "((1 Homer Simpson 37) (2 Marge Simpson 34))"); // WRONG: assumes row order
+    "((1 Homer Simpson 38) (2 Marge Simpson 34))"); // WRONG: assumes row order
  
   return 0;
 }

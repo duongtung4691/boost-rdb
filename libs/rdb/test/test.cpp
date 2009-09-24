@@ -108,13 +108,14 @@ BOOST_AUTO_TEST_CASE(insert_set) {
     "insert into person set id = 1");
 
   BOOST_RDB_CHECK_SQL(
-    insert_into(p).set(p.id, 1).set(p.first_name, "Homer"),
-    "insert into person set id = 1, set first_name = 'Homer'");
+    insert_into(p).set(p.id, 1)(p.first_name, "Homer"),
+    "insert into person set id = 1, first_name = 'Homer'");
 }
 
 BOOST_AUTO_TEST_CASE(insert_select) {
 
   using namespace boost::rdb;
+  using rdb::select;
 
   person h("h"), w("w");
   partner p;
@@ -137,7 +138,7 @@ BOOST_AUTO_TEST_CASE(update_table) {
 
   BOOST_RDB_CHECK_SQL(
     update(p).set(p.id, 1).set(p.first_name, "Homer"),
-    "update person set id = 1, set first_name = 'Homer'");
+    "update person set id = 1, first_name = 'Homer'");
 
   BOOST_RDB_CHECK_SQL(
     update(p).set(p.age, 46).where(p.id == 1),

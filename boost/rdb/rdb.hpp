@@ -114,7 +114,6 @@ namespace boost { namespace rdb {
     void operator ()(const boost::fusion::vector<First, Second>& p) const {
       std::ostream& os = this->item();
       using namespace boost::fusion;
-      os << "set ";
       at_c<0>(p).str(os);
       os_ << " = ";
       at_c<1>(p).str(os);

@@ -11,6 +11,7 @@ namespace boost { namespace rdb {
   template<class Table, class ColList, class ExprList, class Predicate>
   struct update_statement {
   
+    typedef void result;
     typedef update_statement_tag tag;
 
     ColList cols_;
@@ -26,13 +27,13 @@ namespace boost { namespace rdb {
     void str(std::ostream& os) const { str(os, boost::is_same<Predicate, details::none>()); }
     
     void str(std::ostream& os, boost::true_type) const {
-      os << "update " << Table::table_name() << " ";
+      os << "update " << Table::table_name() << " set ";
       typedef boost::fusion::vector<const ColList&, const ExprList&> assignment;
       boost::fusion::for_each(boost::fusion::zip_view<assignment>(assignment(cols_, values_)), assign_output(os));
     }
 
     void str(std::ostream& os, boost::false_type) const {
-      os << "update " << Table::table_name() << " ";
+      os << "update " << Table::table_name() << " set ";
       typedef boost::fusion::vector<const ColList&, const ExprList&> assignment;
       boost::fusion::for_each(boost::fusion::zip_view<assignment>(assignment(cols_, values_)), assign_output(os));
       os << " where ";

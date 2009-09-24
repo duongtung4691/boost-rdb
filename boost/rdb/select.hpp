@@ -40,32 +40,6 @@ namespace boost { namespace rdb {
     >::type type;
   };
 
-  
-  /*
-  struct make_result_vector {
-    template<class Vector, class Expr>
-    typename boost::fusion::result_of::push_back<
-      Vector,
-      typename Expr::result_type
-    >::type
-    operator ()(const Expr&, const Vector& v) {
-      typedef typename Expr::result_type result_type;
-      return boost::fusion::push_back(result_type());
-    }
-
-  };
-
-  template<class SelectList>
-  typename boost::fusion::result_of::accumulate<
-    SelectList, 
-    boost::fusion::vector<>, 
-    make_result_vector
-  >::type
-  result_vector(const SelectList&) {
-    boost::fusion::accumulate(SelectList, boost::fusion::vector<>(), make_result_vector());
-  }
-*/
-
   template<class SelectList, class FromList, class WhereList>
   struct select_statement;
 
