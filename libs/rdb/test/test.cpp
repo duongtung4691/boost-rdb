@@ -112,6 +112,19 @@ BOOST_AUTO_TEST_CASE(insert_set) {
     "insert into person set id = 1, set first_name = 'Homer'");
 }
 
+BOOST_AUTO_TEST_CASE(insert_select) {
+
+  using namespace boost::rdb;
+
+  person h("h"), w("w");
+  partner p;
+
+  BOOST_RDB_CHECK_SQL(
+    insert_into(p)(p.husband, p.wife)(
+      select(h.id, w.id).from(h, w).where(h.name == w.name)),
+      "insert into partner (husband, wife) select h.id, w.id from person as h, person as w where h.name = w.name");
+}
+
 BOOST_AUTO_TEST_CASE(update_table) {
 
   using namespace boost::rdb;

@@ -72,6 +72,9 @@ namespace boost { namespace rdb {
     };
   }
 
+  template<class SelectList, class FromList, class WhereList>
+  struct select_statement;
+
   template<typename Iter>
   void quote_text(std::ostream& os, Iter iter, Iter last) {
     os << "'";

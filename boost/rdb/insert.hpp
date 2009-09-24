@@ -15,6 +15,9 @@ namespace boost { namespace rdb {
   template<class Table, class ColList, class ExprList, class ColIter>
   struct insert_vals;
 
+  template<class Table, class ColList, class Select>
+  struct insert_select;
+
   template<class Table, class ColList>
   struct insert_cols {
 
@@ -29,6 +32,12 @@ namespace boost { namespace rdb {
         typename boost::fusion::result_of::push_back<const ColList, Col>::type
       > type;
     };
+
+    template<class SelectList, class FromList, class WhereList>
+    insert_select< Table, ColList, select_statement<SelectList, FromList, WhereList> >
+    operator ()(const select_statement<SelectList, FromList, WhereList>& select) const {
+      return insert_select< Table, ColList, select_statement<SelectList, FromList, WhereList> >(cols_, select);
+    }
 
     template<class Col>
     BOOST_CONCEPT_REQUIRES(
@@ -183,6 +192,26 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
         boost::fusion::push_back(values_, expression<Col>::make_expression(expr)));
     }
   };
+
+  
+  template<class Table, class ColList, class Select>
+  struct insert_select {
+
+    typedef insert_statement_tag statement_tag;
+
+    insert_select(const ColList& cols, const Select& select) : cols_(cols), select_(select) { }
+
+    Select select_;
+    ColList cols_;
+
+    void str(std::ostream& os) const {
+      os << "insert into " << Table::table_name() << " (";
+      boost::fusion::for_each(cols_, comma_output(os));
+      os << ") ";
+      select_.str(os);
+    }
+  };
+
 
   template<class Table>
   insert_statement<Table, details::empty, details::empty, void>
