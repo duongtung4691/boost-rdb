@@ -121,6 +121,8 @@ namespace boost { namespace rdb {
     }
   };
 
+  struct statement_tag { };
+
   template<class St>
   struct Statement
   {
@@ -128,7 +130,7 @@ namespace boost { namespace rdb {
     std::ostream& stream;
 
     BOOST_CONCEPT_USAGE(Statement) {
-      typedef typename St::statement_tag statement_tag;
+      statement_tag* p = static_cast<typename St::tag*>(0);
       st.str(stream);
     }
   };

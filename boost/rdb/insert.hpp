@@ -122,12 +122,14 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
     }
   };
 
-  struct insert_statement_tag { };
+  struct insert_statement_tag : statement_tag { };
 
   template<class Table, class ColList, class ExprList, class Syntax>
   struct insert_statement : insert_cols<Table, ColList> {
 
-    typedef insert_statement_tag statement_tag;
+    typedef insert_statement_tag tag;
+    typedef void result;
+
     typedef insert_cols<Table, ColList> just_cols;
     typedef ColList col_list_type;
     typedef ExprList value_list_type;
@@ -197,7 +199,8 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
   template<class Table, class ColList, class Select>
   struct insert_select {
 
-    typedef insert_statement_tag statement_tag;
+    typedef insert_statement_tag tag;
+    typedef void result;
 
     insert_select(const ColList& cols, const Select& select) : cols_(cols), select_(select) { }
 

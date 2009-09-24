@@ -6,12 +6,12 @@
 
 namespace boost { namespace rdb {
 
-  struct delete_statement_tag { };
+  struct delete_statement_tag : statement_tag { };
 
   template<class Table, class Predicate>
   struct delete_statement {
 
-    typedef delete_statement_tag statement_tag;
+    typedef delete_statement_tag tag;
 
     delete_statement(const Predicate& where) : where_(where) { }
 

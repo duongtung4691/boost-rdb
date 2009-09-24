@@ -34,7 +34,7 @@ namespace boost { namespace rdb { namespace odbc {
   public:
   };
 
-  class database : public generic_database<database> {
+  class database /*: public generic_database<database>*/ {
   public:
     database() { }
     ~database();
@@ -47,15 +47,25 @@ namespace boost { namespace rdb { namespace odbc {
     void close();
     
     template<class Stat>
-    BOOST_CONCEPT_REQUIRES(((Statement<Stat>)), (void))
-    execute(const Stat& st)
-    { exec_str(as_string(st)); }
+    // why doesn't the line below work ?
+    // BOOST_CONCEPT_REQUIRES(((Statement<Stat>)), (typename Stat::result))
+    typename Stat::result
+    execute(const Stat& st) { 
+      return execute(st, typename Stat::tag());
+    }
+    
+    template<class Stat, class Tag>
+    /*BOOST_CONCEPT_REQUIRES(((Statement<Stat>)), (typename Stat::result))*/
+    typename Stat::result
+    execute(const Stat& st, Tag) {
+      exec_str(as_string(st));
+    }
 
-    template<class SelectList, class FromList, class Predicate>
-    std::deque<typename select_row<SelectList>::type>
-    execute(const select_statement<SelectList, FromList, Predicate>& select)
+    template<class Select>
+    typename Select::result
+    execute(const Select& select, select_statement_tag)
     {
-      std::deque<typename select_row<SelectList>::type> results;
+      typename Select::result results;
       execute(select, results);
       return results; // optimize later
     }
