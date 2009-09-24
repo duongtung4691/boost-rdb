@@ -30,36 +30,8 @@ namespace boost { namespace rdb {
     }
   };
 
-  template<class Table, class SqlType, class Kind, class Base>
-  struct column_with_kind : Base {
-  };
-
-  template<class Col>
-  struct like_op {
-    like_op(const Col& col, const std::string& pattern) : pattern(pattern_) { }
-    std::string pattern_;
-    const Col& col_;
-    typedef boolean sql_type;
-    enum { precedence = precedence_level::compare };
-    void str(std::ostream& os) const {
-      col_.str(os);
-      os << " like ";
-      quote_text(os, pattern_);
-    }
-  };
-
   template<class Table, class SqlType, class Base>
-  struct column;
-
-  template<class Table, class SqlType, class Base>
-  struct column_with_kind<Table, SqlType, char_type, Base> : Base {
-    typedef column<Table, SqlType, Base> col_type;
-    expression<col_type> like(const std::string& pattern) const
-    { return expression< rdb::like_op<col_type> >(*static_cast<const col_type*>(this), pattern); }
-  };
-
-  template<class Table, class SqlType, class Base>
-  struct column : column_with_kind<Table, SqlType, typename SqlType::kind, Base> {
+  struct column : Base {
     enum { precedence = precedence_level::highest };
     typedef SqlType sql_type;
     typedef Table table_type;

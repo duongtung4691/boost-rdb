@@ -67,6 +67,20 @@ namespace boost { namespace rdb {
   }
 
   template<class Expr>
+  struct like {
+    like(const Expr& expr, const std::string& pattern) : expr_(expr), pattern_(pattern) { }
+    const Expr& expr_;
+    std::string pattern_;
+    typedef boolean sql_type;
+    enum { precedence = precedence_level::compare };
+    void str(std::ostream& os) const {
+      expr_.str(os);
+      os << " like ";
+      quote_text(os, pattern_);
+    }
+  };
+
+  template<class Expr>
   struct expression : Expr {
     expression() { }
     template<typename T> expression(const T& arg) : Expr(arg) { }
@@ -77,6 +91,11 @@ namespace boost { namespace rdb {
     typename result_of::make_expression<Expr, T>::type
     static make_expression(const T& any) {
       return result_of::make_expression<Expr, T>::make(any);
+    }
+    
+    expression< rdb::like<Expr> > like(const std::string& pattern) const {
+      BOOST_MPL_ASSERT((boost::is_same<typename Expr::sql_type::kind, char_type>));
+      return rdb::like<Expr>(*this, pattern);
     }
   };
 

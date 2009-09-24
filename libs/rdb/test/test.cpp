@@ -279,8 +279,15 @@ BOOST_AUTO_TEST_CASE(char_operators) {
   person p;
 
   BOOST_RDB_CHECK_SQL(
+    select(p.id).from(p).where(p.name.like("S%")),
+    "select id from person where name like 'S%'");
+
+  BOOST_RDB_CHECK_SQL(
     select(p.id).from(p).where(p.name.like("O'%")),
     "select id from person where name like 'O''%'");
+    
+  // won't compile:
+  // select(p.id).from(p).where(p.id.like("X%"));
 }
 
 BOOST_AUTO_TEST_CASE(select_variadic) {
