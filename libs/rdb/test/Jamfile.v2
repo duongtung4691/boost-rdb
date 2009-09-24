@@ -18,5 +18,6 @@ project
    test-suite "rdb"
         :
         [ run test.cpp  ../../test/build//boost_test_exec_monitor  ]
+        [ run test_odbc.cpp  ../../test/build//boost_test_exec_monitor  ]
        ;
 }

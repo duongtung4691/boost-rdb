@@ -84,6 +84,7 @@ namespace boost { namespace rdb {
     os << "'";
   }
 
+  void quote_text(std::ostream& os, const std::string& str) { quote_text(os, str.begin(), str.end()); }
   void quote_text(std::ostream& os, const char* str);
 
   struct comma_output {
@@ -255,8 +256,8 @@ namespace boost { namespace rdb {
 
 } }
 
-#include <boost/rdb/table.hpp>
 #include <boost/rdb/expression.hpp>
+#include <boost/rdb/table.hpp>
 #include <boost/rdb/insert.hpp>
 #include <boost/rdb/update.hpp>
 #include <boost/rdb/select.hpp>

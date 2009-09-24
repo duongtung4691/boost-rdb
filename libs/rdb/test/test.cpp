@@ -271,6 +271,18 @@ BOOST_AUTO_TEST_CASE(numerical_operators) {
     "select p.id from person as p where p.age > 18 and p.age < 65");
 }
 
+BOOST_AUTO_TEST_CASE(char_operators) {
+
+  using namespace boost::rdb;
+  using boost::rdb::select;
+
+  person p;
+
+  BOOST_RDB_CHECK_SQL(
+    select(p.id).from(p).where(p.name.like("O'%")),
+    "select id from person where name like 'O''%'");
+}
+
 BOOST_AUTO_TEST_CASE(select_variadic) {
 
   using namespace boost::rdb;
