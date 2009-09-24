@@ -33,11 +33,7 @@ namespace boost { namespace rdb {
     template<class Col>
     BOOST_CONCEPT_REQUIRES(
       ((Column<Col>)),
-      (insert_cols<
-        Table,
-        typename boost::fusion::result_of::push_back<const ColList, Col>::type
-      >
-    ))
+    (typename with<Col>::type))
     operator ()(const expression<Col>& col) const {
       BOOST_MPL_ASSERT((boost::is_same<Table, typename Col::table_type>));
       return insert_cols<
