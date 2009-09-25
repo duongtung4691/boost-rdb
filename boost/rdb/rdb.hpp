@@ -134,6 +134,14 @@ namespace boost { namespace rdb {
     }
   };
 
+  template<class St>
+  struct SelectStatement : Statement<St> {
+    BOOST_CONCEPT_USAGE(SelectStatement) {
+      select_statement_tag* p = static_cast<typename St::tag*>(0);
+      st.str(stream);
+    }
+  };
+
   struct any_literal {
     enum { precedence = precedence_level::highest };
   };

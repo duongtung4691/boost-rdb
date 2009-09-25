@@ -311,14 +311,32 @@ namespace boost { namespace rdb {
     return boost::fusion::push_back(exprs.unwrap(), boost::cref(expr.unwrap()));
   }
 
-  /*
-  namespace result_of {
-    template<class ExprList>
-    struct select {
-      typedef select_statement<ExprList, void, void> type;
-    };
+  template<class Select>
+  struct op_exists {
+    
+    op_exists(const Select& select) : select_(select) { }
+
+    typedef boolean sql_type;
+
+    enum { precedence = precedence_level::logical_not };
+    
+    void str(std::ostream& os) const {
+      os << "exists (";
+      select_.str(os);
+      os << ")";
+    }
+    
+    Select select_;
+  };
+
+  template<class Select>
+  BOOST_CONCEPT_REQUIRES(
+    ((SelectStatement<Select>)),
+    (op_exists<Select>))
+  exists(const Select& select) {
+    return op_exists<Select>(select);
   }
-  */
+
 
 } }
 

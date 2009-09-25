@@ -320,6 +320,21 @@ BOOST_AUTO_TEST_CASE(select_variadic) {
     "select id, name, age from person");
 }
 
+BOOST_AUTO_TEST_CASE(select_exists) {
+
+  using namespace boost::rdb;
+  using boost::rdb::select;
+
+  person m("m");
+  partner p;
+  
+  BOOST_RDB_CHECK_SQL(
+    select(m.id).from(m).where(exists(
+      select(p.husband).from(p).where(m.id == p.husband)
+      )),
+    "select m.id from person as m where exists (select husband from partner where m.id = husband)");
+}
+
 BOOST_AUTO_TEST_CASE(select_comma_operator) {
 
   using namespace boost::rdb;
