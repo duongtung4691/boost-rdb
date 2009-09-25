@@ -132,6 +132,7 @@ BOOST_PP_REPEAT_FROM_TO(2, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_SELECT_VALUES, 
     select_statement(const SelectList& exprs, const FromList& tables) : just_select(exprs), tables(tables) { }
 
     typedef select_statement_tag tag;
+    typedef SelectList select_type;
 
     FromList tables;
     typedef std::deque<typename select_row<SelectList>::type> result;
@@ -183,6 +184,7 @@ BOOST_PP_REPEAT_FROM_TO(2, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_SELECT_VALUES, 
       : select_from(exprs, tables), pred(pred) { }
 
     typedef select_statement_tag tag;
+    typedef SelectList select_type;
 
     const Predicate& pred;
 

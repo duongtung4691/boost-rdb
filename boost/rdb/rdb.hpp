@@ -28,6 +28,7 @@
 #include <boost/fusion/include/vector.hpp>
 #include <boost/fusion/include/make_vector.hpp>
 #include <boost/fusion/include/at.hpp>
+#include <boost/fusion/include/size.hpp>
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/accumulate.hpp>
 #include <boost/fusion/include/push_back.hpp>

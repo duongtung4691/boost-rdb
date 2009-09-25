@@ -61,9 +61,37 @@ namespace boost { namespace rdb {
       > type;
     };
 
+  struct extract_sql_kind {
+
+    template<typename Sig>
+    struct result;
+
+    template<typename Self, typename Expr>
+    struct result<Self(Expr)> {
+      typedef typename boost::remove_reference<Expr>::type::sql_type type;
+    };
+
+  };
+
+  template<class ExprList1, class ExprList2>
+  struct sql_compatible : is_same<
+      typename fusion::result_of::as_vector<
+        typename fusion::result_of::transform<ExprList1, extract_sql_kind>::type
+      >::type,
+      typename fusion::result_of::as_vector<
+        typename fusion::result_of::transform<ExprList2, extract_sql_kind>::type
+      >::type
+  > {
+  };
+
     template<class SelectList, class FromList, class WhereList>
     insert_select< Table, ColList, select_statement<SelectList, FromList, WhereList> >
     operator ()(const select_statement<SelectList, FromList, WhereList>& select) const {
+      typedef typename select_statement<SelectList, FromList, WhereList>::select_type select_type;
+      BOOST_MPL_ASSERT((is_same<
+        fusion::result_of::size<ColList>::type,
+        fusion::result_of::size<select_type>::type>));
+      BOOST_MPL_ASSERT((sql_compatible<ColList, select_type>));
       return insert_select< Table, ColList, select_statement<SelectList, FromList, WhereList> >(cols_, select);
     }
 
