@@ -35,8 +35,8 @@ namespace boost { namespace rdb {
 
   template<class SelectList>
   struct select_row {
-    typedef typename boost::fusion::result_of::as_vector<
-      typename boost::fusion::result_of::transform<SelectList, make_row>::type
+    typedef typename fusion::result_of::as_vector<
+      typename fusion::result_of::transform<SelectList, make_row>::type
     >::type type;
   };
 
@@ -54,13 +54,13 @@ namespace boost { namespace rdb {
 
     void str(std::ostream& os) const {
       os << "select ";
-      boost::fusion::for_each(exprs, comma_output(os));
+      fusion::for_each(exprs, comma_output(os));
     }
 
     template<class T>
     struct with {
       typedef select_statement<
-        typename boost::fusion::result_of::push_back< const SelectList, literal<T> >::type,
+        typename fusion::result_of::push_back< const SelectList, literal<T> >::type,
         void, void
       > type;
     };
@@ -68,7 +68,7 @@ namespace boost { namespace rdb {
     template<class Expr>
     struct with< expression<Expr> > {
       typedef select_statement<
-        typename boost::fusion::result_of::push_back< const SelectList, Expr>::type,
+        typename fusion::result_of::push_back< const SelectList, Expr>::type,
         void, void
       > type;
     };
@@ -80,7 +80,7 @@ namespace boost { namespace rdb {
     template<typename T>
     typename with<T>::type
     operator ()(const T& expr) const {
-      return typename with<T>::type(boost::fusion::push_back(exprs, as_expression(expr)));
+      return typename with<T>::type(fusion::push_back(exprs, as_expression(expr)));
     }
         
 #define BOOST_RDB_PP_SELECT_VALUES(z, n, unused) \
@@ -94,14 +94,14 @@ BOOST_PP_REPEAT_FROM_TO(2, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_SELECT_VALUES, 
 
     template<class ExprList>
     select_statement<
-      typename boost::fusion::result_of::join<const SelectList, const ExprList>::type,
+      typename fusion::result_of::join<const SelectList, const ExprList>::type,
       void, void
     >
     operator ()(const expression_list<ExprList>& more) const {
       return select_statement<
-        typename boost::fusion::result_of::join<const SelectList, const ExprList>::type,
+        typename fusion::result_of::join<const SelectList, const ExprList>::type,
         void, void
-      >(boost::fusion::join(exprs, more.unwrap()));
+      >(fusion::join(exprs, more.unwrap()));
     }
 
     template<class Table>
@@ -141,7 +141,7 @@ BOOST_PP_REPEAT_FROM_TO(2, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_SELECT_VALUES, 
     struct with {
       typedef select_statement<
         SelectList,
-        typename boost::fusion::result_of::push_back<
+        typename fusion::result_of::push_back<
           const FromList, boost::reference_wrapper<const Table>
         >::type,
         void
@@ -151,7 +151,7 @@ BOOST_PP_REPEAT_FROM_TO(2, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_SELECT_VALUES, 
     template<class Table>
     typename with<Table>::type
     operator ()(const Table& table) const {
-      return typename with<Table>::type(just_select::exprs, boost::fusion::push_back(tables, boost::cref(table)));
+      return typename with<Table>::type(just_select::exprs, fusion::push_back(tables, boost::cref(table)));
     }
     
     template<class Pred>
@@ -173,7 +173,7 @@ BOOST_PP_REPEAT_FROM_TO(2, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_SELECT_VALUES, 
     void str(std::ostream& os) const {
       just_select::str(os);
       os << " from ";
-      boost::fusion::for_each(tables, comma_output(os));
+      fusion::for_each(tables, comma_output(os));
     }
   };
 

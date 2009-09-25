@@ -19,6 +19,7 @@
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/if.hpp>
 #include <boost/utility/enable_if.hpp>
+#include <boost/static_assert.hpp>
 
 #include <boost/type_traits/is_same.hpp>
 #include <boost/type_traits/remove_reference.hpp>
@@ -57,7 +58,7 @@
 namespace boost { namespace rdb {
 
   namespace details {
-    typedef boost::fusion::list<> empty;
+    typedef fusion::list<> empty;
     
     struct none { };
   }
@@ -112,9 +113,9 @@ namespace boost { namespace rdb {
     assign_output(std::ostream& os) : comma_output(os) { }
 
     template<typename First, typename Second>
-    void operator ()(const boost::fusion::vector<First, Second>& p) const {
+    void operator ()(const fusion::vector<First, Second>& p) const {
       std::ostream& os = this->item();
-      using namespace boost::fusion;
+      using namespace fusion;
       at_c<0>(p).str(os);
       os_ << " = ";
       at_c<1>(p).str(os);
@@ -245,7 +246,7 @@ namespace boost { namespace rdb {
   namespace result_of {
     template<typename T>
     struct make_list {
-      typedef typename boost::fusion::result_of::push_back<
+      typedef typename fusion::result_of::push_back<
         const details::empty,
         T
       >::type type;
@@ -255,19 +256,19 @@ namespace boost { namespace rdb {
   template<typename T>
   typename result_of::make_list<T>::type
   make_list(const T& val) {
-    return boost::fusion::push_back(boost::fusion::list<>(), val);
+    return fusion::push_back(fusion::list<>(), val);
   }
   namespace result_of {
     template<typename T>
     struct make_list2 {
-      typedef typename boost::fusion::result_of::make_list<T>::type type;
+      typedef typename fusion::result_of::make_list<T>::type type;
     };
   }
 
   template<typename T>
   typename result_of::make_list2<T>::type
   make_list2(const T& val) {
-    return boost::fusion::make_list(val);
+    return fusion::make_list(val);
   }
 
 } }

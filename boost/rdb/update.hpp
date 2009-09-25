@@ -28,14 +28,14 @@ namespace boost { namespace rdb {
     
     void str(std::ostream& os, boost::true_type) const {
       os << "update " << Table::table_name() << " set ";
-      typedef boost::fusion::vector<const ColList&, const ExprList&> assignment;
-      boost::fusion::for_each(boost::fusion::zip_view<assignment>(assignment(cols_, values_)), assign_output(os));
+      typedef fusion::vector<const ColList&, const ExprList&> assignment;
+      fusion::for_each(fusion::zip_view<assignment>(assignment(cols_, values_)), assign_output(os));
     }
 
     void str(std::ostream& os, boost::false_type) const {
       os << "update " << Table::table_name() << " set ";
-      typedef boost::fusion::vector<const ColList&, const ExprList&> assignment;
-      boost::fusion::for_each(boost::fusion::zip_view<assignment>(assignment(cols_, values_)), assign_output(os));
+      typedef fusion::vector<const ColList&, const ExprList&> assignment;
+      fusion::for_each(fusion::zip_view<assignment>(assignment(cols_, values_)), assign_output(os));
       os << " where ";
       where_.str(os);
     }
@@ -43,10 +43,10 @@ namespace boost { namespace rdb {
     template<class Col, class Expr>
     struct with {
       typedef update_statement<Table,
-        typename boost::fusion::result_of::push_back<const ColList, 
+        typename fusion::result_of::push_back<const ColList, 
           typename result_of::unwrap<Col>::type
         >::type,
-        typename boost::fusion::result_of::push_back<const ExprList,
+        typename fusion::result_of::push_back<const ExprList,
           typename result_of::make_expression<expression<Col>, Expr>::type
         >::type,
         details::none
@@ -58,8 +58,8 @@ namespace boost { namespace rdb {
     set(const expression<Col>& col, const T& expr) const {
       BOOST_MPL_ASSERT((boost::is_same<Predicate, details::none>));
       return typename with<Col, T>::type(
-        boost::fusion::push_back(cols_, col.unwrap()),
-        boost::fusion::push_back(values_, expression<Col>::make_expression(expr)), details::none());
+        fusion::push_back(cols_, col.unwrap()),
+        fusion::push_back(values_, expression<Col>::make_expression(expr)), details::none());
     }
 
     template<class Where>

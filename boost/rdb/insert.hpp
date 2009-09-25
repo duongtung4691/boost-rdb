@@ -57,7 +57,7 @@ namespace boost { namespace rdb {
     struct with {
       typedef insert_cols<
         Table,
-        typename boost::fusion::result_of::push_back<const ColList, Col>::type
+        typename fusion::result_of::push_back<const ColList, Col>::type
       > type;
     };
 
@@ -103,8 +103,8 @@ namespace boost { namespace rdb {
       BOOST_MPL_ASSERT((boost::is_same<Table, typename Col::table_type>));
       return insert_cols<
         Table,
-        typename boost::fusion::result_of::push_back<const ColList, Col>::type
-      >(boost::fusion::push_back(cols_, col.unwrap()));
+        typename fusion::result_of::push_back<const ColList, Col>::type
+      >(fusion::push_back(cols_, col.unwrap()));
     }
 
   BOOST_PP_REPEAT_FROM_TO(2, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_COLS, ~)
@@ -112,7 +112,7 @@ namespace boost { namespace rdb {
     ColList cols_;
 
     typedef insert_values<Table, ColList, details::empty,
-      typename boost::fusion::result_of::begin<ColList>::type
+      typename fusion::result_of::begin<ColList>::type
       > insert_values0;
     
 #define BOOST_RDB_PP_INSERT_VALUES(z, n, unused) \
@@ -141,15 +141,15 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
     struct with {
     
       typedef typename boost::remove_reference<
-        typename boost::fusion::result_of::deref<ColIter>::type
+        typename fusion::result_of::deref<ColIter>::type
       >::type col_type;
     
       typedef typename result_of::make_expression<expression<col_type>, T>::type value_type;
       
-      typedef typename boost::fusion::result_of::push_back<
+      typedef typename fusion::result_of::push_back<
         const ExprList, value_type>::type values_list_type;
 
-      typedef typename boost::fusion::result_of::next<ColIter>::type next_col_iter;
+      typedef typename fusion::result_of::next<ColIter>::type next_col_iter;
         
       typedef insert_values<Table, ColList, values_list_type, next_col_iter> type;
     };
@@ -158,15 +158,15 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
     typename with<T>::type
     operator ()(const T& expr) const {
       typedef typename with<T>::type result_type;
-      typedef typename boost::remove_reference<typename boost::fusion::result_of::deref<ColIter>::type>::type col_type;
-      return result_type(cols_, boost::fusion::push_back(values_, expression<col_type>::make_expression(expr)));
+      typedef typename boost::remove_reference<typename fusion::result_of::deref<ColIter>::type>::type col_type;
+      return result_type(cols_, fusion::push_back(values_, expression<col_type>::make_expression(expr)));
     }
 
     void str(std::ostream& os) const {
       os << "insert into " << Table::table_name() << " (";
-      boost::fusion::for_each(cols_, comma_output(os));
+      fusion::for_each(cols_, comma_output(os));
       os << ") values (";
-      boost::fusion::for_each(values_, comma_output(os));
+      fusion::for_each(values_, comma_output(os));
       os << ")";
     }
   };
@@ -185,9 +185,9 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
     struct with {
       typedef insert_assign<
         Table,
-        typename boost::fusion::result_of::push_back<
+        typename fusion::result_of::push_back<
           const AssignList, 
-          typename boost::fusion::result_of::make_vector<
+          typename fusion::result_of::make_vector<
             typename result_of::unwrap<Col>::type,
             typename result_of::make_expression<expression<Col>, Expr>::type
           >::type
@@ -201,15 +201,15 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
       (typename with<Col, T>::type))
     operator ()(const expression<Col>& col, const T& expr) const {
       return typename with<Col, T>::type(
-        boost::fusion::push_back(assigns_,
-          boost::fusion::make_vector(
+        fusion::push_back(assigns_,
+          fusion::make_vector(
             col.unwrap(),
             expression<Col>::make_expression(expr))));
     }
 
     void str(std::ostream& os) const {
       os << "insert into " << Table::table_name() << " set ";
-      boost::fusion::for_each(assigns_, assign_output(os));
+      fusion::for_each(assigns_, assign_output(os));
     }
   };
   
@@ -226,7 +226,7 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
 
     void str(std::ostream& os) const {
       os << "insert into " << Table::table_name() << " (";
-      boost::fusion::for_each(cols_, comma_output(os));
+      fusion::for_each(cols_, comma_output(os));
       os << ") ";
       select_.str(os);
     }

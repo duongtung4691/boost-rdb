@@ -76,15 +76,15 @@ namespace boost { namespace rdb { namespace odbc {
       mutable int i_;
 
       template<class Expr>
-      void operator ()(boost::fusion::vector<Expr, long&> value) const {
-        using namespace boost::fusion;
+      void operator ()(fusion::vector<Expr, long&> value) const {
+        using namespace fusion;
         SQLLEN n;
         SQLGetData(db_.hstmt_, i_++, SQL_C_LONG, &at_c<1>(value), 0, &n);
       }
 
       template<class Expr>
-      void operator ()(boost::fusion::vector<Expr, std::string&> value) const {
-        using namespace boost::fusion;
+      void operator ()(fusion::vector<Expr, std::string&> value) const {
+        using namespace fusion;
         char buf[Expr::sql_type::size];
         SQLLEN n;
         SQLGetData(db_.hstmt_, i_++, SQL_C_CHAR, buf, sizeof buf, &n);
@@ -108,8 +108,8 @@ namespace boost { namespace rdb { namespace odbc {
           throw error(SQL_HANDLE_STMT, hstmt_, rc);
 
         row_type row;
-        typedef boost::fusion::vector<const SelectList&, row_type&> zip;
-        boost::fusion::for_each(boost::fusion::zip_view<zip>(zip(select.exprs, row)), read_row(*this));
+        typedef fusion::vector<const SelectList&, row_type&> zip;
+        fusion::for_each(fusion::zip_view<zip>(zip(select.exprs, row)), read_row(*this));
         results.push_back(row);
       }
     }
