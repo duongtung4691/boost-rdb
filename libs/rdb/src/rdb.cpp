@@ -16,7 +16,8 @@ namespace boost { namespace rdb {
     os << "'";
   }
 
-  //select_statement<details::empty, void, void> select = details::empty();
-  select_statement<details::empty, void, void> select = details::empty();
+  select_begin< fusion::map<> > select;
+  select_begin< fusion::map<fusion::pair< select_impl::distinct, int> > > select_begin< fusion::map<> >::distinct;
+  select_begin< fusion::map<fusion::pair< select_impl::all, int> > > select_begin< fusion::map<> >::all;
 
 } }

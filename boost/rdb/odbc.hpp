@@ -85,18 +85,20 @@ namespace boost { namespace rdb { namespace odbc {
       template<class Expr>
       void operator ()(fusion::vector<Expr, std::string&> value) const {
         using namespace fusion;
-        char buf[Expr::sql_type::size];
+        char buf[remove_reference<Expr>::type::sql_type::size];
         SQLLEN n;
         SQLGetData(db_.hstmt_, i_++, SQL_C_CHAR, buf, sizeof buf, &n);
         &at_c<1>(value).assign(buf, buf + n);
       }
     };
-    
-    template<class SelectList, class FromList, class Predicate, class ResultSet>
-    void execute(const select_statement<SelectList, FromList, Predicate>& select, ResultSet& results)
+
+    template<class Data, class ResultSet>
+    void execute(const select_statement<Data>& select, ResultSet& results)
     {
       exec_str(as_string(select));
-      typedef typename select_row<SelectList>::type row_type;
+
+      typedef typename ResultSet::value_type row_type;
+      typedef typename select_statement<Data>::select_list select_list;
 
       while (true) {
         int rc = SQLFetch(hstmt_);
@@ -108,12 +110,12 @@ namespace boost { namespace rdb { namespace odbc {
           throw error(SQL_HANDLE_STMT, hstmt_, rc);
 
         row_type row;
-        typedef fusion::vector<const SelectList&, row_type&> zip;
-        fusion::for_each(fusion::zip_view<zip>(zip(select.exprs, row)), read_row(*this));
+        typedef fusion::vector<const select_list&, row_type&> zip;
+        fusion::for_each(fusion::zip_view<zip>(zip(select.exprs(), row)), read_row(*this));
         results.push_back(row);
       }
     }
-    
+
     void exec_str(const std::string& sql);
 
   private:

@@ -29,11 +29,18 @@
 #include <boost/fusion/include/vector.hpp>
 #include <boost/fusion/include/make_vector.hpp>
 #include <boost/fusion/include/at.hpp>
+#include <boost/fusion/include/map.hpp>
+#include <boost/fusion/include/make_map.hpp>
+#include <boost/fusion/include/as_map.hpp>
+#include <boost/fusion/include/at_key.hpp>
+#include <boost/fusion/include/value_at_key.hpp>
+#include <boost/fusion/include/erase_key.hpp>
 #include <boost/fusion/include/size.hpp>
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/accumulate.hpp>
 #include <boost/fusion/include/push_back.hpp>
 #include <boost/fusion/include/join.hpp>
+#include <boost/fusion/include/replace_if.hpp>
 #include <boost/fusion/include/begin.hpp>
 #include <boost/fusion/include/end.hpp>
 #include <boost/fusion/include/next.hpp>
@@ -46,18 +53,23 @@
 #include <boost/concept/requires.hpp>
 #include <boost/noncopyable.hpp>
 
+#include <boost/preprocessor/iteration/iterate.hpp>
 #include <boost/preprocessor/repetition.hpp>
 #include <boost/preprocessor/arithmetic/sub.hpp>
 #include <boost/preprocessor/punctuation/comma_if.hpp>
 
+#define BOOST_RDB_MAX_SIZE FUSION_MAX_VECTOR_SIZE
 #define BOOST_RDB_MAX_ARG_COUNT 10
 #define BOOST_RDB_PP_WITH(z, n, t) ::template with<t##n>::type
 #define BOOST_RDB_PP_CALL(z, n, t) (t##n)
 #define BOOST_RDB_PP_EXPRESSION(z, n, t) BOOST_PP_COMMA_IF(n) const expression<T##t##n>& t##n
+#define BOOST_RDB_PP_AS_EXPRESSION(z, n, t) BOOST_PP_COMMA_IF(n) as_expression(t##n)
+#define BOOST_RDB_PP_RESULT_OF_AS_EXPRESSION(z, n, t) BOOST_PP_COMMA_IF(n) typename result_of::as_expression<t##n>::type
+#define BOOST_RDB_PP_REFERENCE(z, n, t) BOOST_PP_COMMA_IF(n) t##n&
 
 namespace boost { namespace rdb {
 
-  namespace details {
+  namespace detail {
     typedef fusion::list<> empty;
     
     struct none { };
@@ -74,7 +86,7 @@ namespace boost { namespace rdb {
     };
   }
 
-  template<class SelectList, class FromList, class WhereList>
+  template<class Data>
   struct select_statement;
 
   template<typename Iter>
@@ -122,6 +134,20 @@ namespace boost { namespace rdb {
     }
   };
 
+  //namespace result_of {
+  //  template<class Key, class Value, class Sequence>
+  //  struct replace_value {
+  //    typedef typename result_of::replace_if<
+  //      Sequence,
+  //    >::type;
+  //  };
+  //}
+  //    
+  //    
+  //    replace_if(const Sequence& seq
+
+
+
   struct statement_tag { };
 
   template<class St>
@@ -136,8 +162,12 @@ namespace boost { namespace rdb {
     }
   };
 
+  struct select_statement_tag : statement_tag { };
+
   template<class St>
   struct SelectStatement : Statement<St> {
+    St& st;
+    std::ostream& stream;
     BOOST_CONCEPT_USAGE(SelectStatement) {
       select_statement_tag* p = static_cast<typename St::tag*>(0);
       st.str(stream);
@@ -190,6 +220,13 @@ namespace boost { namespace rdb {
     struct as_expression {
       typedef literal<T> type;
     };
+    template<typename T> struct as_expression<T&> : as_expression<T> { };
+    template<typename T> struct as_expression<const T&> : as_expression<T> { };
+  }
+
+  template<typename T>
+  literal<T> as_expression(const T& value) {
+    return literal<T>(value);
   }
 
   struct num_comparable_type;
@@ -247,7 +284,7 @@ namespace boost { namespace rdb {
     template<typename T>
     struct make_list {
       typedef typename fusion::result_of::push_back<
-        const details::empty,
+        const detail::empty,
         T
       >::type type;
     };
@@ -270,6 +307,26 @@ namespace boost { namespace rdb {
   make_list2(const T& val) {
     return fusion::make_list(val);
   }
+    namespace result_of {
+      template<class Map, class Key, class Value>
+      struct add_key {
+        typedef typename fusion::result_of::as_map<
+          typename fusion::result_of::push_back<
+            Map,
+            typename fusion::result_of::make_pair<
+              Key,
+              Value
+            >::type
+          >::type
+        >::type type;
+      };
+    }
+    
+    template<class Key, class Map, class Value>
+    typename result_of::add_key<Map, Key, Value>::type
+    add_key(const Map& m, const Value& value) {
+      return fusion::as_map(fusion::push_back(m, fusion::make_pair<Key>(value)));
+    }
 
 } }
 

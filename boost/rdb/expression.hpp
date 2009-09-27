@@ -99,20 +99,15 @@ namespace boost { namespace rdb {
     }
   };
 
-  template<typename T>
-  literal<T> as_expression(const T& value) {
-    return literal<T>(value);
-  }
-
   namespace result_of {
     template<class Expr>
     struct as_expression< const expression<Expr> > {
-      typedef const Expr& type;
+      typedef Expr type;
     };
 
     template<class Expr>
     struct as_expression< expression<Expr> > {
-      typedef const Expr& type;
+      typedef Expr type;
     };
 
     // remove the expression<> decorator from a Column or an Expression
@@ -167,71 +162,71 @@ namespace boost { namespace rdb {
   #define BOOST_RDB_OPERATOR_STRING " + "
   #define BOOST_RDB_OPERATOR_CLASS plus
   #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::add
-  #include "boost/rdb/details/arithmetic_operator.hpp"
+  #include "boost/rdb/detail/arithmetic_operator.hpp"
 
   #define BOOST_RDB_OPERATOR -
   #define BOOST_RDB_OPERATOR_STRING " - "
   #define BOOST_RDB_OPERATOR_CLASS minus
   #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::add
-  #include "boost/rdb/details/arithmetic_operator.hpp"
+  #include "boost/rdb/detail/arithmetic_operator.hpp"
 
   #define BOOST_RDB_OPERATOR *
   #define BOOST_RDB_OPERATOR_STRING " * "
   #define BOOST_RDB_OPERATOR_CLASS times
   #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::multiply
-  #include "boost/rdb/details/arithmetic_operator.hpp"
+  #include "boost/rdb/detail/arithmetic_operator.hpp"
 
   #define BOOST_RDB_OPERATOR /
   #define BOOST_RDB_OPERATOR_STRING " / "
   #define BOOST_RDB_OPERATOR_CLASS divide
   #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::multiply
-  #include "boost/rdb/details/arithmetic_operator.hpp"
+  #include "boost/rdb/detail/arithmetic_operator.hpp"
 
   #define BOOST_RDB_OPERATOR ==
   #define BOOST_RDB_OPERATOR_STRING " = "
   #define BOOST_RDB_OPERATOR_CLASS eq
   #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::compare
-  #include "boost/rdb/details/comparison_operator.hpp"
+  #include "boost/rdb/detail/comparison_operator.hpp"
 
   #define BOOST_RDB_OPERATOR !=
   #define BOOST_RDB_OPERATOR_STRING " <> "
   #define BOOST_RDB_OPERATOR_CLASS ne
   #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::compare
-  #include "boost/rdb/details/comparison_operator.hpp"
+  #include "boost/rdb/detail/comparison_operator.hpp"
 
   #define BOOST_RDB_OPERATOR <
   #define BOOST_RDB_OPERATOR_STRING " < "
   #define BOOST_RDB_OPERATOR_CLASS lt
   #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::compare
-  #include "boost/rdb/details/comparison_operator.hpp"
+  #include "boost/rdb/detail/comparison_operator.hpp"
 
   #define BOOST_RDB_OPERATOR <=
   #define BOOST_RDB_OPERATOR_STRING " <= "
   #define BOOST_RDB_OPERATOR_CLASS le
   #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::compare
-  #include "boost/rdb/details/comparison_operator.hpp"
+  #include "boost/rdb/detail/comparison_operator.hpp"
 
   #define BOOST_RDB_OPERATOR >
   #define BOOST_RDB_OPERATOR_STRING " > "
   #define BOOST_RDB_OPERATOR_CLASS gt
   #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::compare
-  #include "boost/rdb/details/comparison_operator.hpp"
+  #include "boost/rdb/detail/comparison_operator.hpp"
 
   #define BOOST_RDB_OPERATOR >=
   #define BOOST_RDB_OPERATOR_STRING " >= "
   #define BOOST_RDB_OPERATOR_CLASS ge
   #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::compare
-  #include "boost/rdb/details/comparison_operator.hpp"
+  #include "boost/rdb/detail/comparison_operator.hpp"
 
   #define BOOST_RDB_OPERATOR &&
   #define BOOST_RDB_OPERATOR_STRING " and "
   #define BOOST_RDB_OPERATOR_CLASS and_
-  #include "boost/rdb/details/boolean_operator.hpp"
+  #include "boost/rdb/detail/boolean_operator.hpp"
 
   #define BOOST_RDB_OPERATOR ||
   #define BOOST_RDB_OPERATOR_STRING " or "
   #define BOOST_RDB_OPERATOR_CLASS or_
-  #include "boost/rdb/details/boolean_operator.hpp"
+  #include "boost/rdb/detail/boolean_operator.hpp"
 
   template<class Expr>
   struct not_ {
@@ -335,6 +330,21 @@ namespace boost { namespace rdb {
     (op_exists<Select>))
   exists(const Select& select) {
     return op_exists<Select>(select);
+  }
+
+  namespace comma {
+
+    template<class Expr1, class Expr2>
+    typename result_of::make_expression_list<Expr1, Expr2>::type
+      operator ,(const expression<Expr1>& expr1, const expression<Expr2>& expr2) {
+      return make_expression_list(expr1, expr2);
+    }
+
+    template<class ExprList, class Expr>
+    typename result_of::extend_expression_list<ExprList, Expr>::type
+    operator ,(const expression_list<ExprList>& exprs, const expression<Expr>& expr) {
+        return extend_expression_list(exprs, expr);
+    }
   }
 
 

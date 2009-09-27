@@ -17,7 +17,7 @@ namespace boost { namespace rdb {
 
     Predicate where_;
 
-    void str(std::ostream& os) const { str(os, boost::is_same<Predicate, details::none>()); }
+    void str(std::ostream& os) const { str(os, boost::is_same<Predicate, detail::none>()); }
     
     void str(std::ostream& os, boost::true_type) const {
       os << "delete from " << Table::table_name();
@@ -32,15 +32,15 @@ namespace boost { namespace rdb {
     template<class Where>
     delete_statement<Table, Where>
     where(const Where& where) const {
-      BOOST_MPL_ASSERT((boost::is_same<Predicate, details::none>));
+      BOOST_MPL_ASSERT((boost::is_same<Predicate, detail::none>));
       return delete_statement<Table, Where>(where);
     }
   };
 
   template<class Table>
-  delete_statement<Table, details::none>
+  delete_statement<Table, detail::none>
   delete_from(const Table& table) {
-    return delete_statement<Table, details::none>(details::none());
+    return delete_statement<Table, detail::none>(detail::none());
   }
 
 } }

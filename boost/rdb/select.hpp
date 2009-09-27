@@ -6,8 +6,6 @@
 
 namespace boost { namespace rdb {
 
-  struct select_statement_tag : statement_tag { };
-
   struct make_row {
 
     template<typename T>
@@ -40,177 +38,202 @@ namespace boost { namespace rdb {
     >::type type;
   };
 
-  template<class SelectList, class FromList, class WhereList>
-  struct select_statement;
-
-  template<class SelectList>
-  struct select_statement<SelectList, void, void>;
-
-  template<class SelectList>
-  struct select_statement<SelectList, void, void> {
-    select_statement(const SelectList& exprs) : exprs(exprs) { }
-    SelectList exprs;
-    typedef select_statement<SelectList, void, void> this_type;
-
-    void str(std::ostream& os) const {
-      os << "select ";
-      fusion::for_each(exprs, comma_output(os));
-    }
-
-    template<class T>
-    struct with {
-      typedef select_statement<
-        typename fusion::result_of::push_back< const SelectList, literal<T> >::type,
-        void, void
-      > type;
-    };
-
-    template<class Expr>
-    struct with< expression<Expr> > {
-      typedef select_statement<
-        typename fusion::result_of::push_back< const SelectList, Expr>::type,
-        void, void
-      > type;
-    };
-
-    template<class Expr> struct with< expression<Expr>& > : with< expression<Expr> > { };
-    template<class Expr> struct with< const expression<Expr> > : with< expression<Expr> > { };
-    template<class Expr> struct with< const expression<Expr>& > : with< expression<Expr> > { };
-
-    template<typename T>
-    typename with<T>::type
-    operator ()(const T& expr) const {
-      return typename with<T>::type(fusion::push_back(exprs, as_expression(expr)));
-    }
-        
-#define BOOST_RDB_PP_SELECT_VALUES(z, n, unused) \
-    template<BOOST_PP_ENUM_PARAMS(n, typename T)> \
-    typename this_type BOOST_PP_REPEAT(n, BOOST_RDB_PP_WITH, T) \
-    operator ()(BOOST_PP_ENUM_BINARY_PARAMS(n, const T, expr)) const { \
-      return (*this)BOOST_PP_REPEAT(n, BOOST_RDB_PP_CALL, expr); \
-    }
-
-BOOST_PP_REPEAT_FROM_TO(2, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_SELECT_VALUES, ~)
-
-    template<class ExprList>
-    select_statement<
-      typename fusion::result_of::join<const SelectList, const ExprList>::type,
-      void, void
-    >
-    operator ()(const expression_list<ExprList>& more) const {
-      return select_statement<
-        typename fusion::result_of::join<const SelectList, const ExprList>::type,
-        void, void
-      >(fusion::join(exprs, more.unwrap()));
-    }
-
-    template<class Table>
-    struct with_table {
-      typedef select_statement<
-        SelectList,
-        typename result_of::make_list< boost::reference_wrapper<const Table> >::type,
-        void
-      > type;
-    };
-
-    template<class Table>
-    typename with_table<Table>::type
-    from(const Table& table) const {
-      return typename with_table<Table>::type(exprs, make_list(boost::cref(table)));
-    }
-
-    template<class Table0, class Table1>
-    typename with_table<Table0>::type::template with<Table1>::type
-    from(const Table0& table0, const Table1& table1) const {
-      return from(table0)(table1);
-    }
-  };
-
-  template<class SelectList, class FromList>
-  struct select_statement<SelectList, FromList, void> : select_statement<SelectList, void, void> {
-    typedef select_statement<SelectList, void, void> just_select;
-    select_statement(const SelectList& exprs, const FromList& tables) : just_select(exprs), tables(tables) { }
-
-    typedef select_statement_tag tag;
-    typedef SelectList select_type;
-
-    FromList tables;
-    typedef std::deque<typename select_row<SelectList>::type> result;
-
-    template<class Table>
-    struct with {
-      typedef select_statement<
-        SelectList,
-        typename fusion::result_of::push_back<
-          const FromList, boost::reference_wrapper<const Table>
-        >::type,
-        void
-      > type;
-    };
-
-    template<class Table>
-    typename with<Table>::type
-    operator ()(const Table& table) const {
-      return typename with<Table>::type(just_select::exprs, fusion::push_back(tables, boost::cref(table)));
-    }
-    
-    template<class Pred>
-    BOOST_CONCEPT_REQUIRES(
-      ((Expression<Pred>)),
-      (select_statement<
-        SelectList,
-        FromList,
-        Pred>)
-      )
-    where(const Pred& pred) const {
-      return select_statement<
-        SelectList,
-        FromList,
-        Pred
-      >(just_select::exprs, tables, pred);
-    }
-
-    void str(std::ostream& os) const {
-      just_select::str(os);
-      os << " from ";
-      fusion::for_each(tables, comma_output(os));
-    }
-  };
-
-  template<class SelectList, class FromList, class Predicate>
-  struct select_statement : select_statement<SelectList, FromList, void> {
-    typedef select_statement<SelectList, FromList, void> select_from;
-    select_statement(const SelectList& exprs, const FromList& tables, const Predicate& pred)
-      : select_from(exprs, tables), pred(pred) { }
-
-    typedef select_statement_tag tag;
-    typedef SelectList select_type;
-
-    const Predicate& pred;
-
-    void str(std::ostream& os) const {
-      select_from::str(os);
-      os << " where ";
-      pred.str(os);
-    }
-  };
-  
-  extern select_statement<details::empty, void, void> select;
-
-  namespace comma {
-
-    template<class Expr1, class Expr2>
-    typename result_of::make_expression_list<Expr1, Expr2>::type
-      operator ,(const expression<Expr1>& expr1, const expression<Expr2>& expr2) {
-      return make_expression_list(expr1, expr2);
-    }
-
-    template<class ExprList, class Expr>
-    typename result_of::extend_expression_list<ExprList, Expr>::type
-    operator ,(const expression_list<ExprList>& exprs, const expression<Expr>& expr) {
-        return extend_expression_list(exprs, expr);
-    }
+  template<class Key, class Map>
+  inline typename disable_if<fusion::result_of::has_key<Map, Key>, void>::type
+  str_opt_list(std::ostream& os, const char* keyword, const Map& data) {
   }
+
+  template<class Key, class Map>
+  inline typename enable_if<fusion::result_of::has_key<Map, Key>, void>::type
+  str_opt_list(std::ostream& os, const char* keyword, const Map& data) {
+    os << " " << keyword << " ";
+    fusion::for_each(fusion::at_key<Key>(data), comma_output(os));
+  }
+
+  template<class Key, class Map>
+  inline typename disable_if<fusion::result_of::has_key<Map, Key>, void>::type
+  str_opt(std::ostream& os, const char* keyword, const Map& data) {
+  }
+
+  template<class Key, class Map>
+  inline typename enable_if<fusion::result_of::has_key<Map, Key>, void>::type
+  str_opt(std::ostream& os, const char* keyword, const Map& data) {
+    os << " " << keyword << " ";
+    fusion::at_key<Key>(data).str(os);
+  }
+
+  template<class Key, class Map>
+  inline typename disable_if<fusion::result_of::has_key<Map, Key>, void>::type
+  str_opt_kw(std::ostream& os, const char* keyword, const Map& data) {
+  }
+
+  template<class Key, class Map>
+  inline typename enable_if<fusion::result_of::has_key<Map, Key>, void>::type
+  str_opt_kw(std::ostream& os, const char* keyword, const Map& data) {
+    os << " " << keyword;
+  }
+
+  struct select_impl {
+
+    class cols;
+    class distinct;
+    class all;
+    class tables;
+    class where;
+    class group_by;
+    class order_by;
+
+    template<class Data>
+    static void str(std::ostream& os, const Data& data) {
+      os << "select";
+      
+      str_opt_kw<distinct>(os, "distinct", data);
+      str_opt_kw<all>(os, "all", data);
+
+      os << " ";
+      fusion::for_each(fusion::at_key<cols>(data), comma_output(os));
+
+      str_opt_list<tables>(os, "from", data);
+      str_opt<where>(os, "where", data);
+    }
+  };
+
+  template<class Data>
+  struct select_exprs;
+  
+  template<class Data>
+  struct select_begin : select_impl
+  {
+    Data data_;
+
+    static select_begin< fusion::map<fusion::pair< select_impl::distinct, int> > > distinct;
+    static select_begin< fusion::map<fusion::pair< select_impl::all, int> > > all;
+
+#if 1
+
+#include <boost/preprocessor/iteration/iterate.hpp>
+#define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
+//#define BOOST_PP_ITERATION_LIMITS (1, 1)
+#define BOOST_PP_FILENAME_1       <boost/rdb/detail/select_begin_call.hpp>
+#include BOOST_PP_ITERATE()
+
+#elif 0
+
+#else
+    template<class Expr0>
+    select_exprs<
+      fusion::map<
+        fusion::pair<
+          cols,
+          fusion::vector<
+            typename result_of::as_expression<Expr0>::type
+          >
+        >
+      >
+    >
+    operator ()(const Expr0& expr0) {
+      return select_exprs<
+        fusion::map<
+          fusion::pair<
+            cols,
+            fusion::vector<
+              typename result_of::as_expression<Expr0>::type
+            >
+          >
+        >
+      >(
+        fusion::pair<cols, fusion::vector<
+          typename result_of::as_expression<Expr0>::type
+        > >(fusion::vector<
+          typename result_of::as_expression<Expr0>::type
+        >(
+          as_expression(expr0)
+        ))
+      );
+    }
+#endif
+  };
+
+  extern select_begin< fusion::map<> > select;
+
+  template<class Data>
+  struct select_exprs : select_impl {
+
+    select_exprs(const Data& data) : data_(data) { }
+    Data data_;
+
+    void str(std::ostream& os) const {
+      select_impl::str(os, data_);
+    }
+
+#if 1
+#include <boost/preprocessor/iteration/iterate.hpp>
+#define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
+#define BOOST_PP_FILENAME_1       <boost/rdb/detail/select_from.hpp>
+#include BOOST_PP_ITERATE()
+#else
+
+    template<class Table0>
+    select_statement<
+      typename result_of::add_key<
+        Data,
+        tables,
+        fusion::vector<
+          const Table0&
+        >
+      >::type
+    > from(const Table0& table0) {
+      return select_statement<
+        typename result_of::add_key<
+          Data,
+          tables,
+          fusion::vector<
+            const Table0&
+          >
+        >::type
+      >(add_key<tables>(
+        data_,
+        fusion::vector<
+          const Table0&
+        >(
+          table0
+        )
+      ));
+    }
+
+
+
+#endif
+  };
+
+  template<class Data>
+  struct select_statement : select_impl {
+
+    typedef select_statement_tag tag;
+    typedef typename fusion::result_of::value_at_key<Data, select_impl::cols>::type select_list;
+    typedef std::deque<typename select_row<select_list>::type> result;
+
+    select_statement(const Data& data) : data_(data) { }
+    Data data_;
+
+    const select_list& exprs() const {
+      return fusion::at_key<cols>(data_);
+    }
+
+    void str(std::ostream& os) const {
+      select_impl::str(os, data_);
+    }
+
+    template<class Predicate>
+    select_statement<
+      typename result_of::add_key<Data, select_impl::where, Predicate>::type
+    >
+    where(const Predicate& predicate) const {
+      return select_statement<
+        typename result_of::add_key<Data, select_impl::where, Predicate>::type
+      >(add_key<select_impl::where>(data_, predicate));
+    }
+  };
 
 } }
 

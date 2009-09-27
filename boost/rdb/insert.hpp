@@ -24,15 +24,15 @@ namespace boost { namespace rdb {
   struct insert_statement {
 
     template<class Col>
-    typename insert_cols<Table, details::empty>::template with<Col>::type
+    typename insert_cols<Table, detail::empty>::template with<Col>::type
     operator ()(const expression<Col>& col) const {
-      return insert_cols<Table, details::empty>(details::empty())(col);
+      return insert_cols<Table, detail::empty>(detail::empty())(col);
     }
 
     template<class Col, class T>
-    typename insert_assign<Table, details::empty>::template with<Col, T>::type
+    typename insert_assign<Table, detail::empty>::template with<Col, T>::type
     set(const expression<Col>& col, const T& expr) const {
-      return insert_assign<Table, details::empty>(details::empty())(col, expr);
+      return insert_assign<Table, detail::empty>(detail::empty())(col, expr);
     }
 
 #define BOOST_RDB_PP_INSERT_COLS(z, n, unused) \
@@ -84,15 +84,15 @@ namespace boost { namespace rdb {
   > {
   };
 
-    template<class SelectList, class FromList, class WhereList>
-    insert_select< Table, ColList, select_statement<SelectList, FromList, WhereList> >
-    operator ()(const select_statement<SelectList, FromList, WhereList>& select) const {
-      typedef typename select_statement<SelectList, FromList, WhereList>::select_type select_type;
+    template<class Data>
+    insert_select< Table, ColList, select_statement<Data> >
+    operator ()(const select_statement<Data>& select) const {
+      typedef typename select_statement<Data>::select_list select_list;
       BOOST_MPL_ASSERT((is_same<
-        fusion::result_of::size<ColList>::type,
-        fusion::result_of::size<select_type>::type>));
-      BOOST_MPL_ASSERT((sql_compatible<ColList, select_type>));
-      return insert_select< Table, ColList, select_statement<SelectList, FromList, WhereList> >(cols_, select);
+        typename fusion::result_of::size<ColList>::value_type,
+        typename fusion::result_of::size<select_list>::value_type>));
+      BOOST_MPL_ASSERT((sql_compatible<ColList, select_list>));
+      return insert_select< Table, ColList, select_statement<Data> >(cols_, select);
     }
 
     template<class Col>
@@ -111,7 +111,7 @@ namespace boost { namespace rdb {
 
     ColList cols_;
 
-    typedef insert_values<Table, ColList, details::empty,
+    typedef insert_values<Table, ColList, detail::empty,
       typename fusion::result_of::begin<ColList>::type
       > insert_values0;
     
@@ -119,7 +119,7 @@ namespace boost { namespace rdb {
     template<BOOST_PP_ENUM_PARAMS(n, typename T)> \
     typename insert_values0 BOOST_PP_REPEAT(n, BOOST_RDB_PP_WITH, T) \
     values(BOOST_PP_ENUM_BINARY_PARAMS(n, T, arg)) const { \
-      return insert_values0(cols_, details::empty())BOOST_PP_REPEAT(n, BOOST_RDB_PP_CALL, arg); \
+      return insert_values0(cols_, detail::empty())BOOST_PP_REPEAT(n, BOOST_RDB_PP_CALL, arg); \
     }
 
 BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, ~)
@@ -212,7 +212,7 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
       fusion::for_each(assigns_, assign_output(os));
     }
   };
-  
+
   template<class Table, class ColList, class Select>
   struct insert_select {
 
@@ -231,7 +231,6 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
       select_.str(os);
     }
   };
-
 
   template<class Table>
   insert_statement<Table>

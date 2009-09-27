@@ -24,7 +24,7 @@ namespace boost { namespace rdb {
     update_statement(const ColList& cols, const ExprList& values, const Predicate& where)
       : cols_(cols), values_(values), where_(where) { }
 
-    void str(std::ostream& os) const { str(os, boost::is_same<Predicate, details::none>()); }
+    void str(std::ostream& os) const { str(os, boost::is_same<Predicate, detail::none>()); }
     
     void str(std::ostream& os, boost::true_type) const {
       os << "update " << Table::table_name() << " set ";
@@ -49,32 +49,32 @@ namespace boost { namespace rdb {
         typename fusion::result_of::push_back<const ExprList,
           typename result_of::make_expression<expression<Col>, Expr>::type
         >::type,
-        details::none
+        detail::none
       > type;
     };
 
     template<class Col, class T>
     typename with<Col, T>::type
     set(const expression<Col>& col, const T& expr) const {
-      BOOST_MPL_ASSERT((boost::is_same<Predicate, details::none>));
+      BOOST_MPL_ASSERT((boost::is_same<Predicate, detail::none>));
       return typename with<Col, T>::type(
         fusion::push_back(cols_, col.unwrap()),
-        fusion::push_back(values_, expression<Col>::make_expression(expr)), details::none());
+        fusion::push_back(values_, expression<Col>::make_expression(expr)), detail::none());
     }
 
     template<class Where>
     update_statement<Table, ColList, ExprList, Where>
     where(const Where& where) const {
-      BOOST_MPL_ASSERT((boost::is_same<Predicate, details::none>));
+      BOOST_MPL_ASSERT((boost::is_same<Predicate, detail::none>));
       return update_statement<Table, ColList, ExprList, Where>(cols_, values_, where);
     }
   };
 
   template<class Table>
-  update_statement<Table, details::empty, details::empty, details::none>
+  update_statement<Table, detail::empty, detail::empty, detail::none>
   update(const Table& table) {
-    return update_statement<Table, details::empty, details::empty, details::none>(
-      details::empty(), details::empty(), details::none());
+    return update_statement<Table, detail::empty, detail::empty, detail::none>(
+      detail::empty(), detail::empty(), detail::none());
   }
 
 } }
