@@ -93,17 +93,12 @@ namespace boost { namespace rdb {
   {
     Data data_;
 
-    static select_begin< fusion::map<fusion::pair< select_impl::distinct, int> > > distinct;
-    static select_begin< fusion::map<fusion::pair< select_impl::all, int> > > all;
-
 #include <boost/preprocessor/iteration/iterate.hpp>
 #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
 //#define BOOST_PP_ITERATION_LIMITS (1, 1)
 #define BOOST_PP_FILENAME_1       <boost/rdb/detail/select_begin_call.hpp>
 #include BOOST_PP_ITERATE()
   };
-
-  extern select_begin< fusion::map<> > select;
 
   template<class Data>
   struct select_exprs : select_impl {
@@ -120,6 +115,13 @@ namespace boost { namespace rdb {
 #define BOOST_PP_FILENAME_1       <boost/rdb/detail/select_from.hpp>
 #include BOOST_PP_ITERATE()
   };
+
+  struct plain_select : select_begin< fusion::map<> > {
+    select_begin< fusion::map<fusion::pair< select_impl::distinct, int> > > distinct;
+    select_begin< fusion::map<fusion::pair< select_impl::all, int> > > all;
+  };
+
+  extern plain_select select;
 
   template<class Data>
   struct select_statement : select_impl {

@@ -16,6 +16,7 @@
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/size.hpp>
+#include <boost/mpl/equal_to.hpp>
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/if.hpp>
 #include <boost/utility/enable_if.hpp>

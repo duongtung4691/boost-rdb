@@ -88,9 +88,9 @@ namespace boost { namespace rdb {
     insert_select< Table, ColList, select_statement<Data> >
     operator ()(const select_statement<Data>& select) const {
       typedef typename select_statement<Data>::select_list select_list;
-      BOOST_MPL_ASSERT((is_same<
-        typename fusion::result_of::size<ColList>::value_type,
-        typename fusion::result_of::size<select_list>::value_type>));
+      BOOST_MPL_ASSERT((mpl::equal_to<
+        fusion::result_of::size<ColList>,
+        fusion::result_of::size<select_list> >));
       BOOST_MPL_ASSERT((sql_compatible<ColList, select_list>));
       return insert_select< Table, ColList, select_statement<Data> >(cols_, select);
     }
