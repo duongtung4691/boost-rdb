@@ -32,6 +32,7 @@ std::string incomplete_str(const Stat& statement) {
 #define BOOST_RDB_CHECK_INCOMPLETE_SQL(expr, sql) BOOST_CHECK(incomplete_str(expr) == sql)
 
 using namespace boost::rdb::test::springfield;
+
 BOOST_AUTO_TEST_CASE(create_statement) {
 
   using namespace boost::rdb;

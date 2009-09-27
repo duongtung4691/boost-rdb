@@ -1,6 +1,7 @@
 #ifndef BOOST_ODBC_HPP
 #define BOOST_ODBC_HPP
 
+#include <windows.h>
 #include <sql.h>
 #include <sqlext.h>
 
@@ -26,6 +27,12 @@ namespace boost { namespace rdb { namespace odbc {
       throw ex;
     }
   }
+
+  struct on_type { };
+  const on_type on;
+
+  struct off_type { };
+  const off_type off;
 
   template<class Specific>
   class generic_database {
@@ -117,6 +124,28 @@ namespace boost { namespace rdb { namespace odbc {
     }
 
     void exec_str(const std::string& sql);
+
+    void set_autocommit(on_type) {
+      SQLSetConnectOption(hdbc_, SQL_AUTOCOMMIT, SQL_AUTOCOMMIT_ON);
+    }
+
+    void set_autocommit(off_type) {
+      SQLSetConnectOption(hdbc_, SQL_AUTOCOMMIT, SQL_AUTOCOMMIT_OFF);
+    }
+
+    bool is_txn_capable() const {
+      SQLSMALLINT res;
+      SQLGetInfo(hdbc_, SQL_TXN_CAPABLE, &res, sizeof res, NULL);
+      return res != SQL_TC_NONE;
+    }
+
+    void commit() {
+      SQLTransact(henv_, hdbc_, SQL_COMMIT);
+    }
+
+    void rollback() {
+      SQLTransact(henv_, hdbc_, SQL_ROLLBACK);
+    }
 
   private:
     std::string dsn_, user_, password_;

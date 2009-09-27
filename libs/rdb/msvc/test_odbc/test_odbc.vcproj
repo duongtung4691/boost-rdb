@@ -87,7 +87,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="&quot;$(TargetPath)&quot;"
+				CommandLine="&quot;$(TargetPath)&quot;  --log_level=test_suite"
 			/>
 		</Configuration>
 		<Configuration
@@ -164,7 +164,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="&quot;$(TargetPath)&quot;"
+				CommandLine="&quot;$(TargetPath)&quot;  --log_level=test_suite"
 			/>
 		</Configuration>
 	</Configurations>
