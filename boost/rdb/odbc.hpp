@@ -1,7 +1,10 @@
 #ifndef BOOST_ODBC_HPP
 #define BOOST_ODBC_HPP
 
+#ifdef WIN32
 #include <windows.h>
+#endif
+
 #include <sql.h>
 #include <sqlext.h>
 
@@ -29,10 +32,10 @@ namespace boost { namespace rdb { namespace odbc {
   }
 
   struct on_type { };
-  const on_type on;
+  const on_type on = on_type();
 
   struct off_type { };
-  const off_type off;
+  const off_type off = off_type();
 
   template<class Specific>
   class generic_database {
