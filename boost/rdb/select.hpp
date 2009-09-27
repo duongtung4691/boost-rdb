@@ -8,19 +8,6 @@ namespace boost { namespace rdb {
 
   struct make_row {
 
-    template<typename T>
-    struct extract_type;
-
-    template<typename T>
-    struct extract_type<const expression<T>&> {
-      typedef T type;
-    };
-
-    template<typename T>
-    struct extract_type< expression<T> > {
-      typedef T type;
-    };
-
     template<typename Sig>
     struct result;
 
@@ -109,49 +96,11 @@ namespace boost { namespace rdb {
     static select_begin< fusion::map<fusion::pair< select_impl::distinct, int> > > distinct;
     static select_begin< fusion::map<fusion::pair< select_impl::all, int> > > all;
 
-#if 1
-
 #include <boost/preprocessor/iteration/iterate.hpp>
 #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
 //#define BOOST_PP_ITERATION_LIMITS (1, 1)
 #define BOOST_PP_FILENAME_1       <boost/rdb/detail/select_begin_call.hpp>
 #include BOOST_PP_ITERATE()
-
-#elif 0
-
-#else
-    template<class Expr0>
-    select_exprs<
-      fusion::map<
-        fusion::pair<
-          cols,
-          fusion::vector<
-            typename result_of::as_expression<Expr0>::type
-          >
-        >
-      >
-    >
-    operator ()(const Expr0& expr0) {
-      return select_exprs<
-        fusion::map<
-          fusion::pair<
-            cols,
-            fusion::vector<
-              typename result_of::as_expression<Expr0>::type
-            >
-          >
-        >
-      >(
-        fusion::pair<cols, fusion::vector<
-          typename result_of::as_expression<Expr0>::type
-        > >(fusion::vector<
-          typename result_of::as_expression<Expr0>::type
-        >(
-          as_expression(expr0)
-        ))
-      );
-    }
-#endif
   };
 
   extern select_begin< fusion::map<> > select;
@@ -166,44 +115,10 @@ namespace boost { namespace rdb {
       select_impl::str(os, data_);
     }
 
-#if 1
 #include <boost/preprocessor/iteration/iterate.hpp>
 #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
 #define BOOST_PP_FILENAME_1       <boost/rdb/detail/select_from.hpp>
 #include BOOST_PP_ITERATE()
-#else
-
-    template<class Table0>
-    select_statement<
-      typename result_of::add_key<
-        Data,
-        tables,
-        fusion::vector<
-          const Table0&
-        >
-      >::type
-    > from(const Table0& table0) {
-      return select_statement<
-        typename result_of::add_key<
-          Data,
-          tables,
-          fusion::vector<
-            const Table0&
-          >
-        >::type
-      >(add_key<tables>(
-        data_,
-        fusion::vector<
-          const Table0&
-        >(
-          table0
-        )
-      ));
-    }
-
-
-
-#endif
   };
 
   template<class Data>
