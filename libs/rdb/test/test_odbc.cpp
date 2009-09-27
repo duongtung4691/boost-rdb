@@ -44,6 +44,10 @@ int test_main( int, char *[] )
 
   try {
     db.execute(drop_table(person::_));
+  } catch (error) {
+  }
+
+  try {
     db.execute(drop_table(partner::_));
   } catch (error) {
   }
