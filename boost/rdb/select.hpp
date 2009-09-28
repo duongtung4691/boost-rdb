@@ -68,7 +68,7 @@ namespace boost { namespace rdb {
     };
 
     template<class Data>
-    struct call {
+    struct select {
       typedef select_projection<standard_select_context, Data> type;
     };
 

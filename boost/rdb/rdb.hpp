@@ -380,8 +380,8 @@ namespace boost { namespace rdb {
   namespace transition {
     // work around msvc9 bug
     template<class Context, class Data>
-    struct call {
-      typedef typename Context::template call<Data>::type type;
+    struct select {
+      typedef typename Context::template select<Data>::type type;
     };
 
    template<class Context, class Data>

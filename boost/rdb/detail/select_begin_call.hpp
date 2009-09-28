@@ -4,7 +4,7 @@
 #define n BOOST_PP_ITERATION()
 
     template<BOOST_PP_ENUM_PARAMS(n, class Expr)>
-    typename transition::call<
+    typename transition::select<
       Context,
       typename result_of::add_key<
         Data,
@@ -15,7 +15,7 @@
       >::type
     >::type
     operator ()(BOOST_PP_ENUM_BINARY_PARAMS(n, const Expr, &expr)) {
-      return typename transition::call<
+      return typename transition::select<
         Context,
         typename result_of::add_key<
           Data,

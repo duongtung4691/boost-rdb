@@ -27,7 +27,7 @@ namespace boost { namespace rdb {
     typedef standard_insert_context this_context;
 
     template<class Data>
-    struct call {
+    struct select {
       typedef insert_select<this_context, Data> type;
     };
 
