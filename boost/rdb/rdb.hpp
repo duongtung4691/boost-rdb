@@ -87,7 +87,7 @@ namespace boost { namespace rdb {
     };
   }
 
-  template<class Data>
+  template<class Context, class Data>
   struct select_statement;
 
   template<typename Iter>

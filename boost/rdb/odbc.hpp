@@ -76,7 +76,7 @@ namespace boost { namespace rdb { namespace odbc {
     execute(const Select& select, select_statement_tag)
     {
       typename Select::result results;
-      execute(select, results);
+      execute_select_fetch(select, results);
       return results; // optimize later
     }
 
@@ -102,13 +102,13 @@ namespace boost { namespace rdb { namespace odbc {
       }
     };
 
-    template<class Data, class ResultSet>
-    void execute(const select_statement<Data>& select, ResultSet& results)
+    template<class Select, class ResultSet>
+    void execute_select_fetch(const Select& select, ResultSet& results)
     {
       exec_str(as_string(select));
 
       typedef typename ResultSet::value_type row_type;
-      typedef typename select_statement<Data>::select_list select_list;
+      typedef typename Select::select_list select_list;
 
       while (true) {
         int rc = SQLFetch(hstmt_);

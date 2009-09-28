@@ -70,7 +70,7 @@ namespace boost { namespace rdb {
     class group_by;
     class order_by;
 
-    template<class Data>
+    template<class Context, class Data>
     static void str(std::ostream& os, const Data& data) {
       os << "select";
       
@@ -85,10 +85,40 @@ namespace boost { namespace rdb {
     }
   };
 
-  template<class Data>
-  struct select_exprs;
+  template<class Context, class Data>
+  struct select_statement;
+
+  template<class Context, class Data>
+  struct select_projection;
+
+  struct standard_select_context {
+
+    template<class Data>
+    struct after_projection {
+      typedef select_statement<standard_select_context, Data> type;
+    };
+
+    template<class Data>
+    struct after_set_quantifier {
+      typedef select_projection<standard_select_context, Data> type;
+    };
+  };
+
+  // work around msvc9 bug
+  template<class Context, class Data>
+  struct after_projection {
+    typedef typename Context::template after_projection<Data>::type type;
+  };
+
+  template<class Context, class Data>
+  struct after_set_quantifier {
+    typedef typename Context::template after_set_quantifier<Data>::type type;
+  };
+
+  template<class Context, class Data>
+  struct select_projection;
   
-  template<class Data>
+  template<class Context, class Data>
   struct select_begin : select_impl
   {
     Data data_;
@@ -100,14 +130,14 @@ namespace boost { namespace rdb {
 #include BOOST_PP_ITERATE()
   };
 
-  template<class Data>
-  struct select_exprs : select_impl {
+  template<class Context, class Data>
+  struct select_projection : select_impl {
 
-    select_exprs(const Data& data) : data_(data) { }
+    select_projection(const Data& data) : data_(data) { }
     Data data_;
 
     void str(std::ostream& os) const {
-      select_impl::str(os, data_);
+      select_impl::str<Context>(os, data_);
     }
 
 #include <boost/preprocessor/iteration/iterate.hpp>
@@ -116,14 +146,14 @@ namespace boost { namespace rdb {
 #include BOOST_PP_ITERATE()
   };
 
-  struct plain_select : select_begin< fusion::map<> > {
-    select_begin< fusion::map<fusion::pair< select_impl::distinct, int> > > distinct;
-    select_begin< fusion::map<fusion::pair< select_impl::all, int> > > all;
+  struct plain_select : select_begin<standard_select_context, fusion::map<> > {
+    select_begin< standard_select_context, fusion::map<fusion::pair< select_impl::distinct, int> > > distinct;
+    select_begin< standard_select_context, fusion::map<fusion::pair< select_impl::all, int> > > all;
   };
 
   extern plain_select select;
 
-  template<class Data>
+  template<class Context, class Data>
   struct select_statement : select_impl {
 
     typedef select_statement_tag tag;
@@ -138,15 +168,17 @@ namespace boost { namespace rdb {
     }
 
     void str(std::ostream& os) const {
-      select_impl::str(os, data_);
+      select_impl::str<Context>(os, data_);
     }
 
     template<class Predicate>
     select_statement<
+      Context,
       typename result_of::add_key<Data, select_impl::where, Predicate>::type
     >
     where(const Predicate& predicate) const {
       return select_statement<
+        Context,
         typename result_of::add_key<Data, select_impl::where, Predicate>::type
       >(add_key<select_impl::where>(data_, predicate));
     }

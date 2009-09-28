@@ -1,5 +1,6 @@
     template<BOOST_PP_ENUM_PARAMS(n, class Table)>
-    select_statement<
+    typename after_projection<
+      Context,
       typename result_of::add_key<
         Data,
         tables,
@@ -7,8 +8,10 @@
           BOOST_PP_REPEAT(n, BOOST_RDB_PP_REFERENCE, const Table)
         >
       >::type
-    > from(BOOST_PP_ENUM_BINARY_PARAMS(n, const Table, &table)) {
-      return select_statement<
+    >::type
+    from(BOOST_PP_ENUM_BINARY_PARAMS(n, const Table, &table)) {
+      return typename after_projection<
+        Context,
         typename result_of::add_key<
           Data,
           tables,
@@ -16,12 +19,10 @@
             BOOST_PP_REPEAT(n, BOOST_RDB_PP_REFERENCE, const Table)
           >
         >::type
-      >(add_key<tables>(
+      >::type(add_key<tables>(
         data_,
         fusion::vector<
           BOOST_PP_REPEAT(n, BOOST_RDB_PP_REFERENCE, const Table)
-        >(
-          BOOST_PP_ENUM_PARAMS(n, table)
-        )
+        >(BOOST_PP_ENUM_PARAMS(n, table))
       ));
     }
