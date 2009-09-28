@@ -60,59 +60,22 @@ namespace boost { namespace rdb {
     os << " " << keyword;
   }
 
-  struct select_impl {
-
-    class cols;
-    class distinct;
-    class all;
-    class tables;
-    class where;
-    class group_by;
-    class order_by;
-
-    template<class Context, class Data>
-    static void str(std::ostream& os, const Data& data) {
-      os << "select";
-      
-      str_opt_kw<distinct>(os, "distinct", data);
-      str_opt_kw<all>(os, "all", data);
-
-      os << " ";
-      fusion::for_each(fusion::at_key<cols>(data), comma_output(os));
-
-      str_opt_list<tables>(os, "from", data);
-      str_opt<where>(os, "where", data);
-    }
-  };
-
-  template<class Context, class Data>
-  struct select_statement;
-
-  template<class Context, class Data>
-  struct select_projection;
-
   struct standard_select_context {
 
     template<class Data>
-    struct after_projection {
+    struct from {
       typedef select_statement<standard_select_context, Data> type;
     };
 
     template<class Data>
-    struct after_set_quantifier {
+    struct call {
       typedef select_projection<standard_select_context, Data> type;
     };
-  };
 
-  // work around msvc9 bug
-  template<class Context, class Data>
-  struct after_projection {
-    typedef typename Context::template after_projection<Data>::type type;
-  };
-
-  template<class Context, class Data>
-  struct after_set_quantifier {
-    typedef typename Context::template after_set_quantifier<Data>::type type;
+    template<class Data>
+    struct where {
+      typedef select_statement<standard_select_context, Data> type;
+    };
   };
 
   template<class Context, class Data>
@@ -123,7 +86,6 @@ namespace boost { namespace rdb {
   {
     Data data_;
 
-#include <boost/preprocessor/iteration/iterate.hpp>
 #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
 //#define BOOST_PP_ITERATION_LIMITS (1, 1)
 #define BOOST_PP_FILENAME_1       <boost/rdb/detail/select_begin_call.hpp>
@@ -172,15 +134,15 @@ namespace boost { namespace rdb {
     }
 
     template<class Predicate>
-    select_statement<
+    typename transition::where<
       Context,
       typename result_of::add_key<Data, select_impl::where, Predicate>::type
-    >
+    >::type
     where(const Predicate& predicate) const {
-      return select_statement<
+      return typename transition::where<
         Context,
         typename result_of::add_key<Data, select_impl::where, Predicate>::type
-      >(add_key<select_impl::where>(data_, predicate));
+      >::type(add_key<select_impl::where>(data_, predicate));
     }
   };
 

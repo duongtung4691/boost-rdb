@@ -62,8 +62,9 @@ BOOST_AUTO_TEST_CASE(basic) {
   {
     person h("h"), w("w");
     partner p;
-    db.execute(insert_into(p)(p.husband, p.wife)(rdb::select(h.id, w.id).from(h, w)
-      .where(h.name == w.name && h.id != w.id))); // duplicates couples but it's just a test
+    db.execute(insert_into(p)(p.husband, p.wife)
+      .select(h.id, w.id).from(h, w)
+      .where(h.name == w.name && h.id != w.id)); // duplicates couples but it's just a test
   }
 
   using boost::rdb::select;

@@ -128,13 +128,18 @@ BOOST_AUTO_TEST_CASE(insert_select) {
   partner p;
 
   BOOST_RDB_CHECK_SQL(
-    insert_into(p)(p.husband, p.wife)(
-      select(h.id, w.id).from(h, w).where(h.name == w.name)),
+    insert_into(p)(p.husband, p.wife).
+      select(h.id, w.id).from(h, w),
+      "insert into partner (husband, wife) select h.id, w.id from person as h, person as w");
+
+  BOOST_RDB_CHECK_SQL(
+    insert_into(p)(p.husband, p.wife).
+      select(h.id, w.id).from(h, w).where(h.name == w.name),
       "insert into partner (husband, wife) select h.id, w.id from person as h, person as w where h.name = w.name");
 
   //these won't compile
-  //insert_into(p)(p.husband, p.wife)(select(h.id).from(h, w).where(h.name == w.name));
-  //insert_into(p)(p.husband, p.wife)(select(h.id, w.name).from(h, w).where(h.name == w.name));
+  //insert_into(p)(p.husband, p.wife).select(h.id).from(h, w).where(h.name == w.name);
+  //insert_into(p)(p.husband, p.wife).select(h.id, w.name).from(h, w).where(h.name == w.name);
 }
 
 BOOST_AUTO_TEST_CASE(update_table) {

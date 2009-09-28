@@ -17,8 +17,31 @@ namespace boost { namespace rdb {
   template<class Table, class ColList, class ExprList, class ColIter>
   struct insert_values;
 
-  template<class Table, class ColList, class Select>
+  template<class Context, class Data>
   struct insert_select;
+
+  template<class Context, class Data>
+  struct insert_select_from;
+
+  struct standard_insert_context {
+    typedef standard_insert_context this_context;
+
+    template<class Data>
+    struct call {
+      typedef insert_select<this_context, Data> type;
+    };
+
+    template<class Data>
+    struct from {
+      typedef insert_select_from<this_context, Data> type;
+    };
+
+    template<class Data>
+    struct where {
+      typedef insert_select_from<this_context, Data> type;
+    };
+
+  };
 
   template<class Table>
   struct insert_statement {
@@ -46,12 +69,38 @@ namespace boost { namespace rdb {
     BOOST_PP_REPEAT_FROM_TO(2, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_COLS, ~)
   };
 
+  struct insert_impl {
+    class table;
+    class cols;
+
+    template<class Data>
+    static void str(std::ostream& os, const Data& data) {
+      os << "insert into " << fusion::at_key<table>(data)->table_name() << " (";
+      fusion::for_each(fusion::at_key<cols>(data), comma_output(os));
+      os << ")";
+    }
+  };
+
   template<class Table, class ColList>
-  struct insert_cols {
+  struct insert_cols : insert_impl {
 
     typedef ColList col_list_type;
 
-    insert_cols(const ColList& cols) : cols_(cols) { }
+    typedef fusion::map<
+      fusion::pair<table, const Table*>,
+      fusion::pair<cols, ColList>
+    > Data;
+
+    Data data_;
+    typedef standard_insert_context Context;
+
+    insert_cols(const ColList& kols) : cols_(kols),
+      data_(fusion::make_map<table, cols>(&Table::_, kols)) { }
+
+    #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
+    //#define BOOST_PP_ITERATION_LIMITS (1, 1)
+    #define BOOST_PP_FILENAME_1       <boost/rdb/detail/insert_select.hpp>
+    #include BOOST_PP_ITERATE()
 
     template<class Col>
     struct with {
@@ -60,40 +109,6 @@ namespace boost { namespace rdb {
         typename fusion::result_of::push_back<const ColList, Col>::type
       > type;
     };
-
-  struct extract_sql_kind {
-
-    template<typename Sig>
-    struct result;
-
-    template<typename Self, typename Expr>
-    struct result<Self(Expr)> {
-      typedef typename boost::remove_reference<Expr>::type::sql_type type;
-    };
-
-  };
-
-  template<class ExprList1, class ExprList2>
-  struct sql_compatible : is_same<
-      typename fusion::result_of::as_vector<
-        typename fusion::result_of::transform<ExprList1, extract_sql_kind>::type
-      >::type,
-      typename fusion::result_of::as_vector<
-        typename fusion::result_of::transform<ExprList2, extract_sql_kind>::type
-      >::type
-  > {
-  };
-
-    template<class Context, class Data>
-    insert_select< Table, ColList, select_statement<Context, Data> >
-    operator ()(const select_statement<Context, Data>& select) const {
-      typedef typename select_statement<Context, Data>::select_list select_list;
-      BOOST_MPL_ASSERT((mpl::equal_to<
-        fusion::result_of::size<ColList>,
-        fusion::result_of::size<select_list> >));
-      BOOST_MPL_ASSERT((sql_compatible<ColList, select_list>));
-      return insert_select< Table, ColList, select_statement<Context, Data> >(cols_, select);
-    }
 
     template<class Col>
     BOOST_CONCEPT_REQUIRES(
@@ -123,6 +138,7 @@ namespace boost { namespace rdb {
     }
 
 BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, ~)
+
   };
 
   template<class Table, class ColList, class ExprList, class ColIter>
@@ -213,22 +229,41 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
     }
   };
 
-  template<class Table, class ColList, class Select>
-  struct insert_select {
+  template<class Context, class Data>
+  struct insert_select : insert_impl, select_projection<Context, Data> {
+
+    typedef void result;
+    typedef select_projection<Context, Data> base;
+
+    insert_select(const Data& data) : base(data) {
+      typedef typename fusion::result_of::value_at_key<Data, insert_impl::cols>::type insert_list;
+      typedef typename fusion::result_of::value_at_key<Data, select_impl::cols>::type select_list;
+      BOOST_MPL_ASSERT((mpl::equal_to<
+        fusion::result_of::size<insert_list>,
+        fusion::result_of::size<select_list> >));
+      BOOST_MPL_ASSERT((sql_compatible<insert_list, select_list>));
+    }
+
+    void str(std::ostream& os) const {
+      insert_impl::str(os, data_);
+      os << " ";
+      base::str(os);
+    }
+  };
+
+  template<class Context, class Data>
+  struct insert_select_from : insert_impl, select_statement<Context, Data> {
 
     typedef insert_statement_tag tag;
     typedef void result;
+    typedef select_statement<Context, Data> base;
 
-    insert_select(const ColList& cols, const Select& select) : cols_(cols), select_(select) { }
-
-    Select select_;
-    ColList cols_;
+    insert_select_from(const Data& data) : base(data) { }
 
     void str(std::ostream& os) const {
-      os << "insert into " << Table::table_name() << " (";
-      fusion::for_each(cols_, comma_output(os));
-      os << ") ";
-      select_.str(os);
+      insert_impl::str(os, data_);
+      os << " ";
+      base::str(os);
     }
   };
 

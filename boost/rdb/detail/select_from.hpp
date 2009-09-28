@@ -1,5 +1,5 @@
     template<BOOST_PP_ENUM_PARAMS(n, class Table)>
-    typename after_projection<
+    typename transition::from<
       Context,
       typename result_of::add_key<
         Data,
@@ -10,7 +10,7 @@
       >::type
     >::type
     from(BOOST_PP_ENUM_BINARY_PARAMS(n, const Table, &table)) {
-      return typename after_projection<
+      return typename transition::from<
         Context,
         typename result_of::add_key<
           Data,

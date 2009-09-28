@@ -169,6 +169,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\..\..\boost\rdb\detail\insert_select.hpp"
+			>
+		</File>
+		<File
 			RelativePath="..\..\build\Jamfile.v2"
 			>
 		</File>

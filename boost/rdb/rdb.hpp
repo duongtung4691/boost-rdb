@@ -329,6 +329,78 @@ namespace boost { namespace rdb {
       return fusion::as_map(fusion::push_back(m, fusion::make_pair<Key>(value)));
     }
 
+    struct extract_sql_kind {
+
+    template<typename Sig>
+    struct result;
+
+    template<typename Self, typename Expr>
+    struct result<Self(Expr)> {
+      typedef typename boost::remove_reference<Expr>::type::sql_type type;
+    };
+  };
+
+  template<class ExprList1, class ExprList2>
+  struct sql_compatible : is_same<
+    typename fusion::result_of::as_vector<
+      typename fusion::result_of::transform<ExprList1, extract_sql_kind>::type
+    >::type,
+    typename fusion::result_of::as_vector<
+      typename fusion::result_of::transform<ExprList2, extract_sql_kind>::type
+    >::type
+  > {
+  };
+
+  namespace transition {
+    // work around msvc9 bug
+    template<class Context, class Data>
+    struct call {
+      typedef typename Context::template call<Data>::type type;
+    };
+
+   template<class Context, class Data>
+    struct from {
+      typedef typename Context::template from<Data>::type type;
+    };
+
+     template<class Context, class Data>
+    struct where {
+      typedef typename Context::template where<Data>::type type;
+    };
+  }
+
+  template<class Context, class Data>
+  struct select_statement;
+
+  template<class Context, class Data>
+  struct select_projection;
+
+  struct select_impl {
+
+    class cols;
+    class distinct;
+    class all;
+    class tables;
+    class where;
+    class group_by;
+    class order_by;
+
+    template<class Context, class Data>
+    static void str(std::ostream& os, const Data& data) {
+      os << "select";
+      
+      str_opt_kw<distinct>(os, "distinct", data);
+      str_opt_kw<all>(os, "all", data);
+
+      os << " ";
+      fusion::for_each(fusion::at_key<cols>(data), comma_output(os));
+
+      str_opt_list<tables>(os, "from", data);
+      str_opt<where>(os, "where", data);
+    }
+  };
+
+
 } }
 
 #include <boost/rdb/expression.hpp>
