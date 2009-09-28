@@ -25,41 +25,6 @@ namespace boost { namespace rdb {
     >::type type;
   };
 
-  template<class Key, class Map>
-  inline typename disable_if<fusion::result_of::has_key<Map, Key>, void>::type
-  str_opt_list(std::ostream& os, const char* keyword, const Map& data) {
-  }
-
-  template<class Key, class Map>
-  inline typename enable_if<fusion::result_of::has_key<Map, Key>, void>::type
-  str_opt_list(std::ostream& os, const char* keyword, const Map& data) {
-    os << " " << keyword << " ";
-    fusion::for_each(fusion::at_key<Key>(data), comma_output(os));
-  }
-
-  template<class Key, class Map>
-  inline typename disable_if<fusion::result_of::has_key<Map, Key>, void>::type
-  str_opt(std::ostream& os, const char* keyword, const Map& data) {
-  }
-
-  template<class Key, class Map>
-  inline typename enable_if<fusion::result_of::has_key<Map, Key>, void>::type
-  str_opt(std::ostream& os, const char* keyword, const Map& data) {
-    os << " " << keyword << " ";
-    fusion::at_key<Key>(data).str(os);
-  }
-
-  template<class Key, class Map>
-  inline typename disable_if<fusion::result_of::has_key<Map, Key>, void>::type
-  str_opt_kw(std::ostream& os, const char* keyword, const Map& data) {
-  }
-
-  template<class Key, class Map>
-  inline typename enable_if<fusion::result_of::has_key<Map, Key>, void>::type
-  str_opt_kw(std::ostream& os, const char* keyword, const Map& data) {
-    os << " " << keyword;
-  }
-
   struct standard_select_context {
 
     template<class Data>

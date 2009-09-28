@@ -245,7 +245,7 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
     }
 
     void str(std::ostream& os) const {
-      insert_impl::str(os, data_);
+      insert_impl::str(os, base::data_);
       os << " ";
       base::str(os);
     }
@@ -261,7 +261,7 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_RDB_MAX_ARG_COUNT, BOOST_RDB_PP_INSERT_VALUES, 
     insert_select_from(const Data& data) : base(data) { }
 
     void str(std::ostream& os) const {
-      insert_impl::str(os, data_);
+      insert_impl::str(os, base::data_);
       os << " ";
       base::str(os);
     }
