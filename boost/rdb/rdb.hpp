@@ -296,6 +296,7 @@ namespace boost { namespace rdb {
   make_list(const T& val) {
     return fusion::push_back(fusion::list<>(), val);
   }
+
   namespace result_of {
     template<typename T>
     struct make_list2 {
@@ -308,28 +309,53 @@ namespace boost { namespace rdb {
   make_list2(const T& val) {
     return fusion::make_list(val);
   }
-    namespace result_of {
-      template<class Map, class Key, class Value>
-      struct add_key {
-        typedef typename fusion::result_of::as_map<
-          typename fusion::result_of::push_back<
-            Map,
-            typename fusion::result_of::make_pair<
-              Key,
-              Value
-            >::type
-          >::type
-        >::type type;
-      };
-    }
-    
-    template<class Key, class Map, class Value>
-    typename result_of::add_key<Map, Key, Value>::type
-    add_key(const Map& m, const Value& value) {
-      return fusion::as_map(fusion::push_back(m, fusion::make_pair<Key>(value)));
-    }
 
-    struct extract_sql_kind {
+  namespace result_of {
+    template<class Map, class Key, class Value>
+    struct add_key {
+      typedef typename fusion::result_of::as_map<
+        typename fusion::result_of::push_back<
+          Map,
+          typename fusion::result_of::make_pair<
+            Key,
+            Value
+          >::type
+        >::type
+      >::type type;
+    };
+  }
+  
+  template<class Key, class Map, class Value>
+  typename result_of::add_key<Map, Key, Value>::type
+  add_key(const Map& m, const Value& value) {
+    return fusion::as_map(fusion::push_back(m, fusion::make_pair<Key>(value)));
+  }
+
+  namespace result_of {
+    template<class Map, class Key, class Value>
+    struct replace_value_at_key {
+      typedef typename fusion::result_of::as_map<
+        typename fusion::result_of::push_back<
+          typename fusion::result_of::erase_key<
+            Map,
+            Key
+          >::type,
+          typename fusion::result_of::make_pair<
+            Key,
+            Value
+          >::type
+        >::type
+      >::type type;
+    };
+  }
+  
+  template<class Key, class Map, class Value>
+  typename result_of::replace_value_at_key<Map, Key, Value>::type
+  replace_value_at_key(const Map& m, const Value& value) {
+    return fusion::as_map(fusion::push_back(fusion::erase_key<Key>(m), fusion::make_pair<Key>(value)));
+  }
+
+  struct extract_sql_kind {
 
     template<typename Sig>
     struct result;

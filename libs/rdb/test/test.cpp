@@ -412,21 +412,3 @@ BOOST_AUTO_TEST_CASE(delete_from_table) {
     delete_from(p).where(p.id == 1),
     "delete from person where id = 1");
 }
-
-BOOST_AUTO_TEST_CASE(add_key_test) {
-  using namespace boost::fusion;
-  using namespace boost::rdb;
-
-  typedef map<
-    pair<int, std::string>
-  , pair<double, std::string> >
-  map_type;
-
-  map_type m(
-      make_pair<int>("X")
-    , make_pair<double>("Men"));
-
-  boost::rdb::result_of::add_key<map_type, float, std::string>::type m2 = add_key<float>(m, "Origins");
-  BOOST_CHECK(at_key<float>(m2) == "Origins");
-
-}
