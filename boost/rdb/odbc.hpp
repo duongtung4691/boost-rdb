@@ -1,7 +1,7 @@
 #ifndef BOOST_ODBC_HPP
 #define BOOST_ODBC_HPP
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <windows.h>
 #endif
 
