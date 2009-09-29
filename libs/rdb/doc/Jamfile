@@ -1,0 +1,26 @@
+#  Copyright Jean-Louis Leroy 2009.
+# Use, modification, and distribution are subject to the Boost Software License, Version 1.0.
+
+project boost/libs/rdb/doc ;
+import boostbook : boostbook ;
+using quickbook ;
+
+path-constant images_location : html ;
+
+boostbook quickbook
+    :
+        rdb.qbk
+    :
+        <xsl:param>boost.root=../../../..
+        <xsl:param>boost.libraries=../../../libraries.htm
+        <xsl:param>html.stylesheet=../../../../doc/html/boostbook.css
+        <xsl:param>chunk.section.depth=4
+        <xsl:param>chunk.first.sections=1
+        <xsl:param>toc.section.depth=3
+        <xsl:param>toc.max.depth=3
+        <xsl:param>generate.section.toc.level=4
+        <format>pdf:<xsl:param>img.src.path=$(images_location)/
+    ;
+
+
+

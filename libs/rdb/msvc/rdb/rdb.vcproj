@@ -140,16 +140,20 @@
 	<References>
 	</References>
 	<Files>
+		<Filter
+			Name="doc"
+			>
+		</Filter>
 		<File
-			RelativePath="..\..\..\..\boost\rdb\details\arithmetic_operator.hpp"
+			RelativePath="..\..\..\..\boost\rdb\detail\arithmetic_operator.hpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\..\..\boost\rdb\details\boolean_operator.hpp"
+			RelativePath="..\..\..\..\boost\rdb\detail\boolean_operator.hpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\..\..\boost\rdb\details\comparison_operator.hpp"
+			RelativePath="..\..\..\..\boost\rdb\detail\comparison_operator.hpp"
 			>
 		</File>
 		<File
