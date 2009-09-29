@@ -152,6 +152,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\doc\sql.qbk"
+				>
+			</File>
+			<File
 				RelativePath="..\..\doc\tutorial.qbk"
 				>
 			</File>

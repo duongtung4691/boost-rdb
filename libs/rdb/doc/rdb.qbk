@@ -66,3 +66,13 @@ See the documentation of the backends for more information.
 [endsect]
 
 [include tutorial.qbk]
+[include sql.qbk]
+
+[section Acknowledgements]
+
+The macros for defining tables and columns are stronly inspired by Matus Chochlik's Mirror library.
+
+I have used the documentation of __fusion__ as an inspiration for this one. Besides, this entire library is an exercise
+in fusion programming.
+
+[endsect]
