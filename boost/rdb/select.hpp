@@ -85,7 +85,8 @@ namespace boost { namespace rdb {
 
     typedef select_statement_tag tag;
     typedef typename fusion::result_of::value_at_key<Data, select_impl::cols>::type select_list;
-    typedef std::deque<typename select_row<select_list>::type> result;
+    typedef typename select_row<select_list>::type row;
+    typedef std::deque<row> result;
 
     select_statement(const Data& data) : data_(data) { }
     Data data_;

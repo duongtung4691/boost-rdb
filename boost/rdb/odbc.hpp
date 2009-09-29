@@ -62,22 +62,21 @@ namespace boost { namespace rdb { namespace odbc {
     // BOOST_CONCEPT_REQUIRES(((Statement<Stat>)), (typename Stat::result))
     typename Stat::result
     execute(const Stat& st) { 
-      return execute(st, typename Stat::tag());
+      return execute(typename Stat::tag(), st);
     }
     
     template<class Stat, class Tag>
     /*BOOST_CONCEPT_REQUIRES(((Statement<Stat>)), (typename Stat::result))*/
-    typename Stat::result
-    execute(const Stat& st, Tag) {
+    void execute(Tag, const Stat& st) {
       exec_str(as_string(st));
     }
 
     template<class Select>
     typename Select::result
-    execute(const Select& select, select_statement_tag)
+    execute(select_statement_tag tag, const Select& select)
     {
       typename Select::result results;
-      execute_select_fetch(select, results);
+      execute_select(select, results);
       return results; // optimize later
     }
 
@@ -104,7 +103,12 @@ namespace boost { namespace rdb { namespace odbc {
     };
 
     template<class Select, class ResultSet>
-    void execute_select_fetch(const Select& select, ResultSet& results)
+    void execute(const Select& select, ResultSet& results) {
+      execute_select(select, results);
+    }
+
+    template<class Select, class ResultSet>
+    void execute_select(const Select& select, ResultSet& results)
     {
       exec_str(as_string(select));
 
