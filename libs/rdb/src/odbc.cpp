@@ -70,6 +70,8 @@ void database::close() {
 }
 
 void database::exec_str(const string& sql) {
+  if (trace_stream)
+    *trace_stream << sql << "\n";
   //TR << sql << endl;
   sql_check(SQL_HANDLE_STMT, hstmt_, SQLExecDirect(hstmt_, (SQLCHAR*) sql.c_str(), SQL_NTS));
 }

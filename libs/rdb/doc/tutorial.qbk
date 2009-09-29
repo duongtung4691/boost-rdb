@@ -1,0 +1,119 @@
+[/==============================================================================
+Copyright Jean-Louis Leroy 2009.
+Use, modification, and distribution are subject to the Boost Software License, Version 1.0.
+===============================================================================/]
+
+[section Tutorial]
+
+[heading The Basics]
+
+[import tutorial/tutorial.cpp]
+[import tutorial/output.txt]
+[import tutorial/sql.txt]
+[import ../test/test_tables.hpp]
+
+In this example we will use a __odbc__ database and __rdb__ to model a well-known fictional city and its fauna.
+
+For starter we include the entire __sql__ and __odbc__ subsystems, and a couple of extra headers to help us see what's
+going on. For the sake of simplicity we bring everything in scope via `using namespace` directives
+[footnote On Windows you may get an error message about `select` being ambiguous. This is probably because you have
+included `windows.h`, which declares the socket-related function of the same name. Either define `WIN32_LEAN_AND_MEAN`, or
+add a `using rdb::select` directive.]:
+
+[prologue]
+
+We must provide a description of the tables. We do this via a set of macros:
+
+[schema]
+
+Now for the main program. First we open the database:
+
+[connect]
+
+Of course this step is very database-dependant.
+
+There is also a default constructor and an `open` function in case you need to create the database object and attach it to a database later.
+[footnote The function is called `open` and not `connect` because there is no reason to believe that there is
+a server to connect to. After all we could have linked SQLite or the MySQL engine in our program, right ? If
+you still disagree, then let's just say that `open` stands for "open a connection"]
+
+We can ask __rdb__ to create the tables now - although it doesn't insist on doing it. We can also create the tables with
+another tool, provided that the C++ description agrees.
+
+[create_tables]
+
+Obviously the table description macros have created /types/. A __rdb__ table is represented by a class, which contains
+one data member per column. Inside the class, there is a static instance called `_` (underscore) that represents the
+table in the database.
+
+However, this is a pretty long thing to type, so we can create an alias for the table:
+
+[alias]
+
+Don't get confused: this is a /C++/ alias, it has nothing to do with __sql__ table aliases (be patient, they're coming).
+It's merely a shortcut that we can use in place of `person::_`.
+
+Now let's begin populating our database:
+
+[insert_homer]
+
+The `insert_into(...)(...).values(...)` construct creates a Statement object, which is passed to the `execute`
+function of the database object, which in turns asks it to return a string that reads, unsurprisingly :
+
+[insert_sql]
+
+At this point it looks the database object could function just as well if it simply took a string argument.
+But hang on. Consider:
+
+[insert_marge_error]
+
+The statement is wrong ! Good thing that the compiler caught the error. Quickly, let's fix it:
+
+[insert_marge_corrected]
+
+This is a general pattern in __rdb__: when it sees a type, it doesn't forget about it. And it puts it to good use, as
+we shall see in the next section.
+
+[heading Retrieving data]
+
+Let's retrieve a row now.
+
+[select_1]
+
+This code snippet prints:
+
+[select_1_result]
+
+What is being returned here is not a vector of variants, it's a standard `deque` of __fusion__ `vector`s.
+Incidentally, fusion provides an output operator for its vectors, provided that you include the
+necessary header as we did above.
+
+The amount of data returned by a select query can be huge. There is another version of `select` which takes a container
+by reference and puts the results in it - and here we get to choose the container:
+
+[select_2]
+
+And the result is:
+
+[select_2_result]
+
+Your compiler probably supports `BOOST_TYPEOF`. It can be of great help because inside the (mysterious) Statement
+type there is a typedef for the row and the result set:
+
+[select_with_nested_row_type]
+
+From now on we will assume that we have overloaded the output operator to print standard `deque`s:
+
+[output_deque]
+
+[heading Aliases]
+
+Sometimes we need to refer to the same table several times, for example when using self-joins.
+In __sql__ we use aliases for that. Here is how we make them with __rdb__:
+
+[alias_test]
+
+[alias_sql]
+
+[endsect]
+

@@ -7,6 +7,7 @@
 namespace boost { namespace rdb { namespace test {
 
   namespace springfield {
+//[ schema
     BOOST_RDB_BEGIN_TABLE(person) 
       BOOST_RDB_COLUMN(id, integer)
       BOOST_RDB_COLUMN(name, varchar<20>)
@@ -18,6 +19,7 @@ namespace boost { namespace rdb { namespace test {
       BOOST_RDB_COLUMN(husband, integer)
       BOOST_RDB_COLUMN(wife, integer)
     BOOST_RDB_END_TABLE(partner) 
+//]
   }
 
 } } }

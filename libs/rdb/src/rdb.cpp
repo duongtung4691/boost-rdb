@@ -18,4 +18,5 @@ namespace boost { namespace rdb {
 
   plain_select select;
 
+  std::ostream* trace_stream;
 } }

@@ -1,0 +1,12 @@
+//[insert_sql
+insert into person (id, first_name, name, age) values (1, 'Homer', 'Simpson', 37)//]
+//[select_1_result
+(1 Homer Simpson 37)
+//]
+//[select_2_result
+(1 Homer Simpson 37)
+(2 Marge Simpson 34)
+//]
+//[alias_result
+((1 Homer Simpson 2 Marge))
+//]

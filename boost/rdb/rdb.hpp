@@ -461,7 +461,7 @@ namespace boost { namespace rdb {
     }
   };
 
-
+  extern std::ostream* trace_stream;
 } }
 
 #include <boost/rdb/expression.hpp>

@@ -4,7 +4,7 @@ Use, modification, and distribution are subject to the Boost Software License, V
 ===============================================================================/]
 [library RDB
     [quickbook 1.3]
-    [version 0.0]
+    [version 0.0 - NOTE: this library is not officially part of Boost (yet)]
     [authors [Leroy, Jean-Louis]]
     [copyright 2009 Jean-Louis Leroy]
     [purpose Interface with relational databases]
@@ -16,11 +16,14 @@ Use, modification, and distribution are subject to the Boost Software License, V
 ]
 
 [def __rdb__                    Boost.RDB]
+[def __odbc__                   ODBC]
+[def __sql__					SQL]
 [def __fusion__                 [@http://boost.org/libs/fusion/index.html fusion]]
 [def __mpl__                    [@http://www.boost.org/libs/mpl/index.html MPL]]
 [def __preprocessor__           [@http://www.boost.org/libs/preprocessor/index.html preprocessor]]
 [def __concept_check__          [@http://www.boost.org/libs/concept_check/index.html concept_check]]
 [def __test__                   [@http://www.boost.org/libs/test/index.html test]]
+[def __vector__                 [link fusion.container.vector `vector`]]
 
 
 [section Overview]
@@ -43,7 +46,13 @@ that are portable between vendors.
 __rdb__ neither attempts to add extra functionality on top of the database (like object-relational mapping).
 These tasks belong to higher-level libraries, possibly built on top of __rdb__.
 
-[heading Architecture]
+[heading Organization]
+
+__rdb__ is organized in several subsystems:
+
+* The SQL generation subsystem (in namespace boost::rdb) is responsible for composing SQL code and gathering
+type information.
+* The ODBC subsystem (in namespace boost::rdb::odbc) interfaces with ODBC databases.
 
 [heading Requirements]
 
@@ -56,3 +65,4 @@ See the documentation of the backends for more information.
 
 [endsect]
 
+[include tutorial.qbk]
