@@ -189,7 +189,15 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\..\..\boost\rdb\detail\insert_cols.hpp"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\..\boost\rdb\detail\insert_select.hpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\boost\rdb\detail\insert_values.hpp"
 			>
 		</File>
 		<File

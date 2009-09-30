@@ -391,6 +391,30 @@ namespace boost { namespace rdb {
 
   template<class Key, class Map>
   inline typename disable_if<fusion::result_of::has_key<Map, Key>, void>::type
+  str_if_has_key(std::ostream& os, const Map& data, const char* str) {
+  }
+
+  template<class Key, class Map>
+  inline typename enable_if<fusion::result_of::has_key<Map, Key>, void>::type
+  str_if_has_key(std::ostream& os, const Map& data, const char* str) {
+    os << str;
+  }
+
+  template<class Key, class Map>
+  inline typename disable_if<fusion::result_of::has_key<Map, Key>, void>::type
+  str_list_if_has_key(std::ostream& os, const char* prefix, const Map& data, const char* suffix) {
+  }
+
+  template<class Key, class Map>
+  inline typename enable_if<fusion::result_of::has_key<Map, Key>, void>::type
+  str_list_if_has_key(std::ostream& os, const char* prefix, const Map& data, const char* suffix) {
+    os << prefix;
+    fusion::for_each(fusion::at_key<Key>(data), comma_output(os));
+    os << suffix;
+  }
+
+  template<class Key, class Map>
+  inline typename disable_if<fusion::result_of::has_key<Map, Key>, void>::type
   str_opt(std::ostream& os, const char* keyword, const Map& data) {
   }
 
@@ -413,21 +437,17 @@ namespace boost { namespace rdb {
   }
 
   namespace transition {
-    // work around msvc9 bug
-    template<class Context, class Data>
-    struct select {
-      typedef typename Context::template select<Data>::type type;
-    };
+    // work around msvc9 bug : normally we could directly call Context::template T<> but it makes msvc9 crash
 
-   template<class Context, class Data>
-    struct from {
-      typedef typename Context::template from<Data>::type type;
-    };
+    #define BOOST_RDB_DEFINE_TRANSITION_WORKAROUND(NAME) \
+    template<class Context, class Data> \
+    struct NAME { typedef typename Context::template NAME<Data>::type type; };
 
-     template<class Context, class Data>
-    struct where {
-      typedef typename Context::template where<Data>::type type;
-    };
+    BOOST_RDB_DEFINE_TRANSITION_WORKAROUND(select)
+    BOOST_RDB_DEFINE_TRANSITION_WORKAROUND(from)
+    BOOST_RDB_DEFINE_TRANSITION_WORKAROUND(where)
+    BOOST_RDB_DEFINE_TRANSITION_WORKAROUND(cols)
+    BOOST_RDB_DEFINE_TRANSITION_WORKAROUND(values)
   }
 
   template<class Context, class Data>

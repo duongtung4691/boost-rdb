@@ -5,9 +5,26 @@
 using namespace boost::rdb;
 using namespace boost::rdb::test::springfield;
 
-BOOST_AUTO_TEST_CASE(test_insert_values) {
+BOOST_AUTO_TEST_CASE(test_insert_incremental) {
 
-  using namespace boost::rdb;
+  person p;
+
+  BOOST_RDB_CHECK_SQL(
+    insert_into(p),
+    "insert into person");
+
+  BOOST_RDB_CHECK_SQL(
+    insert_into(p)(p.name),
+    "insert into person (name)");
+
+  BOOST_RDB_CHECK_SQL(
+    insert_into(p)(p.id, p.name),
+    "insert into person (id, name)");
+}
+
+#if 1
+
+BOOST_AUTO_TEST_CASE(test_insert_values) {
 
   person p;
 
@@ -68,20 +85,20 @@ BOOST_AUTO_TEST_CASE(test_insert_values) {
   //insert_into(p, p.name).values(p.id); // type mismatch
 }
 
-BOOST_AUTO_TEST_CASE(insert_set) {
-
-  using namespace boost::rdb;
-
-  person p;
-
-  BOOST_RDB_CHECK_SQL(
-    insert_into(p).set(p.id, 1),
-    "insert into person set id = 1");
-
-  BOOST_RDB_CHECK_SQL(
-    insert_into(p).set(p.id, 1)(p.first_name, "Homer"),
-    "insert into person set id = 1, first_name = 'Homer'");
-}
+//BOOST_AUTO_TEST_CASE(insert_set) {
+//
+//  using namespace boost::rdb;
+//
+//  person p;
+//
+//  BOOST_RDB_CHECK_SQL(
+//    insert_into(p).set(p.id, 1),
+//    "insert into person set id = 1");
+//
+//  BOOST_RDB_CHECK_SQL(
+//    insert_into(p).set(p.id, 1)(p.first_name, "Homer"),
+//    "insert into person set id = 1, first_name = 'Homer'");
+//}
 
 BOOST_AUTO_TEST_CASE(test_insert_select) {
 
@@ -103,3 +120,4 @@ BOOST_AUTO_TEST_CASE(test_insert_select) {
   //insert_into(p)(p.husband, p.wife).select(h.id, w.name).from(h, w).where(h.name == w.name);
 }
 
+#endif
