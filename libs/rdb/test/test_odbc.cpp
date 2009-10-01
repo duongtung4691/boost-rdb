@@ -57,7 +57,7 @@ BOOST_AUTO_TEST_CASE(basic) {
 
   db.execute(insert_into(p)(p.id, p.first_name, p.name, p.age).values(1, "Homer", "Simpson", 37));
   db.execute(insert_into(p)(p.id, p.first_name, p.name, p.age).values(2, "Marge", "Simpson", 34));
-  db.execute(update(p).set(p.age, p.age + 1).where(p.id == 1));
+  db.execute(update(p).set(p.age = p.age + 1).where(p.id == 1));
 
   {
     person h("h"), w("w");
@@ -82,24 +82,24 @@ BOOST_AUTO_TEST_CASE(tx) {
   if (!db.is_txn_capable())
     return;
 
-  db.execute(update(p).set(p.age, 37).where(p.id == 1));
+  db.execute(update(p).set(p.age = 37).where(p.id == 1));
   BOOST_CHECK(fusion::at_c<0>(db.execute(rdb::select(p.age).from(p).where(p.id == 1))[0]) == 37);
 
   db.set_autocommit(off);
 
-  db.execute(update(p).set(p.age, 38).where(p.id == 1));
+  db.execute(update(p).set(p.age = 38).where(p.id == 1));
   BOOST_CHECK(fusion::at_c<0>(db.execute(rdb::select(p.age).from(p).where(p.id == 1))[0]) == 38);
 
   db.rollback();
   BOOST_CHECK(fusion::at_c<0>(db.execute(rdb::select(p.age).from(p).where(p.id == 1))[0]) == 37);
 
-  db.execute(update(p).set(p.age, 38).where(p.id == 1));
+  db.execute(update(p).set(p.age = 38).where(p.id == 1));
   BOOST_CHECK(fusion::at_c<0>(db.execute(rdb::select(p.age).from(p).where(p.id == 1))[0]) == 38);
   db.commit();
   BOOST_CHECK(fusion::at_c<0>(db.execute(rdb::select(p.age).from(p).where(p.id == 1))[0]) == 38);
 
   db.set_autocommit(on);
-  db.execute(update(p).set(p.age, 39).where(p.id == 1));
+  db.execute(update(p).set(p.age = 39).where(p.id == 1));
 
   db.close();
   db.open("boost", "boost", "boost");

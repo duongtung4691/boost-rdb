@@ -8,73 +8,102 @@ namespace boost { namespace rdb {
 
   struct update_statement_tag : statement_tag { };
 
-  template<class Table, class ColList, class ExprList, class Predicate>
-  struct update_statement {
-  
-    typedef void result;
-    typedef update_statement_tag tag;
+  template<class Context, class Data>
+  struct update_set;
 
-    ColList cols_;
-    ExprList values_;
-    Predicate where_;
+  template<class Table, class AssignList>
+  struct update_where;
 
-    typedef ColList col_list_type;
-    typedef ExprList value_list_type;
-    
-    update_statement(const ColList& cols, const ExprList& values, const Predicate& where)
-      : cols_(cols), values_(values), where_(where) { }
+  struct standard_update {
+    typedef standard_update this_context;
+    template<class Data> struct set { typedef update_set<this_context, Data> type; };
+    template<class Data> struct where { typedef update_where<this_context, Data> type; };
+  };
 
-    void str(std::ostream& os) const { str(os, boost::is_same<Predicate, detail::none>()); }
-    
-    void str(std::ostream& os, boost::true_type) const {
-      os << "update " << Table::table_name() << " set ";
-      typedef fusion::vector<const ColList&, const ExprList&> assignment;
-      fusion::for_each(fusion::zip_view<assignment>(assignment(cols_, values_)), assign_output(os));
-    }
+  struct update_impl {
 
-    void str(std::ostream& os, boost::false_type) const {
-      os << "update " << Table::table_name() << " set ";
-      typedef fusion::vector<const ColList&, const ExprList&> assignment;
-      fusion::for_each(fusion::zip_view<assignment>(assignment(cols_, values_)), assign_output(os));
-      os << " where ";
-      where_.str(os);
-    }
+    class table;
+    class cols;
+    class set;
+    class where;
 
-    template<class Col, class Expr>
-    struct with {
-      typedef update_statement<Table,
-        typename fusion::result_of::push_back<const ColList, 
-          typename result_of::unwrap<Col>::type
-        >::type,
-        typename fusion::result_of::push_back<const ExprList,
-          typename result_of::make_expression<expression<Col>, Expr>::type
-        >::type,
-        detail::none
-      > type;
-    };
-
-    template<class Col, class T>
-    typename with<Col, T>::type
-    set(const expression<Col>& col, const T& expr) const {
-      BOOST_MPL_ASSERT((boost::is_same<Predicate, detail::none>));
-      return typename with<Col, T>::type(
-        fusion::push_back(cols_, col.unwrap()),
-        fusion::push_back(values_, expression<Col>::make_expression(expr)), detail::none());
-    }
-
-    template<class Where>
-    update_statement<Table, ColList, ExprList, Where>
-    where(const Where& where) const {
-      BOOST_MPL_ASSERT((boost::is_same<Predicate, detail::none>));
-      return update_statement<Table, ColList, ExprList, Where>(cols_, values_, where);
+    template<class Data>
+    static void str(std::ostream& os, const Data& data) {
+      os << "update " << fusion::at_key<table>(data)->table_name();
+      str_list_if_has_key<set>(os, " set ", data, "");
+      str_obj_if_has_key<where>(os, " where ", data, "");
     }
   };
 
+  template<class Context, class Data>
+  struct update_table : update_impl {
+
+    explicit update_table(const Data& data) : data_(data) { }
+
+    Data data_;
+
+    #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
+    #define BOOST_PP_FILENAME_1       <boost/rdb/detail/update_set.hpp>
+    #include BOOST_PP_ITERATE()
+
+    void str(std::ostream& os) const { update_impl::str(os, data_); }
+
+  };
+
+  template<class Context, class Data>
+  struct update_set : update_impl {
+
+    typedef update_statement_tag tag;
+    typedef void result;
+
+    explicit update_set(const Data& data) : data_(data) { }
+    Data data_;
+
+    template<class Predicate>
+    typename transition::where<
+      Context,
+      typename result_of::add_key<Data, update_impl::where, Predicate>::type
+    >::type
+    where(const Predicate& predicate) const {
+      return typename transition::where<
+        Context,
+        typename result_of::add_key<Data, update_impl::where, Predicate>::type
+      >::type(add_key<update_impl::where>(data_, predicate));
+    }
+
+    void str(std::ostream& os) const { update_impl::str(os, data_); }
+  };
+
+  template<class Context, class Data>
+  struct update_where : update_impl {
+
+    typedef update_statement_tag tag;
+    typedef void result;
+
+    explicit update_where(const Data& data) : data_(data) { }
+    Data data_;
+
+    void str(std::ostream& os) const { update_impl::str(os, data_); }
+  };
+
   template<class Table>
-  update_statement<Table, detail::empty, detail::empty, detail::none>
+  update_table<
+    standard_update,
+    fusion::map<
+      fusion::pair<
+      update_impl::table, const Table*
+      >
+    >
+  >
   update(const Table& table) {
-    return update_statement<Table, detail::empty, detail::empty, detail::none>(
-      detail::empty(), detail::empty(), detail::none());
+    return update_table<
+      standard_update,
+      fusion::map<
+        fusion::pair<
+          update_impl::table, const Table*
+        >
+      >
+    >(fusion::make_pair<update_impl::table>(&table));
   }
 
 } }

@@ -47,6 +47,7 @@ namespace boost { namespace rdb {
     template<class Expr, typename T>
     struct make_expression_ {
       typedef typename Expr::sql_type::literal_type type;
+      // TODO improve compile error when T is not compatible
       static const type make(const T& value) { return Expr::sql_type::make_literal(value); }
     };
   
@@ -97,6 +98,8 @@ namespace boost { namespace rdb {
       BOOST_MPL_ASSERT((boost::is_same<typename Expr::sql_type::kind, char_type>));
       return rdb::like<Expr>(*this, pattern);
     }
+    
+    using Expr::operator =;
   };
 
   namespace result_of {

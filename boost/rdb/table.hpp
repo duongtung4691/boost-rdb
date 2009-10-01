@@ -37,6 +37,13 @@ namespace boost { namespace rdb {
     typedef Table table_type;
     typedef typename sql_type::cpp_type cpp_type;
     static void str_type(std::ostream& os) { SqlType::str(os); }
+    
+    template<class T>
+    set_clause<column, typename result_of::make_expression<column, T>::type>
+    operator =(const T& expr) const {
+      return set_clause<column, typename result_of::make_expression<column, T>::type>(
+        *this, expression<column>::make_expression(expr));
+    }
 
     void str(std::ostream& os) const {
       if (this->table_->has_alias())

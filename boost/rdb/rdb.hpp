@@ -179,30 +179,34 @@ namespace boost { namespace rdb {
     enum { precedence = precedence_level::highest };
   };
 
-  template<typename T>
+  template<typename T, class SqlType /* temporary !!! */ = void>
   struct literal : any_literal {
     literal(const T& value) : value_(value) { }
     void str(std::ostream& os) const { os << value_; }
     typedef T cpp_type;
+    typedef SqlType sql_type;
     T value_;
   };
 
-  template<int N>
-  struct literal<const char[N]> : any_literal {
+  template<int N, class SqlType>
+  struct literal<const char[N], SqlType> : any_literal {
+    typedef SqlType sql_type;
     literal(const char value[N]) : value_(value) { }
     void str(std::ostream& os) const { quote_text(os, value_); }
     const char* value_;
   };
 
-  template<>
-  struct literal<const char*> : any_literal  {
+  template<class SqlType>
+  struct literal<const char*, SqlType> : any_literal  {
+    typedef SqlType sql_type;
     literal(const char* value) : value_(value) { }
     void str(std::ostream& os) const { quote_text(os, value_); }
     const char* value_;
   };
 
-  template<>
-  struct literal<std::string> : any_literal  {
+  template<class SqlType>
+  struct literal<std::string, SqlType> : any_literal  {
+    typedef SqlType sql_type;
     literal(const char* value) : value_(value) { }
     literal(const std::string& value) : value_(value) { }
     void str(std::ostream& os) const { quote_text(os, value_.begin(), value_.end()); }
@@ -238,7 +242,7 @@ namespace boost { namespace rdb {
   struct integer
   {
     static void str(std::ostream& os) { os << "integer"; }
-    typedef literal<long> literal_type;
+    typedef literal<long, integer> literal_type;
     static literal_type make_literal(long val) { return literal_type(val); }
     typedef boost::mpl::true_::type is_numeric;
     typedef num_comparable_type comparable_type;
@@ -249,7 +253,7 @@ namespace boost { namespace rdb {
   struct boolean
   {
     static void str(std::ostream& os) { os << "boolean"; }
-    typedef literal<bool> literal_type;
+    typedef literal<bool, boolean> literal_type;
     static literal_type make_literal(bool val) { return literal_type(val); }
     typedef boolean_type kind;
     typedef bool cpp_type;
@@ -261,7 +265,7 @@ namespace boost { namespace rdb {
   struct varchar
   {
     static void str(std::ostream& os) { os << "varchar(" << N << ")"; }
-    typedef literal<std::string> literal_type;
+    typedef literal< std::string, varchar<N> > literal_type;
     static literal_type make_literal(const char* str) { return literal_type(str); }
     typedef char_comparable_type comparable_type;
     typedef char_type kind;
@@ -402,6 +406,19 @@ namespace boost { namespace rdb {
 
   template<class Key, class Map>
   inline typename disable_if<fusion::result_of::has_key<Map, Key>, void>::type
+  str_obj_if_has_key(std::ostream& os, const char* prefix, const Map& data, const char* suffix) {
+  }
+
+  template<class Key, class Map>
+  inline typename enable_if<fusion::result_of::has_key<Map, Key>, void>::type
+  str_obj_if_has_key(std::ostream& os, const char* prefix, const Map& data, const char* suffix) {
+    os << prefix;
+    fusion::at_key<Key>(data).str(os);
+    os << suffix;
+  }
+
+  template<class Key, class Map>
+  inline typename disable_if<fusion::result_of::has_key<Map, Key>, void>::type
   str_list_if_has_key(std::ostream& os, const char* prefix, const Map& data, const char* suffix) {
   }
 
@@ -448,6 +465,7 @@ namespace boost { namespace rdb {
     BOOST_RDB_DEFINE_TRANSITION_WORKAROUND(where)
     BOOST_RDB_DEFINE_TRANSITION_WORKAROUND(cols)
     BOOST_RDB_DEFINE_TRANSITION_WORKAROUND(values)
+    BOOST_RDB_DEFINE_TRANSITION_WORKAROUND(set)
   }
 
   template<class Context, class Data>
@@ -482,6 +500,21 @@ namespace boost { namespace rdb {
   };
 
   extern std::ostream* trace_stream;
+  
+  template<class Col, class Expr>
+  struct set_clause {
+    set_clause(const Col& col, const Expr& expr) : col_(col), expr_(expr) {
+      BOOST_MPL_ASSERT((is_same<typename Col::sql_type, typename Expr::sql_type>));
+    }
+    
+    Col col_;
+    Expr expr_;
+    void str(std::ostream& os) const {
+      col_.str(os);
+      os << " = ";
+      expr_.str(os);
+    }
+  };
 } }
 
 #include <boost/rdb/expression.hpp>
