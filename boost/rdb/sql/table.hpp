@@ -75,10 +75,11 @@ namespace boost { namespace rdb { namespace sql {
   template<class T>
   T singleton<T>::_;
   
+  template<class Base, bool IsSelfQualified>
+  struct table;
+  
   template<class Base>
-  struct table : Base, any_table {
-    //table(const qualified& q) : any_table(Base::name) { }
-    
+  struct table<Base, false> : Base, any_table {
     table() { }
     table(const std::string& alias) : any_table(alias) { }
     
@@ -89,15 +90,29 @@ namespace boost { namespace rdb { namespace sql {
         os << Base::name();
     }
   };
+  
+  template<class Base>
+  struct table<Base, true> : Base, any_table {
+
+    table() : any_table(Base::name()) { }
+    
+    void str(std::ostream& os) const {
+      os << Base::name();
+    }
+  };
+  
+  const int qualified = -1;
 
   #define BOOST_RDB_BEGIN_TABLE(NAME)  \
   struct NAME##_base { static const char* name() { return #NAME; } }; \
   template<int Alias>  \
-  struct NAME##_ : table<NAME##_base>, singleton< NAME##_<Alias> > {  \
-    typedef table<NAME##_base> internal; \
+  struct NAME##_ : table<NAME##_base, Alias == qualified>, singleton< NAME##_<Alias> > {  \
+    typedef table<NAME##_base, Alias == qualified> internal; \
     typedef NAME##_<Alias> this_table;  \
+    typedef NAME##_<qualified> qualified;  \
+    typedef NAME##_<1> _1; typedef NAME##_<2> _2; typedef NAME##_<3> _3;  \
     NAME##_() { initialize(); }  \
-    NAME##_(const std::string& alias) : table<NAME##_base>(alias) { initialize(); }  \
+    NAME##_(const std::string& alias) : internal(alias) { initialize(); }  \
     NAME##_(const this_table& other) { initialize(); }  \
     typedef boost::mpl::vector0<>
 
@@ -122,9 +137,6 @@ namespace boost { namespace rdb { namespace sql {
     static void initialize(this_table* table) { table->NAME.initialize(table); }  \
   };  \
   typedef typename boost::mpl::push_back<members_before_##NAME, NAME##_member>::type
-  
-  struct qualify_type { };
-  const qualify_type qualified = qualify_type();
 
   template<typename Table>
   struct table_column_output : comma_output {
