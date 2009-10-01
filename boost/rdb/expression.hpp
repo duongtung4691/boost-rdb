@@ -96,8 +96,24 @@ namespace boost { namespace rdb {
     }
   };
 
+  template<class Expr, class ExprList>
+  struct in_values {
+    in_values(const Expr& expr, const ExprList& alt) : expr_(expr), alt_(alt) { }
+    Expr expr_;
+    ExprList alt_;
+    typedef boolean sql_type;
+    enum { precedence = precedence_level::compare };
+    void str(std::ostream& os) const {
+      expr_.str(os);
+      os << " in (";
+      fusion::for_each(alt_, comma_output(os));
+      os << ")";
+    }
+  };
+
   template<class Expr>
   struct expression : Expr {
+    typedef expression this_type;
     expression() { }
     template<typename T> expression(const T& arg) : Expr(arg) { }
     template<typename T1, typename T2> expression(const T1& arg1, const T2& arg2) : Expr(arg1, arg2) { }
@@ -113,13 +129,37 @@ namespace boost { namespace rdb {
       BOOST_MPL_ASSERT((boost::is_same<typename Expr::sql_type::kind, char_type>));
       return rdb::like<Expr>(*this, pattern);
     }
+    
+    template<class Tag, class T>
+    struct dispatch_in {
+      typedef typename result_of::make_expression<Expr, T>::type value_type;
+      typedef typename fusion::result_of::make_vector<value_type>::type value_list_type;
+      typedef expression< rdb::in_values<Expr, value_list_type> > return_type;
+      static return_type make(const Expr& expr, const T& value) {
+        return return_type(expr, fusion::make_vector(make_expression(value)));
+      }
+    };
 
     template<class Subquery>
-    expression< rdb::in_subquery<Expr, Subquery> > in(const Subquery& subquery) const {
-      return rdb::in_subquery<Expr, Subquery>(*this, subquery);
-    }
+    struct dispatch_in<select_statement_tag, Subquery> {
+      typedef expression< rdb::in_subquery<Expr, Subquery> > return_type;
+      static return_type make(const Expr& expr, const Subquery& subquery) { return return_type(expr, subquery); }
+    };
 
-    using Expr::operator =;
+    template<class T>
+    typename dispatch_in<typename tag_of<T>::type, T>::return_type
+    in(const T& any) const {
+      return dispatch_in<typename tag_of<T>::type, T>::make(*this, any);
+    }
+    
+    #define BOOST_PP_ITERATION_LIMITS (2, BOOST_RDB_MAX_SIZE - 1)
+    #define BOOST_PP_FILENAME_1       <boost/rdb/detail/in_values.hpp>
+    #define BOOST_RDB_MAKE_EXPRESSION(z, n, t) BOOST_PP_COMMA_IF(n) make_expression(t##n)
+    #define BOOST_RDB_RESULT_OF_MAKE_EXPRESSION(z, n, t) \
+      BOOST_PP_COMMA_IF(n) typename result_of::make_expression<this_type, t##n>::type
+    #include BOOST_PP_ITERATE()
+
+    using Expr::operator =; // for set col = value
   };
 
   namespace result_of {

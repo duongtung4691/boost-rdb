@@ -117,6 +117,18 @@ BOOST_AUTO_TEST_CASE(simple_where_clause) {
   BOOST_RDB_CHECK_SQL(
     select(p.id).from(p, l).where(p.id.in(select(l.husband).from(l))),
     "select id from person, partner where id in (select husband from partner)");
+  
+  BOOST_RDB_CHECK_SQL(
+    select(p.id).from(p).where(p.id.in(1)),
+    "select id from person where id in (1)");
+  
+  BOOST_RDB_CHECK_SQL(
+    select(p.id).from(p).where(p.id.in(1, 2)),
+    "select id from person where id in (1, 2)");
+  
+  BOOST_RDB_CHECK_SQL(
+    select(p.id).from(p).where(p.id.in(p.age + 1, 2)),
+    "select id from person where id in (age + 1, 2)");
     
   // these won't compile    
   #if 0

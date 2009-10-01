@@ -515,6 +515,14 @@ namespace boost { namespace rdb {
       expr_.str(os);
     }
   };
+
+  struct no_tag;
+  
+  template<class T>
+  struct tag_of {
+    typedef no_tag type;
+  };
+  
 } }
 
 #include <boost/rdb/expression.hpp>

@@ -112,6 +112,11 @@ namespace boost { namespace rdb {
     }
   };
 
+  template<class Context, class Data>
+  struct tag_of< select_statement<Context, Data> > {
+    typedef typename select_statement<Context, Data>::tag type;
+  };
+
 } }
 
 #endif
