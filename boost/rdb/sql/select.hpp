@@ -53,7 +53,7 @@ namespace boost { namespace rdb { namespace sql {
 
 #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
 //#define BOOST_PP_ITERATION_LIMITS (1, 1)
-#define BOOST_PP_FILENAME_1       <boost/rdb/detail/select_begin_call.hpp>
+#define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/select_begin_call.hpp>
 #include BOOST_PP_ITERATE()
   };
 
@@ -69,7 +69,7 @@ namespace boost { namespace rdb { namespace sql {
 
 #include <boost/preprocessor/iteration/iterate.hpp>
 #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
-#define BOOST_PP_FILENAME_1       <boost/rdb/detail/select_from.hpp>
+#define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/select_from.hpp>
 #include BOOST_PP_ITERATE()
   };
 

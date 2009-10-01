@@ -43,7 +43,7 @@ namespace boost { namespace rdb { namespace sql {
     Data data_;
 
     #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
-    #define BOOST_PP_FILENAME_1       <boost/rdb/detail/update_set.hpp>
+    #define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/update_set.hpp>
     #include BOOST_PP_ITERATE()
 
     void str(std::ostream& os) const { update_impl::str(os, data_); }

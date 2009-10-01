@@ -153,7 +153,7 @@ namespace boost { namespace rdb { namespace sql {
     }
     
     #define BOOST_PP_ITERATION_LIMITS (2, BOOST_RDB_MAX_SIZE - 1)
-    #define BOOST_PP_FILENAME_1       <boost/rdb/detail/in_values.hpp>
+    #define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/in_values.hpp>
     #define BOOST_RDB_MAKE_EXPRESSION(z, n, t) BOOST_PP_COMMA_IF(n) make_expression(t##n)
     #define BOOST_RDB_RESULT_OF_MAKE_EXPRESSION(z, n, t) \
       BOOST_PP_COMMA_IF(n) typename result_of::make_expression<this_type, t##n>::type
@@ -225,71 +225,71 @@ namespace boost { namespace rdb { namespace sql {
   #define BOOST_RDB_OPERATOR_STRING " + "
   #define BOOST_RDB_OPERATOR_CLASS plus
   #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::add
-  #include "boost/rdb/detail/arithmetic_operator.hpp"
+  #include "boost/rdb/sql/detail/arithmetic_operator.hpp"
 
   #define BOOST_RDB_OPERATOR -
   #define BOOST_RDB_OPERATOR_STRING " - "
   #define BOOST_RDB_OPERATOR_CLASS minus
   #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::add
-  #include "boost/rdb/detail/arithmetic_operator.hpp"
+  #include "boost/rdb/sql/detail/arithmetic_operator.hpp"
 
   #define BOOST_RDB_OPERATOR *
   #define BOOST_RDB_OPERATOR_STRING " * "
   #define BOOST_RDB_OPERATOR_CLASS times
   #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::multiply
-  #include "boost/rdb/detail/arithmetic_operator.hpp"
+  #include "boost/rdb/sql/detail/arithmetic_operator.hpp"
 
   #define BOOST_RDB_OPERATOR /
   #define BOOST_RDB_OPERATOR_STRING " / "
   #define BOOST_RDB_OPERATOR_CLASS divide
   #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::multiply
-  #include "boost/rdb/detail/arithmetic_operator.hpp"
+  #include "boost/rdb/sql/detail/arithmetic_operator.hpp"
 
   #define BOOST_RDB_OPERATOR ==
   #define BOOST_RDB_OPERATOR_STRING " = "
   #define BOOST_RDB_OPERATOR_CLASS eq
   #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::compare
-  #include "boost/rdb/detail/comparison_operator.hpp"
+  #include "boost/rdb/sql/detail/comparison_operator.hpp"
 
   #define BOOST_RDB_OPERATOR !=
   #define BOOST_RDB_OPERATOR_STRING " <> "
   #define BOOST_RDB_OPERATOR_CLASS ne
   #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::compare
-  #include "boost/rdb/detail/comparison_operator.hpp"
+  #include "boost/rdb/sql/detail/comparison_operator.hpp"
 
   #define BOOST_RDB_OPERATOR <
   #define BOOST_RDB_OPERATOR_STRING " < "
   #define BOOST_RDB_OPERATOR_CLASS lt
   #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::compare
-  #include "boost/rdb/detail/comparison_operator.hpp"
+  #include "boost/rdb/sql/detail/comparison_operator.hpp"
 
   #define BOOST_RDB_OPERATOR <=
   #define BOOST_RDB_OPERATOR_STRING " <= "
   #define BOOST_RDB_OPERATOR_CLASS le
   #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::compare
-  #include "boost/rdb/detail/comparison_operator.hpp"
+  #include "boost/rdb/sql/detail/comparison_operator.hpp"
 
   #define BOOST_RDB_OPERATOR >
   #define BOOST_RDB_OPERATOR_STRING " > "
   #define BOOST_RDB_OPERATOR_CLASS gt
   #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::compare
-  #include "boost/rdb/detail/comparison_operator.hpp"
+  #include "boost/rdb/sql/detail/comparison_operator.hpp"
 
   #define BOOST_RDB_OPERATOR >=
   #define BOOST_RDB_OPERATOR_STRING " >= "
   #define BOOST_RDB_OPERATOR_CLASS ge
   #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::compare
-  #include "boost/rdb/detail/comparison_operator.hpp"
+  #include "boost/rdb/sql/detail/comparison_operator.hpp"
 
   #define BOOST_RDB_OPERATOR &&
   #define BOOST_RDB_OPERATOR_STRING " and "
   #define BOOST_RDB_OPERATOR_CLASS and_
-  #include "boost/rdb/detail/boolean_operator.hpp"
+  #include "boost/rdb/sql/detail/boolean_operator.hpp"
 
   #define BOOST_RDB_OPERATOR ||
   #define BOOST_RDB_OPERATOR_STRING " or "
   #define BOOST_RDB_OPERATOR_CLASS or_
-  #include "boost/rdb/detail/boolean_operator.hpp"
+  #include "boost/rdb/sql/detail/boolean_operator.hpp"
 
   template<class Expr>
   struct not_ {

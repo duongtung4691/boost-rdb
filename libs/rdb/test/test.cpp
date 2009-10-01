@@ -1,7 +1,7 @@
 #define BOOST_TEST_MODULE sql_composer
 #include <boost/test/unit_test.hpp>
 
-#include <boost/rdb/rdb.hpp>
+#include <boost/rdb/sql.hpp>
 #include "test.hpp"
 
 using namespace boost::rdb::sql;

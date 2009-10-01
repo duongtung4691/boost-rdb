@@ -1,8 +1,7 @@
 //  Copyright Jean-Louis Leroy 2009.
 // Use, modification, and distribution are subject to the Boost Software License, Version 1.0.
 
-#include <boost/rdb/rdb.hpp>
-#include <boost/rdb/select.hpp>
+#include <boost/rdb/sql.hpp>
 
 namespace boost { namespace rdb { namespace sql {
 

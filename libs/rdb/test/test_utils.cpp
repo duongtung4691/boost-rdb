@@ -1,5 +1,5 @@
 #include <boost/test/unit_test.hpp>
-#include <boost/rdb/rdb.hpp>
+#include <boost/rdb/sql.hpp>
 
 BOOST_AUTO_TEST_CASE(add_key_test) {
   using namespace boost::fusion;

@@ -161,43 +161,47 @@
 			</File>
 		</Filter>
 		<File
-			RelativePath="..\..\..\..\boost\rdb\detail\arithmetic_operator.hpp"
+			RelativePath="..\..\..\..\boost\rdb\sql\detail\arithmetic_operator.hpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\..\..\boost\rdb\detail\boolean_operator.hpp"
+			RelativePath="..\..\..\..\boost\rdb\sql\detail\boolean_operator.hpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\..\..\boost\rdb\detail\comparison_operator.hpp"
+			RelativePath="..\..\..\..\boost\rdb\sql\detail\comparison_operator.hpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\..\..\boost\rdb\database.hpp"
+			RelativePath="..\..\..\..\boost\rdb\sql\delete.hpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\..\..\boost\rdb\delete.hpp"
+			RelativePath="..\..\..\..\boost\rdb\sql\expression.hpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\..\..\boost\rdb\expression.hpp"
+			RelativePath="..\..\..\..\boost\rdb\sql\detail\in_values.hpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\..\..\boost\rdb\insert.hpp"
+			RelativePath="..\..\..\..\boost\rdb\sql\insert.hpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\..\..\boost\rdb\detail\insert_cols.hpp"
+			RelativePath="..\..\..\..\boost\rdb\sql\detail\insert_cols.hpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\..\..\boost\rdb\detail\insert_select.hpp"
+			RelativePath="..\..\..\..\boost\rdb\sql\detail\insert_select.hpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\..\..\boost\rdb\detail\insert_values.hpp"
+			RelativePath="..\..\..\..\boost\rdb\sql\detail\insert_set.hpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\boost\rdb\sql\detail\insert_values.hpp"
 			>
 		</File>
 		<File
@@ -205,7 +209,7 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\..\..\boost\rdb\details\pp_variadics.hpp"
+			RelativePath="..\..\..\..\boost\rdb\sql\detail\pp_variadics.hpp"
 			>
 		</File>
 		<File
@@ -213,27 +217,31 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\..\..\boost\rdb\rdb.hpp"
+			RelativePath="..\..\..\..\boost\rdb\sql\select.hpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\..\..\boost\rdb\select.hpp"
+			RelativePath="..\..\..\..\boost\rdb\sql\detail\select_begin_call.hpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\..\..\boost\rdb\detail\select_begin_call.hpp"
+			RelativePath="..\..\..\..\boost\rdb\sql\detail\select_from.hpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\..\..\boost\rdb\detail\select_from.hpp"
+			RelativePath="..\..\..\..\boost\rdb\sql.hpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\..\..\boost\rdb\table.hpp"
+			RelativePath="..\..\..\..\boost\rdb\sql\table.hpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\..\..\boost\rdb\update.hpp"
+			RelativePath="..\..\..\..\boost\rdb\sql\update.hpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\boost\rdb\sql\detail\update_set.hpp"
 			>
 		</File>
 	</Files>

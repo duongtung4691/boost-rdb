@@ -527,12 +527,11 @@ namespace boost { namespace rdb {
   extern std::ostream* trace_stream;
 } }
 
-#include <boost/rdb/expression.hpp>
-#include <boost/rdb/table.hpp>
-#include <boost/rdb/insert.hpp>
-#include <boost/rdb/update.hpp>
-#include <boost/rdb/select.hpp>
-#include <boost/rdb/delete.hpp>
-#include <boost/rdb/database.hpp>
+#include <boost/rdb/sql/expression.hpp>
+#include <boost/rdb/sql/table.hpp>
+#include <boost/rdb/sql/insert.hpp>
+#include <boost/rdb/sql/update.hpp>
+#include <boost/rdb/sql/select.hpp>
+#include <boost/rdb/sql/delete.hpp>
 
 #endif // BOOST_RDB_HPP

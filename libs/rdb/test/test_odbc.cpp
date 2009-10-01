@@ -1,6 +1,6 @@
 #include <iostream>
 #include <sstream>
-#include <boost/rdb/rdb.hpp>
+#include <boost/rdb/sql.hpp>
 #include <boost/rdb/odbc.hpp>
 #include <boost/fusion/include/io.hpp>
 

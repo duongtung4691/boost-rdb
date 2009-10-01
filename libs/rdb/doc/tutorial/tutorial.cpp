@@ -1,7 +1,7 @@
 //[ prologue
 #include <iostream>
 #include <boost/fusion/include/io.hpp>
-#include <boost/rdb/rdb.hpp>
+#include <boost/rdb/sql.hpp>
 #include <boost/rdb/odbc.hpp>
 
 using namespace boost::rdb::sql;
