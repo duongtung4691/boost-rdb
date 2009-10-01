@@ -248,3 +248,20 @@ BOOST_AUTO_TEST_CASE(select_exists) {
       )),
     "select m.id from person as m where exists (select husband from partner where m.id = husband)");
 }
+
+BOOST_AUTO_TEST_CASE(test_is_null) {
+
+  person p;
+  
+  BOOST_RDB_CHECK_SQL(
+    select(p.id).from(p).where(p.age == null),
+    "select id from person where age is null");
+  
+  BOOST_RDB_CHECK_SQL(
+    select(p.id).from(p).where(!(p.age == null)),
+    "select id from person where not (age is null)");
+  
+  BOOST_RDB_CHECK_SQL(
+    select(p.id).from(p).where(p.age != null),
+    "select id from person where age is not null");
+}

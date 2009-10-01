@@ -317,6 +317,45 @@ namespace boost { namespace rdb { namespace sql {
     
     Expr expr_;
   };
+  
+  struct null_type {
+    typedef null_type sql_type;
+    typedef null_type comparable_type;
+    enum { precedence = precedence_level::highest };
+    void str(std::ostream& os) const {
+      os << "null";
+    }
+  };
+  
+  const expression<null_type> null = expression<null_type>();
+
+  template<class Expr>
+  struct test_null : binary_operation<Expr, null_type, precedence_level::compare> {
+    
+    test_null(const Expr& expr, const char* op) : expr_(expr), op_(op) { }
+    
+    const char* op_;
+    
+    typedef boolean sql_type;
+    
+    void str(std::ostream& os) const {
+      this->write(os, expr_, op_, null);
+    }
+    
+    Expr expr_;
+  };
+
+  template<class Expr>  
+  expression< test_null<Expr> >
+  operator ==(const expression<Expr>& expr, const expression<null_type>&) {
+    return expression< test_null<Expr> >(expr, " is ");
+  }
+
+  template<class Expr>  
+  expression< test_null<Expr> >
+  operator !=(const expression<Expr>& expr, const expression<null_type>&) {
+    return expression< test_null<Expr> >(expr, " is not ");
+  }
 
   template<class Expr>
   BOOST_CONCEPT_REQUIRES(
