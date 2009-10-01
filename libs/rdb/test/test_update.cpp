@@ -2,12 +2,12 @@
 
 #include "test.hpp"
 
-using namespace boost::rdb;
-using namespace boost::rdb::test::springfield;
+using namespace boost::rdb::sql;
+using namespace boost::rdb::sql::test::springfield;
 
 BOOST_AUTO_TEST_CASE(test_update_table) {
 
-  using namespace boost::rdb;
+  using namespace boost::rdb::sql;
 
   person p;
   

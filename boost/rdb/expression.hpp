@@ -4,7 +4,7 @@
 #ifndef BOOST_RDB_EXPRESSION_HPP
 #define BOOST_RDB_EXPRESSION_HPP
 
-namespace boost { namespace rdb {
+namespace boost { namespace rdb { namespace sql {
 
   template<class Expr>
   struct Expression
@@ -125,16 +125,16 @@ namespace boost { namespace rdb {
       return result_of::make_expression<Expr, T>::make(any);
     }
     
-    expression< rdb::like<Expr> > like(const std::string& pattern) const {
+    expression< sql::like<Expr> > like(const std::string& pattern) const {
       BOOST_MPL_ASSERT((boost::is_same<typename Expr::sql_type::kind, char_type>));
-      return rdb::like<Expr>(*this, pattern);
+      return sql::like<Expr>(*this, pattern);
     }
     
     template<class Tag, class T>
     struct dispatch_in {
       typedef typename result_of::make_expression<Expr, T>::type value_type;
       typedef typename fusion::result_of::make_vector<value_type>::type value_list_type;
-      typedef expression< rdb::in_values<Expr, value_list_type> > return_type;
+      typedef expression< sql::in_values<Expr, value_list_type> > return_type;
       static return_type make(const Expr& expr, const T& value) {
         return return_type(expr, fusion::make_vector(make_expression(value)));
       }
@@ -142,7 +142,7 @@ namespace boost { namespace rdb {
 
     template<class Subquery>
     struct dispatch_in<select_statement_tag, Subquery> {
-      typedef expression< rdb::in_subquery<Expr, Subquery> > return_type;
+      typedef expression< sql::in_subquery<Expr, Subquery> > return_type;
       static return_type make(const Expr& expr, const Subquery& subquery) { return return_type(expr, subquery); }
     };
 
@@ -411,6 +411,6 @@ namespace boost { namespace rdb {
   }
 
 
-} }
+} } }
 
 #endif

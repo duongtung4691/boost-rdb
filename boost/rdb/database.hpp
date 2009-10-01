@@ -4,7 +4,7 @@
 #ifndef BOOST_RDB_DATABASE_HPP
 #define BOOST_RDB_DATABASE_HPP
 
-namespace boost { namespace rdb {
+namespace boost { namespace rdb { namespace sql {
 
   template<class Specific>
   class generic_database {
@@ -14,6 +14,6 @@ namespace boost { namespace rdb {
   public:
   };
 
-} }
+} } }
 
 #endif

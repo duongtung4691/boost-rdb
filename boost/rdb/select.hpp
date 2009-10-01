@@ -4,7 +4,7 @@
 #ifndef BOOST_RDB_SELECT_HPP
 #define BOOST_RDB_SELECT_HPP
 
-namespace boost { namespace rdb {
+namespace boost { namespace rdb { namespace sql {
 
   struct make_row {
 
@@ -117,6 +117,6 @@ namespace boost { namespace rdb {
     typedef typename select_statement<Context, Data>::tag type;
   };
 
-} }
+} } }
 
 #endif

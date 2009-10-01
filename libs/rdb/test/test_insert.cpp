@@ -2,8 +2,8 @@
 
 #include "test.hpp"
 
-using namespace boost::rdb;
-using namespace boost::rdb::test::springfield;
+using namespace boost::rdb::sql;
+using namespace boost::rdb::sql::test::springfield;
 
 BOOST_AUTO_TEST_CASE(test_insert_incremental) {
 
@@ -87,7 +87,7 @@ BOOST_AUTO_TEST_CASE(test_insert_values) {
 
 //BOOST_AUTO_TEST_CASE(insert_set) {
 //
-//  using namespace boost::rdb;
+//  using namespace boost::rdb::sql;
 //
 //  person p;
 //

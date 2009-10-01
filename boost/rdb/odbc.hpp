@@ -73,7 +73,7 @@ namespace boost { namespace rdb { namespace odbc {
 
     template<class Select>
     typename Select::result
-    execute(select_statement_tag tag, const Select& select)
+    execute(sql::select_statement_tag tag, const Select& select)
     {
       typename Select::result results;
       execute_select(select, results);

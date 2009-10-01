@@ -2,12 +2,11 @@
 
 #include "test.hpp"
 
-using namespace boost::rdb;
-using namespace boost::rdb::test::springfield;
+using namespace boost::rdb::sql;
+using namespace boost::rdb::sql::test::springfield;
 
 BOOST_AUTO_TEST_CASE(test_select_temp) {
-  using namespace boost::rdb;
-  using boost::rdb::select;
+  using namespace boost::rdb::sql;
   
   person p;
   using namespace boost;
@@ -36,9 +35,6 @@ BOOST_AUTO_TEST_CASE(test_select_temp) {
 
 BOOST_AUTO_TEST_CASE(select_simple) {
 
-  using namespace boost::rdb;
-  using boost::rdb::select;
-
   person p;
   
   BOOST_RDB_CHECK_SQL(
@@ -48,8 +44,7 @@ BOOST_AUTO_TEST_CASE(select_simple) {
 
 BOOST_AUTO_TEST_CASE(select_from) {
 
-  using namespace boost::rdb;
-  using boost::rdb::select;
+  using namespace boost::rdb::sql;
   
   person p;
 
@@ -68,9 +63,6 @@ BOOST_AUTO_TEST_CASE(select_from) {
 
 BOOST_AUTO_TEST_CASE(select_literals) {
 
-  using namespace boost::rdb;
-  using boost::rdb::select;
-
   person p;
   
   BOOST_RDB_CHECK_SQL(
@@ -84,9 +76,6 @@ BOOST_AUTO_TEST_CASE(select_literals) {
 
 BOOST_AUTO_TEST_CASE(simple_where_clause) {
 
-  using namespace boost::rdb;
-  using boost::rdb::select;
-  
   person p;
   partner l;
   
@@ -141,9 +130,6 @@ BOOST_AUTO_TEST_CASE(simple_where_clause) {
 
 BOOST_AUTO_TEST_CASE(alias) {
 
-  using namespace boost::rdb;
-  using boost::rdb::select;
-
   person husband;
   person_<1> wife("wife");
   
@@ -164,8 +150,6 @@ BOOST_AUTO_TEST_CASE(alias) {
 }
 
 BOOST_AUTO_TEST_CASE(numerical_operators) {
-  using namespace boost::rdb;
-  using boost::rdb::select;
 
   person p("p");
   person_<1> p1("p1");
@@ -206,9 +190,6 @@ BOOST_AUTO_TEST_CASE(numerical_operators) {
 
 BOOST_AUTO_TEST_CASE(char_operators) {
 
-  using namespace boost::rdb;
-  using boost::rdb::select;
-
   person p;
 
   BOOST_RDB_CHECK_SQL(
@@ -225,9 +206,6 @@ BOOST_AUTO_TEST_CASE(char_operators) {
 
 BOOST_AUTO_TEST_CASE(select_variadic) {
 
-  using namespace boost::rdb;
-  using boost::rdb::select;
-
   person p;
   
   BOOST_RDB_CHECK_SQL(
@@ -240,9 +218,6 @@ BOOST_AUTO_TEST_CASE(select_variadic) {
 }
 
 BOOST_AUTO_TEST_CASE(select_exists) {
-
-  using namespace boost::rdb;
-  using boost::rdb::select;
 
   person m("m");
   partner p;

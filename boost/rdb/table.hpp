@@ -4,7 +4,7 @@
 #ifndef BOOST_RDB_TABLE_HPP
 #define BOOST_RDB_TABLE_HPP
 
-namespace boost { namespace rdb {
+namespace boost { namespace rdb { namespace sql {
 
   struct any_table : boost::noncopyable {
     any_table(const std::string& name) : name_(name) { }
@@ -162,6 +162,6 @@ namespace boost { namespace rdb {
     return drop_table_statement<Table>();
   }
 
-} }
+} } }
 
 #endif

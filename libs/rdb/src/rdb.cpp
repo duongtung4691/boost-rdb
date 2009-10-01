@@ -4,7 +4,7 @@
 #include <boost/rdb/rdb.hpp>
 #include <boost/rdb/select.hpp>
 
-namespace boost { namespace rdb {
+namespace boost { namespace rdb { namespace sql {
 
   void quote_text(std::ostream& os, const char* str) {
     os << "'";
@@ -17,6 +17,8 @@ namespace boost { namespace rdb {
   }
 
   plain_select select;
+} } }
 
+namespace boost { namespace rdb {
   std::ostream* trace_stream;
 } }

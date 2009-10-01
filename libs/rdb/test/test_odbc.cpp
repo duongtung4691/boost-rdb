@@ -9,10 +9,10 @@
 
 #include "test_tables.hpp"
 
-namespace rdb = boost::rdb;
 using namespace boost;
+using namespace boost::rdb::sql;
 using namespace boost::rdb::odbc;
-using namespace boost::rdb::test::springfield;
+using namespace boost::rdb::sql::test::springfield;
 
 template<typename T>
 std::ostream& operator <<(std::ostream& os, const std::deque<T>& seq) {
@@ -67,8 +67,6 @@ BOOST_AUTO_TEST_CASE(basic) {
       .where(h.name == w.name && h.id != w.id)); // duplicates couples but it's just a test
   }
 
-  using boost::rdb::select;
-
   BOOST_RDB_CHECK_SELECT_RESULTS(
     db.execute(select(p.id, p.first_name, p.name, p.age).from(p)),
     "((1 Homer Simpson 38) (2 Marge Simpson 34))"); // WRONG: assumes row order
@@ -83,25 +81,25 @@ BOOST_AUTO_TEST_CASE(tx) {
     return;
 
   db.execute(update(p).set(p.age = 37).where(p.id == 1));
-  BOOST_CHECK(fusion::at_c<0>(db.execute(rdb::select(p.age).from(p).where(p.id == 1))[0]) == 37);
+  BOOST_CHECK(fusion::at_c<0>(db.execute(select(p.age).from(p).where(p.id == 1))[0]) == 37);
 
   db.set_autocommit(off);
 
   db.execute(update(p).set(p.age = 38).where(p.id == 1));
-  BOOST_CHECK(fusion::at_c<0>(db.execute(rdb::select(p.age).from(p).where(p.id == 1))[0]) == 38);
+  BOOST_CHECK(fusion::at_c<0>(db.execute(select(p.age).from(p).where(p.id == 1))[0]) == 38);
 
   db.rollback();
-  BOOST_CHECK(fusion::at_c<0>(db.execute(rdb::select(p.age).from(p).where(p.id == 1))[0]) == 37);
+  BOOST_CHECK(fusion::at_c<0>(db.execute(select(p.age).from(p).where(p.id == 1))[0]) == 37);
 
   db.execute(update(p).set(p.age = 38).where(p.id == 1));
-  BOOST_CHECK(fusion::at_c<0>(db.execute(rdb::select(p.age).from(p).where(p.id == 1))[0]) == 38);
+  BOOST_CHECK(fusion::at_c<0>(db.execute(select(p.age).from(p).where(p.id == 1))[0]) == 38);
   db.commit();
-  BOOST_CHECK(fusion::at_c<0>(db.execute(rdb::select(p.age).from(p).where(p.id == 1))[0]) == 38);
+  BOOST_CHECK(fusion::at_c<0>(db.execute(select(p.age).from(p).where(p.id == 1))[0]) == 38);
 
   db.set_autocommit(on);
   db.execute(update(p).set(p.age = 39).where(p.id == 1));
 
   db.close();
   db.open("boost", "boost", "boost");
-  BOOST_CHECK(fusion::at_c<0>(db.execute(rdb::select(p.age).from(p).where(p.id == 1))[0]) == 39);
+  BOOST_CHECK(fusion::at_c<0>(db.execute(select(p.age).from(p).where(p.id == 1))[0]) == 39);
 }

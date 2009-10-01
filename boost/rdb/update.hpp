@@ -4,7 +4,7 @@
 #ifndef BOOST_RDB_UPDATE_HPP
 #define BOOST_RDB_UPDATE_HPP
 
-namespace boost { namespace rdb {
+namespace boost { namespace rdb { namespace sql {
 
   struct update_statement_tag : statement_tag { };
 
@@ -106,6 +106,6 @@ namespace boost { namespace rdb {
     >(fusion::make_pair<update_impl::table>(&table));
   }
 
-} }
+} } }
 
 #endif

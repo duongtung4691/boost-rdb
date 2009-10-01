@@ -4,7 +4,7 @@
 #ifndef BOOST_RDB_DELETE_HPP
 #define BOOST_RDB_DELETE_HPP
 
-namespace boost { namespace rdb {
+namespace boost { namespace rdb { namespace sql {
 
   struct delete_statement_tag : statement_tag { };
 
@@ -43,6 +43,6 @@ namespace boost { namespace rdb {
     return delete_statement<Table, detail::none>(detail::none());
   }
 
-} }
+} } }
 
 #endif

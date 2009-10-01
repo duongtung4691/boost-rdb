@@ -4,7 +4,7 @@
 #ifndef BOOST_RDB_INSERT_HPP
 #define BOOST_RDB_INSERT_HPP
 
-namespace boost { namespace rdb {
+namespace boost { namespace rdb { namespace sql {
 
   struct insert_statement_tag : statement_tag { };
 
@@ -151,6 +151,6 @@ namespace boost { namespace rdb {
     >(fusion::make_pair<insert_impl::table>(&table));
   }
 
-} }
+} } }
 
 #endif

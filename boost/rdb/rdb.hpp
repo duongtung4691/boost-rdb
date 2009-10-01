@@ -68,7 +68,7 @@
 #define BOOST_RDB_PP_RESULT_OF_AS_EXPRESSION(z, n, t) BOOST_PP_COMMA_IF(n) typename result_of::as_expression<t##n>::type
 #define BOOST_RDB_PP_REFERENCE(z, n, t) BOOST_PP_COMMA_IF(n) t##n&
 
-namespace boost { namespace rdb {
+namespace boost { namespace rdb { namespace sql {
 
   namespace detail {
     typedef fusion::list<> empty;
@@ -498,8 +498,6 @@ namespace boost { namespace rdb {
       str_opt<where>(os, "where", data);
     }
   };
-
-  extern std::ostream* trace_stream;
   
   template<class Col, class Expr>
   struct set_clause {
@@ -523,6 +521,10 @@ namespace boost { namespace rdb {
     typedef no_tag type;
   };
   
+} } }
+
+namespace boost { namespace rdb {
+  extern std::ostream* trace_stream;
 } }
 
 #include <boost/rdb/expression.hpp>

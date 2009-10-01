@@ -4,7 +4,7 @@
 #include <boost/rdb/rdb.hpp>
 #include <boost/rdb/odbc.hpp>
 
-using namespace boost::rdb;
+using namespace boost::rdb::sql;
 using namespace boost::rdb::odbc;
 
 using namespace std;
@@ -15,12 +15,12 @@ using namespace std;
 
 #include "test_tables.hpp"
 
-using namespace boost::rdb::test::springfield;
+using namespace boost::rdb::sql::test::springfield;
 
 ofstream file("output.txt");
 ofstream osql("sql.txt");
 #define cout file
-ostream* init = trace_stream = &osql;
+ostream* init = boost::rdb::trace_stream = &osql;
 
 //[ output_deque
 template<typename T>
