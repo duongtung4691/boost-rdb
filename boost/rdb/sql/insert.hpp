@@ -40,7 +40,7 @@ namespace boost { namespace rdb { namespace sql {
 
     template<class Data>
     static void str(std::ostream& os, const Data& data) {
-      os << "insert into " << fusion::at_key<table>(data)->table_name();
+      os << "insert into " << fusion::at_key<table>(data)->internal::name();
       str_list_if_has_key<cols>(os, " (", data, ")");
       str_list_if_has_key<values>(os, " values (", data, ")");
     }

@@ -7,16 +7,9 @@
 namespace boost { namespace rdb { namespace sql {
 
   struct any_table : boost::noncopyable {
-    any_table(const std::string& name) : name_(name) { }
-    any_table(const std::string& name, const std::string& alias) : name_(name), alias_(alias) { }
-    std::string name_, alias_;
-
-    void str(std::ostream& os) const {
-      if (has_alias())
-        os << name_ << " as " << alias_;
-      else
-        os << name_;
-    }
+    any_table() { }
+    any_table(const std::string& alias) : alias_(alias) { }
+    std::string alias_;
     const std::string& alias() const { return alias_; }
     bool has_alias() const { return !alias_.empty(); }
   };
@@ -81,6 +74,40 @@ namespace boost { namespace rdb { namespace sql {
 
   template<class T>
   T singleton<T>::_;
+  
+  template<class Base>
+  struct table : Base, any_table {
+    //table(const qualified& q) : any_table(Base::name) { }
+    
+    table() { }
+    table(const std::string& alias) : any_table(alias) { }
+    
+    void str(std::ostream& os) const {
+      if (has_alias())
+        os << Base::name() << " as " << alias_;
+      else
+        os << Base::name();
+    }
+  };
+
+  #define BOOST_RDB_BEGIN_TABLE(NAME)  \
+  struct NAME##_base { static const char* name() { return #NAME; } }; \
+  template<int Alias>  \
+  struct NAME##_ : table<NAME##_base>, singleton< NAME##_<Alias> > {  \
+    typedef table<NAME##_base> internal; \
+    typedef NAME##_<Alias> this_table;  \
+    NAME##_() { initialize(); }  \
+    NAME##_(const std::string& alias) : table<NAME##_base>(alias) { initialize(); }  \
+    NAME##_(const this_table& other) { initialize(); }  \
+    typedef boost::mpl::vector0<>
+
+  #define BOOST_RDB_END_TABLE(NAME)  \
+    column_members; \
+    void initialize() { \
+      boost::mpl::for_each<this_table::column_members>(initialize_columns<this_table>(this)); \
+    } \
+  }; \
+  typedef NAME##_<0> NAME;
 
   #define BOOST_RDB_COLUMN(NAME, sql_type) \
   members_before_##NAME;  \
@@ -95,24 +122,9 @@ namespace boost { namespace rdb { namespace sql {
     static void initialize(this_table* table) { table->NAME.initialize(table); }  \
   };  \
   typedef typename boost::mpl::push_back<members_before_##NAME, NAME##_member>::type
-
-  #define BOOST_RDB_BEGIN_TABLE(NAME)  \
-  template<int Alias>  \
-  struct NAME##_ : any_table, singleton< NAME##_<Alias> > {  \
-    typedef NAME##_<Alias> this_table;  \
-    static const char* table_name() { return #NAME; }  \
-    NAME##_() : any_table(table_name()) { initialize(); }  \
-    NAME##_(const std::string& alias) : any_table(table_name(), alias) { initialize(); }  \
-    NAME##_(const this_table& other) { initialize(); }  \
-    typedef boost::mpl::vector0<>
-
-  #define BOOST_RDB_END_TABLE(NAME)  \
-    column_members; \
-    void initialize() { \
-      boost::mpl::for_each<this_table::column_members>(initialize_columns<this_table>(this)); \
-    } \
-  }; \
-  typedef NAME##_<0> NAME;
+  
+  struct qualify_type { };
+  const qualify_type qualified = qualify_type();
 
   template<typename Table>
   struct table_column_output : comma_output {
@@ -134,7 +146,7 @@ namespace boost { namespace rdb { namespace sql {
     typedef create_table_statement_tag tag;
     typedef void result;
     void str(std::ostream& os) const {
-      os << "create table " << Table::table_name() << "(";
+      os << "create table " << Table::internal::name() << "(";
       boost::mpl::for_each<typename Table::column_members>(table_column_output<Table>(os, Table::_));
       os << ")";
     }
@@ -153,7 +165,7 @@ namespace boost { namespace rdb { namespace sql {
     typedef drop_table_statement_tag tag;
     typedef void result;
     void str(std::ostream& os) const {
-      os << "drop table " << Table::table_name();
+      os << "drop table " << Table::internal::name();
     }
   };
 

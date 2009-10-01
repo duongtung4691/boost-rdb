@@ -9,15 +9,11 @@ using namespace boost::rdb::sql::test::springfield;
 
 BOOST_AUTO_TEST_CASE(create_statement) {
 
-  using namespace boost::rdb::sql;
-
   BOOST_RDB_CHECK_SQL(create_table(person::_),
     "create table person(id integer, name varchar(20), first_name varchar(30), age integer)");
 }
 
 BOOST_AUTO_TEST_CASE(delete_from_table) {
-
-  using namespace boost::rdb::sql;
 
   person p;
 

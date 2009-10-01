@@ -149,6 +149,16 @@ BOOST_AUTO_TEST_CASE(alias) {
     "select p1.id, p2.id from person as p1, person as p2");
 }
 
+//BOOST_AUTO_TEST_CASE(test_qualified) {
+//
+//  person p(qualified);
+//  partner l(qualified);
+//  
+//  BOOST_RDB_CHECK_SQL(
+//    select(p.id).from(p, l).where(p.id == l.wife),
+//    "select person.id from person, partner where person.id = partner.wife");
+//}
+
 BOOST_AUTO_TEST_CASE(numerical_operators) {
 
   person p("p");
