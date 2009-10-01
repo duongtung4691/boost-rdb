@@ -81,6 +81,21 @@ namespace boost { namespace rdb {
     }
   };
 
+  template<class Expr, class Subquery>
+  struct in_subquery {
+    in_subquery(const Expr& expr, const Subquery& subquery) : expr_(expr), subquery_(subquery) { }
+    const Expr& expr_;
+    const Subquery& subquery_;
+    typedef boolean sql_type;
+    enum { precedence = precedence_level::compare };
+    void str(std::ostream& os) const {
+      expr_.str(os);
+      os << " in (";
+      subquery_.str(os);
+      os << ")";
+    }
+  };
+
   template<class Expr>
   struct expression : Expr {
     expression() { }
@@ -98,7 +113,12 @@ namespace boost { namespace rdb {
       BOOST_MPL_ASSERT((boost::is_same<typename Expr::sql_type::kind, char_type>));
       return rdb::like<Expr>(*this, pattern);
     }
-    
+
+    template<class Subquery>
+    expression< rdb::in_subquery<Expr, Subquery> > in(const Subquery& subquery) const {
+      return rdb::in_subquery<Expr, Subquery>(*this, subquery);
+    }
+
     using Expr::operator =;
   };
 

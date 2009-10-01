@@ -88,6 +88,7 @@ BOOST_AUTO_TEST_CASE(simple_where_clause) {
   using boost::rdb::select;
   
   person p;
+  partner l;
   
   BOOST_RDB_CHECK_SQL(
     select(p.id).from(p).where(p.age == p.id),
@@ -112,6 +113,10 @@ BOOST_AUTO_TEST_CASE(simple_where_clause) {
   BOOST_RDB_CHECK_SQL(
     select(p.id).from(p).where(p.name == "O'Hara"),
     "select id from person where name = 'O''Hara'");
+  
+  BOOST_RDB_CHECK_SQL(
+    select(p.id).from(p, l).where(p.id.in(select(l.husband).from(l))),
+    "select id from person, partner where id in (select husband from partner)");
     
   // these won't compile    
   #if 0
