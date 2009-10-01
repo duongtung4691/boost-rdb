@@ -1,3 +1,4 @@
+
 [section SQL subsystem]
 
 [section Concepts]
@@ -96,7 +97,38 @@
 
 [section Statements]
 
+__sql__ statements like SELECT and INSERT are too complex to be built in one function call.
+__rdb__ uses calls to member functions chained by the dot operator to achieve a syntax that is very close to
+__sql__. Intermediate objects of unspecified types are produced inside thet chain. These classes are implementation
+details and thus are not documented. The entire chain is.
+
 [section create_table]
+
+[heading Description]
+
+Create a `CREATE TABLE` statement.
+
+[heading Synopsis]
+
+[heading Parameters]
+
+[table
+    [[Parameter]        [Requirement]                   [Description]]
+    [[`T`]				[Model of Table]				[The table type]]
+]
+
+[heading Expression Semantics]
+
+[*Return type]: A model of Statement
+
+[*Semantics]: Create an insert statement.
+
+[*Preconditions]:
+
+[heading Header]
+
+[heading Example]
+[example_create_table
 
 [endsect]
 
@@ -113,8 +145,6 @@ Create an insert statement.
 [heading Synopsis]
 
 	insert(const T& table)(const C0& c0, const C1& c1, ... const CN& cN).values(const E0& e0, const E1& e1, ... const EN& eN);
-	
-	insert(const T& table).set(const C0& c0, const E0 e0).set(const C1& c1, const E1& e1) ... .set(const CN& cN, const EN& eN);
 	
 	insert(const T& table)(const C0& c0, const C1& c1, ... const CN& cN).select(const E0& e0, const E1& e1, ... const EN& eN).from(...) ...
 

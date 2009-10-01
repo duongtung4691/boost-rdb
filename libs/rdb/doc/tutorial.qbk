@@ -18,7 +18,7 @@ For starter we include the entire __sql__ and __odbc__ subsystems, and a couple 
 going on. For the sake of simplicity we bring everything in scope via `using namespace` directives
 [footnote On Windows you may get an error message about `select` being ambiguous. This is probably because you have
 included `windows.h`, which declares the socket-related function of the same name. Either define `WIN32_LEAN_AND_MEAN`, or
-add a `using rdb::select` directive.]:
+add a `using sql::select` directive.]:
 
 [prologue]
 

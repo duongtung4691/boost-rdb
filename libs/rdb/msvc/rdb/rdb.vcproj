@@ -160,6 +160,14 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="doc templates"
+			>
+			<File
+				RelativePath="..\..\doc\templates\statement.qbk"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath="..\..\..\..\boost\rdb\sql\detail\arithmetic_operator.hpp"
 			>
