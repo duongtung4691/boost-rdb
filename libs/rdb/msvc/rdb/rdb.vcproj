@@ -205,10 +205,6 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\..\..\boost\rdb\sql\detail\insert_set.hpp"
-			>
-		</File>
-		<File
 			RelativePath="..\..\..\..\boost\rdb\sql\detail\insert_values.hpp"
 			>
 		</File>

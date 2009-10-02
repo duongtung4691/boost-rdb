@@ -22,8 +22,6 @@ BOOST_AUTO_TEST_CASE(test_insert_incremental) {
     "insert into person (id, name)");
 }
 
-#if 1
-
 BOOST_AUTO_TEST_CASE(test_insert_values) {
 
   person p;
@@ -43,6 +41,10 @@ BOOST_AUTO_TEST_CASE(test_insert_values) {
   BOOST_RDB_CHECK_SQL(
     insert_into(p)(p.id).values(1),
     "insert into person (id) values (1)");
+
+  BOOST_RDB_CHECK_SQL(
+    insert_into(p)(p.id, p.age).values(1, null),
+    "insert into person (id, age) values (1, null)");
 
   BOOST_RDB_CHECK_SQL(
     insert_into(p)(p.first_name).values("Homer"),
@@ -119,5 +121,3 @@ BOOST_AUTO_TEST_CASE(test_insert_select) {
   //insert_into(p)(p.husband, p.wife).select(h.id).from(h, w).where(h.name == w.name);
   //insert_into(p)(p.husband, p.wife).select(h.id, w.name).from(h, w).where(h.name == w.name);
 }
-
-#endif

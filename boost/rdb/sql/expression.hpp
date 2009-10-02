@@ -154,9 +154,6 @@ namespace boost { namespace rdb { namespace sql {
     
     #define BOOST_PP_ITERATION_LIMITS (2, BOOST_RDB_MAX_SIZE - 1)
     #define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/in_values.hpp>
-    #define BOOST_RDB_MAKE_EXPRESSION(z, n, t) BOOST_PP_COMMA_IF(n) make_expression(t##n)
-    #define BOOST_RDB_RESULT_OF_MAKE_EXPRESSION(z, n, t) \
-      BOOST_PP_COMMA_IF(n) typename result_of::make_expression<this_type, t##n>::type
     #include BOOST_PP_ITERATE()
 
     using Expr::operator =; // for set col = value
@@ -316,15 +313,6 @@ namespace boost { namespace rdb { namespace sql {
     }
     
     Expr expr_;
-  };
-  
-  struct null_type {
-    typedef null_type sql_type;
-    typedef null_type comparable_type;
-    enum { precedence = precedence_level::highest };
-    void str(std::ostream& os) const {
-      os << "null";
-    }
   };
   
   const expression<null_type> null = expression<null_type>();

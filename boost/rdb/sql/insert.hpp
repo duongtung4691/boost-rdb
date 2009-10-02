@@ -68,6 +68,81 @@ namespace boost { namespace rdb { namespace sql {
 
     Data data_;
 
+    template<class ColIter, class ColLast, class ExprIter>
+    struct value_list;
+
+    template<class ColLast, class ExprIter>
+    struct value_list<ColLast, ColLast, ExprIter> {
+      typedef fusion::result_of::make_vector<>::type type;
+
+      template<class T>
+      static const fusion::vector<> make(const T&) {
+        return fusion::vector<>();
+      }
+    };  
+
+    template<class ColIter, class ColLast, class ExprIter>
+    struct value_list {
+
+      typedef typename remove_reference<
+        typename fusion::result_of::deref<ColIter>::type
+      >::type col_type;
+
+      typedef value_list<
+        typename fusion::result_of::next<ColIter>::type,
+        ColLast,
+        typename fusion::result_of::next<ExprIter>::type
+      > next;
+
+      typedef typename fusion::result_of::push_front<
+        const typename next::type,
+        typename result_of::make_expression<
+          col_type,
+          typename remove_reference<
+            typename fusion::result_of::deref<ExprIter>::type
+          >::type
+        >::type
+      >::type type;
+
+      template<class T>
+      static const type make(const T& iter) { // why doesn't ExprIter work ?
+        return fusion::push_front(
+          next::make(fusion::next(iter)),
+          expression<col_type>::make_expression(*iter)
+          );
+      }
+    };  
+
+    template<class Context, class Data, class Exprs>
+    struct with_values {
+
+      typedef typename fusion::result_of::value_at_key<Data, insert_impl::cols>::type cols;
+      typedef typename fusion::result_of::end<cols>::type col_last;
+
+      typedef value_list<
+        typename fusion::result_of::begin<cols>::type,
+        typename fusion::result_of::end<cols>::type,
+        typename fusion::result_of::begin<Exprs>::type
+      > final_value_list;
+
+      typedef typename transition::values<
+        Context,
+        typename result_of::add_key<
+          Data,
+          insert_impl::values,
+          typename fusion::result_of::as_vector<
+            typename final_value_list::type
+          >::type
+        >::type
+      >::type type;
+
+      static type make(const Data& data, const Exprs& exprs) {
+        return type(add_key<insert_impl::values>(
+          data, fusion::as_vector(final_value_list::make(fusion::begin(exprs)))));
+      }
+    };
+
+
     #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
     #define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/insert_values.hpp>
     #include BOOST_PP_ITERATE()
@@ -83,7 +158,14 @@ namespace boost { namespace rdb { namespace sql {
   template<class Context, class Data>
   struct insert_values: insert_impl {
 
-    explicit insert_values(const Data& data) : data_(data) { }
+    explicit insert_values(const Data& data) : data_(data) {
+      typedef typename fusion::result_of::value_at_key<Data, insert_impl::cols>::type cols;
+      typedef typename fusion::result_of::value_at_key<Data, insert_impl::values>::type vals;
+      BOOST_MPL_ASSERT((mpl::equal_to<
+        fusion::result_of::size<cols>,
+        fusion::result_of::size<vals> >));
+      BOOST_MPL_ASSERT((sql_lists_compatible<cols, vals>));
+    }
 
     typedef insert_statement_tag tag;
     typedef void result;
@@ -106,7 +188,7 @@ namespace boost { namespace rdb { namespace sql {
       BOOST_MPL_ASSERT((mpl::equal_to<
         fusion::result_of::size<insert_list>,
         fusion::result_of::size<select_list> >));
-      BOOST_MPL_ASSERT((sql_compatible<insert_list, select_list>));
+      BOOST_MPL_ASSERT((sql_lists_compatible<insert_list, select_list>));
     }
 
     void str(std::ostream& os) const {

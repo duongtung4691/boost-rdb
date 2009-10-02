@@ -3,31 +3,16 @@
 
 #define n BOOST_PP_ITERATION()
 
-    template<BOOST_PP_ENUM_PARAMS(n, class Expr)>
-    typename transition::values<
-      Context,
-      typename result_of::add_key<
-        Data,
-        insert_impl::values,
-        fusion::vector<
-          BOOST_PP_REPEAT(n, BOOST_RDB_PP_RESULT_OF_AS_EXPRESSION, Expr)
-        >
-      >::type
-    >::type
-    values(BOOST_PP_ENUM_BINARY_PARAMS(n, const Expr, &expr)) {
-      return typename transition::values<
-        Context,
-        typename result_of::add_key<
-          Data,
-          insert_impl::values,
-          fusion::vector<
-            BOOST_PP_REPEAT(n, BOOST_RDB_PP_RESULT_OF_AS_EXPRESSION, Expr)
-          >
-        >::type
-      >::type(add_key<insert_impl::values>(data_,
-        fusion::vector<
-          BOOST_PP_REPEAT(n, BOOST_RDB_PP_RESULT_OF_AS_EXPRESSION, Expr)
-        >(
-          BOOST_PP_REPEAT(n, BOOST_RDB_PP_AS_EXPRESSION, expr)
-        )));
-    }
+template<BOOST_PP_ENUM_PARAMS(n, class Expr)>
+typename with_values<
+  Context,
+  Data,
+  typename fusion::result_of::make_vector<BOOST_PP_ENUM_PARAMS(n, Expr)>::type
+>::type
+values(BOOST_PP_ENUM_BINARY_PARAMS(n, const Expr, &expr)) {
+  return with_values<
+    Context,
+    Data,
+    typename fusion::result_of::make_vector<BOOST_PP_ENUM_PARAMS(n, Expr)>::type
+  >::make(data_, fusion::make_vector(BOOST_PP_ENUM_PARAMS(n, expr)));
+}

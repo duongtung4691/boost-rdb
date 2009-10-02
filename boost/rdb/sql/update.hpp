@@ -29,7 +29,7 @@ namespace boost { namespace rdb { namespace sql {
 
     template<class Data>
     static void str(std::ostream& os, const Data& data) {
-      os << "update " << fusion::at_key<table>(data)->internal::name();
+      os << "update " << fusion::at_key<table>(data)->typename internal::name();
       str_list_if_has_key<set>(os, " set ", data, "");
       str_obj_if_has_key<where>(os, " where ", data, "");
     }

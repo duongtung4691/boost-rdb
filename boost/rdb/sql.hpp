@@ -18,6 +18,7 @@
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/equal_to.hpp>
 #include <boost/mpl/assert.hpp>
+#include <boost/mpl/arithmetic.hpp>
 #include <boost/mpl/if.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/static_assert.hpp>
@@ -67,6 +68,9 @@
 #define BOOST_RDB_PP_AS_EXPRESSION(z, n, t) BOOST_PP_COMMA_IF(n) as_expression(t##n)
 #define BOOST_RDB_PP_RESULT_OF_AS_EXPRESSION(z, n, t) BOOST_PP_COMMA_IF(n) typename result_of::as_expression<t##n>::type
 #define BOOST_RDB_PP_REFERENCE(z, n, t) BOOST_PP_COMMA_IF(n) t##n&
+#define BOOST_RDB_MAKE_EXPRESSION(z, n, t) BOOST_PP_COMMA_IF(n) make_expression(t##n)
+#define BOOST_RDB_RESULT_OF_MAKE_EXPRESSION(z, n, t) \
+  BOOST_PP_COMMA_IF(n) typename result_of::make_expression<this_type, t##n>::type
 
 namespace boost { namespace rdb { namespace sql {
 
@@ -370,17 +374,6 @@ namespace boost { namespace rdb { namespace sql {
     };
   };
 
-  template<class ExprList1, class ExprList2>
-  struct sql_compatible : is_same<
-    typename fusion::result_of::as_vector<
-      typename fusion::result_of::transform<ExprList1, extract_sql_kind>::type
-    >::type,
-    typename fusion::result_of::as_vector<
-      typename fusion::result_of::transform<ExprList2, extract_sql_kind>::type
-    >::type
-  > {
-  };
-
   template<class Key, class Map>
   inline typename disable_if<fusion::result_of::has_key<Map, Key>, void>::type
   str_opt_list(std::ostream& os, const char* keyword, const Map& data) {
@@ -499,10 +492,67 @@ namespace boost { namespace rdb { namespace sql {
     }
   };
   
+  struct null_type {
+    typedef null_type sql_type;
+    typedef null_type comparable_type;
+    typedef null_type kind;
+    enum { precedence = precedence_level::highest };
+    void str(std::ostream& os) const {
+      os << "null";
+    }
+  };
+
+  template<class Expr1, class Expr2>
+  struct is_sql_compatible : mpl::or_<
+    is_same<
+      typename remove_reference<Expr1>::type::sql_type::kind,
+      typename remove_reference<Expr2>::type::sql_type::kind
+    >,
+    is_same<typename remove_reference<Expr1>::type::sql_type, null_type>,
+    is_same<typename remove_reference<Expr2>::type::sql_type, null_type>
+  > {
+  };
+
+  template<class Iter1, class Last, class Iter2, class End>
+  struct _sql_lists_compatible : mpl::and_<
+    is_sql_compatible<
+      typename fusion::result_of::deref<Iter1>::type,
+      typename fusion::result_of::deref<Iter2>::type
+    >,
+    _sql_lists_compatible<
+      typename fusion::result_of::next<Iter1>::type,
+      Last,
+      typename fusion::result_of::next<Iter2>::type,
+      typename fusion::result_of::equal_to<
+        typename fusion::result_of::next<Iter1>::type,
+        Last
+      >::type
+    >
+  > {
+  };
+
+  template<class Iter1, class Last, class Iter2>
+  struct _sql_lists_compatible<Iter1, Last, Iter2, 
+    typename fusion::result_of::equal_to<Last, Last>::type
+  > : mpl::true_ {
+  };
+
+  template<class ExprList1, class ExprList2>
+  struct sql_lists_compatible : _sql_lists_compatible<
+    typename fusion::result_of::begin<ExprList1>::type,
+    typename fusion::result_of::end<ExprList1>::type,
+    typename fusion::result_of::begin<ExprList2>::type,
+    typename fusion::result_of::equal_to<
+      typename fusion::result_of::begin<ExprList1>::type,
+      typename fusion::result_of::end<ExprList1>::type
+    >::type
+  > {
+  };
+  
   template<class Col, class Expr>
   struct set_clause {
     set_clause(const Col& col, const Expr& expr) : col_(col), expr_(expr) {
-      BOOST_MPL_ASSERT((is_same<typename Col::sql_type, typename Expr::sql_type>));
+      BOOST_MPL_ASSERT((is_sql_compatible<Col, Expr>));
     }
     
     Col col_;

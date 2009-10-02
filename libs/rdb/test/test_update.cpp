@@ -31,6 +31,10 @@ BOOST_AUTO_TEST_CASE(test_update_table) {
     update(p).set(p.age = 46).where(p.id == 1),
     "update person set age = 46 where id = 1");
 
+  BOOST_RDB_CHECK_SQL(
+    update(p).set(p.age = null).where(p.id == 1),
+    "update person set age = null where id = 1");
+
   // these won't compile
   //update(p).set(p.id = "Homer");
   //update(p).set(p.name = 1);
