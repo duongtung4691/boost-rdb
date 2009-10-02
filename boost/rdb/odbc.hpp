@@ -80,16 +80,20 @@ namespace boost { namespace rdb { namespace odbc {
       return results; // optimize later
     }
 
+    template<class Row>
     struct read_row {
-      read_row(database& db) : db_(db), i_(1) { }
+      read_row(database& db, Row& row) : db_(db), row_(row), i_(0) { }
       database& db_;
+      Row& row_;
       mutable int i_;
 
       template<class Expr>
       void operator ()(fusion::vector<Expr, long&> value) const {
         using namespace fusion;
         SQLLEN n;
-        SQLGetData(db_.hstmt_, i_++, SQL_C_LONG, &at_c<1>(value), 0, &n);
+        SQLGetData(db_.hstmt_, i_ + 1, SQL_C_LONG, &at_c<1>(value), 0, &n);
+        row_.set_null(i_, n == SQL_NULL_DATA);
+        ++i_;
       }
 
       template<class Expr>
@@ -97,8 +101,10 @@ namespace boost { namespace rdb { namespace odbc {
         using namespace fusion;
         char buf[remove_reference<Expr>::type::sql_type::size];
         SQLLEN n;
-        SQLGetData(db_.hstmt_, i_++, SQL_C_CHAR, buf, sizeof buf, &n);
+        SQLGetData(db_.hstmt_, i_ + 1, SQL_C_CHAR, buf, sizeof buf, &n);
         &at_c<1>(value).assign(buf, buf + n);
+        row_.set_null(i_, n == SQL_NULL_DATA);
+        ++i_;
       }
     };
 
@@ -126,7 +132,8 @@ namespace boost { namespace rdb { namespace odbc {
 
         row_type row;
         typedef fusion::vector<const select_list&, typename row_type::value_vector_type&> zip;
-        fusion::for_each(fusion::zip_view<zip>(zip(select.exprs(), row.values())), read_row(*this));
+        fusion::for_each(fusion::zip_view<zip>(zip(select.exprs(), row.values())),
+          read_row<row_type>(*this, row));
         results.push_back(row);
       }
     }

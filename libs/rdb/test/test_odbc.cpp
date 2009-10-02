@@ -72,6 +72,16 @@ BOOST_AUTO_TEST_CASE(basic) {
     "((1 Homer Simpson 38) (2 Marge Simpson 34))"); // WRONG: assumes row order
 }
 
+BOOST_AUTO_TEST_CASE(test_null) {
+
+  database db("boost", "boost", "boost");
+  person p;
+  db.execute(update(p).set(p.age = null).where(p.id == 1));
+  BOOST_RDB_CHECK_SELECT_RESULTS(
+    db.execute(select(p.id, p.age).from(p).where(p.id == 1)),
+    "((1 null))");
+}
+
 BOOST_AUTO_TEST_CASE(tx) {
 
   database db("boost", "boost", "boost");
