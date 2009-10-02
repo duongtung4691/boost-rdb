@@ -17,13 +17,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_rdb", "test_rdb\test_r
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rdb", "rdb\rdb.vcproj", "{E44E54A8-E591-474D-B60F-AA05FFEEE056}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tutorial", "..\doc\tutorial\tutorial.vcproj", "{26823D64-C19A-439F-8EEE-658AFED668D7}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tutorial", "tutorial\tutorial.vcproj", "{26823D64-C19A-439F-8EEE-658AFED668D7}"
 	ProjectSection(ProjectDependencies) = postProject
 		{B130A03B-B321-4C05-9BA2-42861DB76890} = {B130A03B-B321-4C05-9BA2-42861DB76890}
 		{E44E54A8-E591-474D-B60F-AA05FFEEE056} = {E44E54A8-E591-474D-B60F-AA05FFEEE056}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "examples", "..\doc\examples\examples.vcproj", "{AFCDB08B-7562-4256-9D00-C809DEFCA49E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "examples", "examples\examples.vcproj", "{AFCDB08B-7562-4256-9D00-C809DEFCA49E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
