@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include <deque>
+#include <bitset>
 
 #include <boost/format.hpp>
 #include <boost/ref.hpp>
@@ -570,6 +571,54 @@ namespace boost { namespace rdb { namespace sql {
   struct tag_of {
     typedef no_tag type;
   };
+  
+template<class Seq>
+struct nullable_row {
+  Seq values_;
+  typedef std::bitset<fusion::result_of::size<Seq>::value> null_vector;
+  typedef Seq value_vector_type;
+  null_vector has_value_;
+  bool is_null(int pos) const { return !has_value_[pos]; }
+  template<int I> bool is_null() const { return !has_value_[I]; }
+  void set_null(int pos, bool to_null) { has_value_[pos] = !to_null; }
+  template<int I> typename fusion::result_of::at_c<const Seq, I>::type get() const {
+    return fusion::at_c<I>(values_);
+  }
+  template<int I> typename fusion::result_of::at_c<Seq, I>::type ref() {
+    return fusion::at_c<I>(values_);
+  }
+  const Seq& values() const { return values_; }
+  Seq& values() { return values_; }
+  nullable_row& operator =(const Seq& values) { values_ = values; return *this; }
+};
+
+template<class Row>
+struct print_row_element {
+
+  print_row_element(std::ostream& os, const Row& r) : os_(os), r_(r), bit_(0) { }
+  
+  std::ostream& os_;
+  mutable int bit_;
+  const Row& r_;
+  
+  template<class T>
+  void operator ()(const T& value) const {
+    if (bit_)
+      os_ << " ";
+    if (r_.is_null(bit_++))
+      os_ << "null";
+    else
+      os_ << value;
+  }
+};
+
+template<class Seq>
+std::ostream& operator <<(std::ostream& os, const nullable_row<Seq>& r) {
+  os << "(";
+  fusion::for_each(r.values(), print_row_element< nullable_row<Seq> >(os, r));
+  os << ")";
+  return os;
+}
   
 } } }
 

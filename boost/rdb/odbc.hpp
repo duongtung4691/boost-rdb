@@ -125,8 +125,8 @@ namespace boost { namespace rdb { namespace odbc {
           throw error(SQL_HANDLE_STMT, hstmt_, rc);
 
         row_type row;
-        typedef fusion::vector<const select_list&, row_type&> zip;
-        fusion::for_each(fusion::zip_view<zip>(zip(select.exprs(), row)), read_row(*this));
+        typedef fusion::vector<const select_list&, typename row_type::value_vector_type&> zip;
+        fusion::for_each(fusion::zip_view<zip>(zip(select.exprs(), row.values())), read_row(*this));
         results.push_back(row);
       }
     }

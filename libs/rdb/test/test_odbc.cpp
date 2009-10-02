@@ -81,25 +81,25 @@ BOOST_AUTO_TEST_CASE(tx) {
     return;
 
   db.execute(update(p).set(p.age = 37).where(p.id == 1));
-  BOOST_CHECK(fusion::at_c<0>(db.execute(select(p.age).from(p).where(p.id == 1))[0]) == 37);
+  BOOST_CHECK(db.execute(select(p.age).from(p).where(p.id == 1))[0].get<0>() == 37);
 
   db.set_autocommit(off);
 
   db.execute(update(p).set(p.age = 38).where(p.id == 1));
-  BOOST_CHECK(fusion::at_c<0>(db.execute(select(p.age).from(p).where(p.id == 1))[0]) == 38);
+  BOOST_CHECK(db.execute(select(p.age).from(p).where(p.id == 1))[0].get<0>() == 38);
 
   db.rollback();
-  BOOST_CHECK(fusion::at_c<0>(db.execute(select(p.age).from(p).where(p.id == 1))[0]) == 37);
+  BOOST_CHECK(db.execute(select(p.age).from(p).where(p.id == 1))[0].get<0>() == 37);
 
   db.execute(update(p).set(p.age = 38).where(p.id == 1));
-  BOOST_CHECK(fusion::at_c<0>(db.execute(select(p.age).from(p).where(p.id == 1))[0]) == 38);
+  BOOST_CHECK(db.execute(select(p.age).from(p).where(p.id == 1))[0].get<0>() == 38);
   db.commit();
-  BOOST_CHECK(fusion::at_c<0>(db.execute(select(p.age).from(p).where(p.id == 1))[0]) == 38);
+  BOOST_CHECK(db.execute(select(p.age).from(p).where(p.id == 1))[0].get<0>() == 38);
 
   db.set_autocommit(on);
   db.execute(update(p).set(p.age = 39).where(p.id == 1));
 
   db.close();
   db.open("boost", "boost", "boost");
-  BOOST_CHECK(fusion::at_c<0>(db.execute(select(p.age).from(p).where(p.id == 1))[0]) == 39);
+  BOOST_CHECK(db.execute(select(p.age).from(p).where(p.id == 1))[0].get<0>() == 39);
 }

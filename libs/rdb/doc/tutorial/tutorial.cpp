@@ -96,7 +96,7 @@ int main() {
     );
 
     //[ select_2
-    typedef boost::fusion::vector<long, string, string, long> row_type;
+    typedef nullable_row< boost::fusion::vector<long, string, string, long> > row_type;
     std::list<row_type> results;
     db.execute(select(p.id, p.first_name, p.name, p.age).from(p), results);
     /*<-*/ with_markup("select_2_result", /*->*/copy(results.begin(), results.end(), ostream_iterator<row_type>(cout, "\n"));
