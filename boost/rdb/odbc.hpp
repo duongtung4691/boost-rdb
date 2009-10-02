@@ -45,6 +45,33 @@ namespace boost { namespace rdb { namespace odbc {
   public:
   };
 
+  template<class SqlType, class Value, class Tag>
+  struct sql_type_adapter;
+
+  struct odbc_tag { };
+
+  template<>
+  struct sql_type_adapter<sql::integer, long, odbc_tag> {
+    static bool get_data(SQLHSTMT hstmt, int col, long& value) {    
+      SQLLEN n;
+      SQLGetData(hstmt, col, SQL_C_LONG, &value, 0, &n);
+      return n != SQL_NULL_DATA;
+    }
+  };
+
+  template<int N>
+  struct sql_type_adapter<sql::varchar<N>, std::string, odbc_tag> {
+    static bool get_data(SQLHSTMT hstmt, int col, std::string& value) {
+      char buf[N];
+      SQLLEN n;
+      SQLGetData(hstmt, col, SQL_C_CHAR, buf, sizeof buf, &n);
+      if (n == SQL_NULL_DATA)
+        return false;
+      value.assign(buf, buf + n);
+      return true;
+    }
+  };
+
   class database /*: public generic_database<database>*/ {
   public:
     database() { }
@@ -87,23 +114,14 @@ namespace boost { namespace rdb { namespace odbc {
       Row& row_;
       mutable int i_;
 
-      template<class Expr>
-      void operator ()(fusion::vector<Expr, long&> value) const {
+      template<class Expr, class Value>
+      void operator ()(fusion::vector<Expr, Value&>& value) const {
         using namespace fusion;
-        SQLLEN n;
-        SQLGetData(db_.hstmt_, i_ + 1, SQL_C_LONG, &at_c<1>(value), 0, &n);
-        row_.set_null(i_, n == SQL_NULL_DATA);
-        ++i_;
-      }
-
-      template<class Expr>
-      void operator ()(fusion::vector<Expr, std::string&> value) const {
-        using namespace fusion;
-        char buf[remove_reference<Expr>::type::sql_type::size];
-        SQLLEN n;
-        SQLGetData(db_.hstmt_, i_ + 1, SQL_C_CHAR, buf, sizeof buf, &n);
-        &at_c<1>(value).assign(buf, buf + n);
-        row_.set_null(i_, n == SQL_NULL_DATA);
+        row_.set_null(i_, !sql_type_adapter<
+          typename remove_reference<Expr>::type::sql_type,
+          Value,
+          odbc_tag
+        >::get_data(db_.hstmt_, i_ + 1, at_c<1>(value)));
         ++i_;
       }
     };
