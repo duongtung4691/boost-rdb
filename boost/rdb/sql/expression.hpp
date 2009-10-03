@@ -48,7 +48,9 @@ namespace boost { namespace rdb { namespace sql {
     struct make_expression_ {
       typedef typename Expr::sql_type::literal_type type;
       // TODO improve compile error when T is not compatible
-      static const type make(const T& value) { return Expr::sql_type::make_literal(value); }
+      static const type make(const T& value) {
+        return Expr::sql_type::make_literal(value);
+      }
     };
   
     template<class Expr, class Expr2>

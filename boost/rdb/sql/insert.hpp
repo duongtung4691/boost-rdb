@@ -119,6 +119,12 @@ namespace boost { namespace rdb { namespace sql {
       typedef typename fusion::result_of::value_at_key<Data, insert_impl::cols>::type cols;
       typedef typename fusion::result_of::end<cols>::type col_last;
 
+      // If this assertion fails the insert list and the value list have different sizes
+      BOOST_MPL_ASSERT((mpl::equal_to<
+        fusion::result_of::size<cols>,
+        fusion::result_of::size<Exprs> >));
+      //BOOST_MPL_ASSERT((is_sql_compatible<cols, Exprs>));
+
       typedef value_list<
         typename fusion::result_of::begin<cols>::type,
         typename fusion::result_of::end<cols>::type,
