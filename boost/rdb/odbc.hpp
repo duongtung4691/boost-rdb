@@ -72,6 +72,101 @@ namespace boost { namespace rdb { namespace odbc {
     }
   };
 
+  class database;
+
+  template<class Row>
+  struct read_row {
+    read_row(SQLHSTMT hstmt, Row& row) : hstmt_(hstmt), row_(row), i_(0) { }
+    SQLHSTMT hstmt_;
+    Row& row_;
+    mutable int i_;
+
+    template<class Expr, class Value>
+    void operator ()(fusion::vector<Expr, Value&>& value) const {
+      using namespace fusion;
+      row_.set_null(i_, !sql_type_adapter<
+        typename remove_reference<Expr>::type::sql_type,
+        Value,
+        odbc_tag
+      >::get_data(hstmt_, i_ + 1, at_c<1>(value)));
+      ++i_;
+    }
+  };
+
+  template<class ExprList, class Container>
+  class result_set {
+    database& db_;
+    const ExprList& exprs_;
+
+  public:
+    result_set(database& db, const ExprList& exprs) : db_(db), exprs_(exprs) { }
+
+    template<class T>
+    struct enable {
+      typedef T type;
+    };
+
+    typedef typename Container::value_type value_type;
+
+    bool fetch(value_type& row) const {
+      long rc = SQLFetch(db_.hstmt_);
+
+      if (rc == SQL_NO_DATA) {
+        return false;
+      }
+
+      if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO)
+        throw error(SQL_HANDLE_STMT, db_.hstmt_, rc);
+
+      typedef fusion::vector<const ExprList&, typename value_type::value_vector_type&> zip;
+
+      fusion::for_each(fusion::zip_view<zip>(zip(exprs_, row.values())),
+        read_row<value_type>(db_.hstmt_, row));
+
+      return true;
+    }
+
+    value_type fetch() const {
+      value_type row;
+      fetch(row);
+      return row;
+    }
+
+    Container all() const {
+      Container results;
+      value_type row;
+
+      while (fetch(row)) {
+        results.push_back(row);
+      }
+
+      return results;
+    }
+
+    template<class OtherContainer>
+    void all(OtherContainer& results) const {
+      value_type row;
+
+      while (fetch(row)) {
+        results.push_back(row);
+      }
+    }
+  };
+
+  template<class ResultSet>
+  typename ResultSet::enable<std::ostream&>::type
+  operator <<(std::ostream& os, ResultSet& results) {
+    const char* sep = "";
+    os << "(";
+    typename ResultSet::value_type row;
+    while (results.fetch(row)) {
+      os << sep;
+      os << row;
+      sep = " ";
+    }
+    return os << ")";
+  }
+
   class database /*: public generic_database<database>*/ {
   public:
     database() { }
@@ -83,77 +178,30 @@ namespace boost { namespace rdb { namespace odbc {
 
     void open(const std::string& dsn, const std::string& user, const std::string& password);
     void close();
+
+    template<class Tag, class Stat>
+    struct discriminate_execute {
+      typedef typename Stat::result type;
+      static type execute(database& db, const Stat& stat) {
+        return db.exec_str(as_string(stat));
+      }
+    };
+
+    template<class Select>
+    struct discriminate_execute<sql::select_statement_tag, Select> {
+      typedef typename result_set<typename Select::select_list, typename Select::result> type;
+      static type execute(database& db, const Select& select) {
+        db.exec_str(as_string(select));
+        return type(db, select.exprs());
+      }
+    };
     
     template<class Stat>
     // why doesn't the line below work ?
     // BOOST_CONCEPT_REQUIRES(((Statement<Stat>)), (typename Stat::result))
-    typename Stat::result
+    typename discriminate_execute<typename Stat::tag, Stat>::type
     execute(const Stat& st) { 
-      return execute(typename Stat::tag(), st);
-    }
-    
-    template<class Stat, class Tag>
-    /*BOOST_CONCEPT_REQUIRES(((Statement<Stat>)), (typename Stat::result))*/
-    void execute(Tag, const Stat& st) {
-      exec_str(as_string(st));
-    }
-
-    template<class Select>
-    typename Select::result
-    execute(sql::select_statement_tag tag, const Select& select)
-    {
-      typename Select::result results;
-      execute_select(select, results);
-      return results; // optimize later
-    }
-
-    template<class Row>
-    struct read_row {
-      read_row(database& db, Row& row) : db_(db), row_(row), i_(0) { }
-      database& db_;
-      Row& row_;
-      mutable int i_;
-
-      template<class Expr, class Value>
-      void operator ()(fusion::vector<Expr, Value&>& value) const {
-        using namespace fusion;
-        row_.set_null(i_, !sql_type_adapter<
-          typename remove_reference<Expr>::type::sql_type,
-          Value,
-          odbc_tag
-        >::get_data(db_.hstmt_, i_ + 1, at_c<1>(value)));
-        ++i_;
-      }
-    };
-
-    template<class Select, class ResultSet>
-    void execute(const Select& select, ResultSet& results) {
-      execute_select(select, results);
-    }
-
-    template<class Select, class ResultSet>
-    void execute_select(const Select& select, ResultSet& results)
-    {
-      exec_str(as_string(select));
-
-      typedef typename ResultSet::value_type row_type;
-      typedef typename Select::select_list select_list;
-
-      while (true) {
-        int rc = SQLFetch(hstmt_);
-
-        if (rc == SQL_NO_DATA)
-          break;
-
-        if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO)
-          throw error(SQL_HANDLE_STMT, hstmt_, rc);
-
-        row_type row;
-        typedef fusion::vector<const select_list&, typename row_type::value_vector_type&> zip;
-        fusion::for_each(fusion::zip_view<zip>(zip(select.exprs(), row.values())),
-          read_row<row_type>(*this, row));
-        results.push_back(row);
-      }
+      return discriminate_execute<typename Stat::tag, Stat>::execute(*this, st);
     }
 
     void exec_str(const std::string& sql);
@@ -185,6 +233,8 @@ namespace boost { namespace rdb { namespace odbc {
     SQLHENV	henv_;
     SQLHDBC hdbc_;
     SQLHSTMT hstmt_;
+
+    template<class Expr, class Container> friend class result_set;
   };
 
 } } }

@@ -91,14 +91,14 @@ int main() {
 
     with_markup("select_1_result",
       //[ select_1
-      cout << db.execute(select(p.id, p.first_name, p.name, p.age).from(p).where(p.id == 1))[0] << endl;
+      cout << db.execute(select(p.id, p.first_name, p.name, p.age).from(p).where(p.id == 1)).all()[0] << endl;
       //]
     );
 
     //[ select_2
     typedef nullable_row< boost::fusion::vector<long, string, string, long> > row_type;
     std::list<row_type> results;
-    db.execute(select(p.id, p.first_name, p.name, p.age).from(p), results);
+    db.execute(select(p.id, p.first_name, p.name, p.age).from(p)).all(results);
     /*<-*/ with_markup("select_2_result", /*->*/copy(results.begin(), results.end(), ostream_iterator<row_type>(cout, "\n"));
     //]
     );
@@ -108,7 +108,7 @@ int main() {
       BOOST_AUTO(query, select(p.id, p.first_name, p.name, p.age).from(p));
       typedef BOOST_TYPEOF(query)::row row;
       std::vector<row> results;
-      db.execute(query, results);
+      db.execute(query).all(results);
       //]
     }
 

@@ -14,24 +14,10 @@ using namespace boost::rdb::sql;
 using namespace boost::rdb::odbc;
 using namespace boost::rdb::sql::test::springfield;
 
-template<typename T>
-std::ostream& operator <<(std::ostream& os, const std::deque<T>& seq) {
-  const char* sep = "";
-  os << "(";
-  typename std::deque<T>::const_iterator iter = seq.begin(), last = seq.end();
-  while (iter != last) {
-    os << sep;
-    os << *iter;
-    sep = " ";
-    ++iter;
-  }
-  return os << ")";
-}
-
-template<typename T>
-std::string str(const std::deque<T>& seq) {
+template<typename ResultSet>
+std::string str(const ResultSet& results) {
   std::ostringstream os;
-  os << seq;
+  os << results;
   return os.str();
 }
 
@@ -91,25 +77,25 @@ BOOST_AUTO_TEST_CASE(tx) {
     return;
 
   db.execute(update(p).set(p.age = 37).where(p.id == 1));
-  BOOST_CHECK(db.execute(select(p.age).from(p).where(p.id == 1))[0].get<0>() == 37);
+  BOOST_CHECK(db.execute(select(p.age).from(p).where(p.id == 1)).all()[0].get<0>() == 37);
 
   db.set_autocommit(off);
 
   db.execute(update(p).set(p.age = 38).where(p.id == 1));
-  BOOST_CHECK(db.execute(select(p.age).from(p).where(p.id == 1))[0].get<0>() == 38);
+  BOOST_CHECK(db.execute(select(p.age).from(p).where(p.id == 1)).all()[0].get<0>() == 38);
 
   db.rollback();
-  BOOST_CHECK(db.execute(select(p.age).from(p).where(p.id == 1))[0].get<0>() == 37);
+  BOOST_CHECK(db.execute(select(p.age).from(p).where(p.id == 1)).all()[0].get<0>() == 37);
 
   db.execute(update(p).set(p.age = 38).where(p.id == 1));
-  BOOST_CHECK(db.execute(select(p.age).from(p).where(p.id == 1))[0].get<0>() == 38);
+  BOOST_CHECK(db.execute(select(p.age).from(p).where(p.id == 1)).all()[0].get<0>() == 38);
   db.commit();
-  BOOST_CHECK(db.execute(select(p.age).from(p).where(p.id == 1))[0].get<0>() == 38);
+  BOOST_CHECK(db.execute(select(p.age).from(p).where(p.id == 1)).all()[0].get<0>() == 38);
 
   db.set_autocommit(on);
   db.execute(update(p).set(p.age = 39).where(p.id == 1));
 
   db.close();
   db.open("boost", "boost", "boost");
-  BOOST_CHECK(db.execute(select(p.age).from(p).where(p.id == 1))[0].get<0>() == 39);
+  BOOST_CHECK(db.execute(select(p.age).from(p).where(p.id == 1)).all()[0].get<0>() == 39);
 }
