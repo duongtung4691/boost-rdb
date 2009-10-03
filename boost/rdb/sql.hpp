@@ -573,7 +573,7 @@ namespace boost { namespace rdb { namespace sql {
   };
   
 template<class Seq>
-struct nullable_row {
+struct nullable {
   Seq values_;
   typedef std::bitset<fusion::result_of::size<Seq>::value> status_vector_type;
   typedef Seq value_vector_type;
@@ -591,7 +591,7 @@ struct nullable_row {
   Seq& values() { return values_; }
   const status_vector_type& status() const { return status_; }
   status_vector_type& status() { return status_; }
-  nullable_row& operator =(const Seq& values) { values_ = values; return *this; }
+  nullable& operator =(const Seq& values) { values_ = values; return *this; }
 };
 
 template<class Row>
@@ -615,9 +615,9 @@ struct print_row_element {
 };
 
 template<class Seq>
-std::ostream& operator <<(std::ostream& os, const nullable_row<Seq>& r) {
+std::ostream& operator <<(std::ostream& os, const nullable<Seq>& r) {
   os << "(";
-  fusion::for_each(r.values(), print_row_element< nullable_row<Seq> >(os, r));
+  fusion::for_each(r.values(), print_row_element< nullable<Seq> >(os, r));
   os << ")";
   return os;
 }
