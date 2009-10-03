@@ -94,6 +94,78 @@ namespace boost { namespace rdb { namespace odbc {
   };
 
   template<class ExprList, class Container>
+  class result_set;
+
+  class database /*: public generic_database<database>*/ {
+  public:
+    database() { }
+    ~database();
+
+    database(const std::string& dsn, const std::string& user, const std::string& password) {
+      open(dsn, user, password);
+    }
+
+    void open(const std::string& dsn, const std::string& user, const std::string& password);
+    void close();
+
+    template<class Tag, class Stat>
+    struct discriminate_execute {
+      typedef typename Stat::result type;
+      static type execute(database& db, const Stat& stat) {
+        return db.exec_str(as_string(stat));
+      }
+    };
+
+    template<class Select>
+    struct discriminate_execute<sql::select_statement_tag, Select> {
+      typedef result_set<typename Select::select_list, typename Select::result> type;
+      static type execute(database& db, const Select& select) {
+        db.exec_str(as_string(select));
+        return type(db, select.exprs());
+      }
+    };
+    
+    template<class Stat>
+    // why doesn't the line below work ?
+    // BOOST_CONCEPT_REQUIRES(((Statement<Stat>)), (typename Stat::result))
+    typename discriminate_execute<typename Stat::tag, Stat>::type
+    execute(const Stat& st) { 
+      return discriminate_execute<typename Stat::tag, Stat>::execute(*this, st);
+    }
+
+    void exec_str(const std::string& sql);
+
+    void set_autocommit(on_type) {
+      SQLSetConnectOption(hdbc_, SQL_AUTOCOMMIT, SQL_AUTOCOMMIT_ON);
+    }
+
+    void set_autocommit(off_type) {
+      SQLSetConnectOption(hdbc_, SQL_AUTOCOMMIT, SQL_AUTOCOMMIT_OFF);
+    }
+
+    bool is_txn_capable() const {
+      SQLSMALLINT res;
+      SQLGetInfo(hdbc_, SQL_TXN_CAPABLE, &res, sizeof res, NULL);
+      return res != SQL_TC_NONE;
+    }
+
+    void commit() {
+      SQLTransact(henv_, hdbc_, SQL_COMMIT);
+    }
+
+    void rollback() {
+      SQLTransact(henv_, hdbc_, SQL_ROLLBACK);
+    }
+
+  private:
+    std::string dsn_, user_, password_;
+    SQLHENV	henv_;
+    SQLHDBC hdbc_;
+    SQLHSTMT hstmt_;
+
+    template<class Expr, class Container> friend class result_set;
+  };
+  template<class ExprList, class Container>
   class result_set {
     database& db_;
     const ExprList& exprs_;
@@ -154,7 +226,7 @@ namespace boost { namespace rdb { namespace odbc {
   };
 
   template<class ResultSet>
-  typename ResultSet::enable<std::ostream&>::type
+  typename ResultSet::template enable<std::ostream&>::type
   operator <<(std::ostream& os, ResultSet& results) {
     const char* sep = "";
     os << "(";
@@ -166,76 +238,6 @@ namespace boost { namespace rdb { namespace odbc {
     }
     return os << ")";
   }
-
-  class database /*: public generic_database<database>*/ {
-  public:
-    database() { }
-    ~database();
-
-    database(const std::string& dsn, const std::string& user, const std::string& password) {
-      open(dsn, user, password);
-    }
-
-    void open(const std::string& dsn, const std::string& user, const std::string& password);
-    void close();
-
-    template<class Tag, class Stat>
-    struct discriminate_execute {
-      typedef typename Stat::result type;
-      static type execute(database& db, const Stat& stat) {
-        return db.exec_str(as_string(stat));
-      }
-    };
-
-    template<class Select>
-    struct discriminate_execute<sql::select_statement_tag, Select> {
-      typedef typename result_set<typename Select::select_list, typename Select::result> type;
-      static type execute(database& db, const Select& select) {
-        db.exec_str(as_string(select));
-        return type(db, select.exprs());
-      }
-    };
-    
-    template<class Stat>
-    // why doesn't the line below work ?
-    // BOOST_CONCEPT_REQUIRES(((Statement<Stat>)), (typename Stat::result))
-    typename discriminate_execute<typename Stat::tag, Stat>::type
-    execute(const Stat& st) { 
-      return discriminate_execute<typename Stat::tag, Stat>::execute(*this, st);
-    }
-
-    void exec_str(const std::string& sql);
-
-    void set_autocommit(on_type) {
-      SQLSetConnectOption(hdbc_, SQL_AUTOCOMMIT, SQL_AUTOCOMMIT_ON);
-    }
-
-    void set_autocommit(off_type) {
-      SQLSetConnectOption(hdbc_, SQL_AUTOCOMMIT, SQL_AUTOCOMMIT_OFF);
-    }
-
-    bool is_txn_capable() const {
-      SQLSMALLINT res;
-      SQLGetInfo(hdbc_, SQL_TXN_CAPABLE, &res, sizeof res, NULL);
-      return res != SQL_TC_NONE;
-    }
-
-    void commit() {
-      SQLTransact(henv_, hdbc_, SQL_COMMIT);
-    }
-
-    void rollback() {
-      SQLTransact(henv_, hdbc_, SQL_ROLLBACK);
-    }
-
-  private:
-    std::string dsn_, user_, password_;
-    SQLHENV	henv_;
-    SQLHDBC hdbc_;
-    SQLHSTMT hstmt_;
-
-    template<class Expr, class Container> friend class result_set;
-  };
 
 } } }
 

@@ -40,7 +40,7 @@ namespace boost { namespace rdb { namespace sql {
 
     template<class Data>
     static void str(std::ostream& os, const Data& data) {
-      os << "insert into " << fusion::at_key<table>(data)->internal::name();
+      os << "insert into " << fusion::at_key<table>(data)->table();
       str_list_if_has_key<cols>(os, " (", data, ")");
       str_list_if_has_key<values>(os, " values (", data, ")");
     }
@@ -113,7 +113,7 @@ namespace boost { namespace rdb { namespace sql {
       }
     };  
 
-    template<class Context, class Data, class Exprs>
+    template<class Exprs>
     struct with_values {
 
       typedef typename fusion::result_of::value_at_key<Data, insert_impl::cols>::type cols;

@@ -76,12 +76,12 @@ namespace boost { namespace rdb { namespace sql {
   T singleton<T>::_;
   
   template<class Base, bool IsSelfQualified>
-  struct table;
+  struct table_;
   
   template<class Base>
-  struct table<Base, false> : Base, any_table {
-    table() { }
-    table(const std::string& alias) : any_table(alias) { }
+  struct table_<Base, false> : Base, any_table {
+    table_() { }
+    table_(const std::string& alias) : any_table(alias) { }
     
     void str(std::ostream& os) const {
       if (has_alias())
@@ -89,31 +89,31 @@ namespace boost { namespace rdb { namespace sql {
       else
         os << Base::name();
     }
+
+    // following function name chosen because it won't conflict with column names :-P
+    static const char* table() { return Base::name(); }
   };
   
   template<class Base>
-  struct table<Base, true> : Base, any_table {
+  struct table_<Base, true> : Base, any_table {
 
-    table() : any_table(Base::name()) { }
+    table_() : any_table(Base::name()) { }
     
     void str(std::ostream& os) const {
       os << Base::name();
     }
   };
   
-  const int qualified = -1;
-
   #define BOOST_RDB_BEGIN_TABLE(NAME)  \
   struct NAME##_base { static const char* name() { return #NAME; } }; \
   template<int Alias>  \
-  struct NAME##_ : table<NAME##_base, Alias == qualified>, singleton< NAME##_<Alias> > {  \
-    typedef table<NAME##_base, Alias == qualified> internal; \
+  struct NAME##_ : table_<NAME##_base, Alias == -1>, singleton< NAME##_<Alias> > {  \
     typedef NAME##_<Alias> this_table;  \
-    typedef NAME##_<qualified> qualified;  \
     typedef NAME##_<1> _1; typedef NAME##_<2> _2; typedef NAME##_<3> _3;  \
     NAME##_() { initialize(); }  \
-    NAME##_(const std::string& alias) : internal(alias) { initialize(); }  \
+    NAME##_(const std::string& alias) : table_<NAME##_base, Alias == -1>(alias) { initialize(); }  \
     NAME##_(const this_table& other) { initialize(); }  \
+    typedef NAME##_<-1> qualified;  \
     typedef boost::mpl::vector0<>
 
   #define BOOST_RDB_END_TABLE(NAME)  \
@@ -158,7 +158,7 @@ namespace boost { namespace rdb { namespace sql {
     typedef create_table_statement_tag tag;
     typedef void result;
     void str(std::ostream& os) const {
-      os << "create table " << Table::internal::name() << "(";
+      os << "create table " << Table::table() << "(";
       boost::mpl::for_each<typename Table::column_members>(table_column_output<Table>(os, Table::_));
       os << ")";
     }
@@ -177,7 +177,7 @@ namespace boost { namespace rdb { namespace sql {
     typedef drop_table_statement_tag tag;
     typedef void result;
     void str(std::ostream& os) const {
-      os << "drop table " << Table::internal::name();
+      os << "drop table " << Table::table();
     }
   };
 

@@ -20,11 +20,11 @@ namespace boost { namespace rdb { namespace sql {
     void str(std::ostream& os) const { str(os, boost::is_same<Predicate, detail::none>()); }
     
     void str(std::ostream& os, boost::true_type) const {
-      os << "delete from " << Table::internal::name();
+      os << "delete from " << Table::table();
     }
 
     void str(std::ostream& os, boost::false_type) const {
-      os << "delete from " << Table::internal::name();
+      os << "delete from " << Table::table();
       os << " where ";
       where_.str(os);
     }
