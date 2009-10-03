@@ -87,9 +87,15 @@ namespace boost { namespace rdb { namespace sql {
     const Expr& expr_;
     const Subquery& subquery_;
     typedef boolean sql_type;
-    enum { precedence = precedence_level::compare };
+    enum { precedence = precedence_level::highest };
     void str(std::ostream& os) const {
-      expr_.str(os);
+      if (Expr::precedence < precedence) {
+        os << "(";
+        expr_.str(os);
+        os << ")";
+      } else {
+        expr_.str(os);
+      }
       os << " in (";
       subquery_.str(os);
       os << ")";
@@ -102,9 +108,15 @@ namespace boost { namespace rdb { namespace sql {
     Expr expr_;
     ExprList alt_;
     typedef boolean sql_type;
-    enum { precedence = precedence_level::compare };
+    enum { precedence = precedence_level::highest };
     void str(std::ostream& os) const {
-      expr_.str(os);
+      if (Expr::precedence < precedence) {
+        os << "(";
+        expr_.str(os);
+        os << ")";
+      } else {
+        expr_.str(os);
+      }
       os << " in (";
       fusion::for_each(alt_, comma_output(os));
       os << ")";
