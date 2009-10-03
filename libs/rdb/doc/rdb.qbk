@@ -30,6 +30,12 @@ Use, modification, and distribution are subject to the Boost Software License, V
 
 [heading Purpose]
 
+C++ is a statically typed language. __sql__ is also a statically typed language. It looks like they should play ball together.
+So how comes thatmost C++/__sql__ bindings make it possible write and compile code that contain not-so-subtle errors ?
+They could be caught at compile time since all the necessary information is there.
+
+Well this is just what this library does.
+
 __rdb__ provides bindings to various relational database systems. It supports creating and executing
 SQL statements and retrieving the results by means of C++ objects. Most of the time the resulting syntax
 is very close to plain SQL. Moreover, __rdb__ is a good citizen of the type-rich C++ world: all constructs

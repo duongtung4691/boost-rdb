@@ -1,5 +1,3 @@
-//[insert_sql
-insert into person (id, first_name, name, age) values (1, 'Homer', 'Simpson', 37)//]
 //[select_1_result
 (1 Homer Simpson 37)
 //]

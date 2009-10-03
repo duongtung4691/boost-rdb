@@ -7,9 +7,9 @@ Use, modification, and distribution are subject to the Boost Software License, V
 
 [heading The Basics]
 
-[import tutorial/tutorial.cpp]
-[import tutorial/output.txt]
-[import tutorial/sql.txt]
+[import tutorial.cpp]
+[import output.txt]
+[import sql.txt]
 [import ../test/test_tables.hpp]
 
 In this example we will use a __odbc__ database and __rdb__ to model a well-known fictional city and its fauna.
@@ -114,6 +114,10 @@ In __sql__ we use aliases for that. Here is how we make them with __rdb__:
 [alias_test]
 
 [alias_sql]
+
+[#jumbo_select]
+
+[jumbo_select]
 
 [endsect]
 

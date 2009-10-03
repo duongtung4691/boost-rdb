@@ -170,6 +170,14 @@
 	</References>
 	<Files>
 		<File
+			RelativePath="..\..\doc\output.txt"
+			>
+		</File>
+		<File
+			RelativePath="..\..\doc\sql.txt"
+			>
+		</File>
+		<File
 			RelativePath="..\..\doc\tutorial.cpp"
 			>
 		</File>

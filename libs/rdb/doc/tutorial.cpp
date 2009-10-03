@@ -71,13 +71,11 @@ int main() {
     person p;
     //]
 
+    osql << "//" "[ " "insert_sql" << endl;
     //[ insert_homer
     db.execute(insert_into(p)(p.id, p.first_name, p.name, p.age).values(1, "Homer", "Simpson", 37));
     //]
-
-    with_markup("insert_sql",
-      insert_into(p)(p.id, p.first_name, p.name, p.age).values(1, "Homer", "Simpson", 37).str(cout);
-    )
+    osql << "//" "]\n";
 
     /*
     //[ insert_marge_error
