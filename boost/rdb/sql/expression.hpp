@@ -199,8 +199,7 @@ namespace boost { namespace rdb { namespace sql {
   }
 
   template<class Expr>
-  struct BooleanExpression : Expression<Expr>
-  {
+  struct BooleanExpression : Expression<Expr> {
     BOOST_CONCEPT_USAGE(BooleanExpression) {
       BOOST_MPL_ASSERT((boost::is_same<typename Expr::sql_type, boolean>));
     }
@@ -431,9 +430,9 @@ namespace boost { namespace rdb { namespace sql {
   template<class Select>
   BOOST_CONCEPT_REQUIRES(
     ((SelectStatement<Select>)),
-    (op_exists<Select>))
+    (expression< op_exists<Select> >))
   exists(const Select& select) {
-    return op_exists<Select>(select);
+    return expression< op_exists<Select> >(select);
   }
 
   namespace comma {
