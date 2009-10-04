@@ -38,12 +38,21 @@ std::ostream& operator <<(std::ostream& os, const std::deque<T>& seq) {
 }
 //]
 
-struct markup {
-  markup(const char* str) { cout << "//[" << str << "\n"; }
-  ~markup() { cout << "//]\n"; }
+struct markup_t {
+  markup_t(const char* str) : n(0) {
+    cout << "//[" << str << "_result\n";
+    osql << "//[" << str << "_sql\n";
+  }
+
+  ~markup_t() {
+    cout << "//]\n";
+    osql << "//]\n";
+  }
+
+  int n;
 };
 
-#define with_markup(str, code) { markup _markup_(##str); code }
+#define markup(id) for (markup_t t(#id); t.n == 0; ++t.n)
 
 int main() {
 
@@ -84,22 +93,46 @@ int main() {
     */
 
     //[ insert_marge_corrected
-    db.execute(insert_into(p)(p.id, p.first_name, p.name, p.age).values(2, "Marge", "Simpson", 34));
+    db.execute(insert_into(p)(p.id, p.first_name, p.name).values(2, "Marge", "Simpson"));
     //]
 
-    with_markup("select_1_result",
-      //[ select_1
-      cout << db.execute(select(p.id, p.first_name, p.name, p.age).from(p).where(p.id == 1)).all()[0] << endl;
+    markup(select_print_all) {
+      //[ select_print_all
+      cout << db.execute(select(p.id, p.first_name, p.name, p.age).from(p)) << endl;
       //]
-    );
+    }
 
-    //[ select_2
-    typedef nullable_row< boost::fusion::vector<long, string, string, long> > row_type;
-    std::list<row_type> results;
-    db.execute(select(p.id, p.first_name, p.name, p.age).from(p)).all(results);
-    /*<-*/ with_markup("select_2_result", /*->*/copy(results.begin(), results.end(), ostream_iterator<row_type>(cout, "\n"));
-    //]
-    );
+    markup(select_into_vector) {
+      //[ select_into_vector
+      typedef nullable< boost::fusion::vector<string, long> > row_type;
+      std::deque<row_type> results;
+      db.execute(select(p.first_name, p.age).from(p)).all(results);
+      for (size_t i = 0; i < results.size(); i++) {
+        row_type row = results[i];
+        cout << row.get<0>() << ", age: ";
+        if (row.is_null<1>())
+          cout << "unknown";
+        else
+          cout << row.get<1>();
+        cout << endl;
+      }
+      //]
+    }
+
+    markup(select_fetch) {
+      //[ select_fetch
+      BOOST_AUTO(results, db.execute(select(p.first_name, p.age).from(p)));
+      BOOST_TYPEOF(results)::value_type row;
+      while (results.fetch(row)) {
+        cout << row.get<0>() << ", age: ";
+        if (row.is_null<1>())
+          cout << "unknown";
+        else
+          cout << row.get<1>();
+        cout << endl;
+      }
+      //]
+    }
 
     {
       //[ select_with_nested_row_type
@@ -110,20 +143,19 @@ int main() {
       //]
     }
 
-    osql << "//" "[ " "alias_sql" << endl;
-    //[alias_test
+    markup(aliases) {
+    //[aliases
     partner assoc;
     db.execute(insert_into(partner::_)(assoc.husband, assoc.wife).values(1, 2));
 
     person him("husband"), her("wife");
-    /*<-*/ with_markup("alias_result", /*->*/cout << db.execute(
+    cout << db.execute(
       select(him.id, him.first_name, him.name, her.id, her.first_name)
         .from(him, her, assoc)
         .where(him.id == assoc.husband && her.id == assoc.wife))
       << "\n";
     //]
-    osql << "//" "]\n";
-    );
+    }
 
     person p1("p1"), p2("p2"), p3("p3");
     partner l;
@@ -146,7 +178,6 @@ int main() {
           )
     //]
     .str(osql);
-
   } catch (exception& e) {
       #undef cout
       cout << e.what();

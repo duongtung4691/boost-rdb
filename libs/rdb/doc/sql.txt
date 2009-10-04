@@ -5,11 +5,18 @@ create table partner(husband integer, wife integer)
 //[ insert_sql
 insert into person (id, first_name, name, age) values (1, 'Homer', 'Simpson', 37)
 //]
-insert into person (id, first_name, name, age) values (2, 'Marge', 'Simpson', 34)
-select id, first_name, name, age from person where id = 1
+insert into person (id, first_name, name) values (2, 'Marge', 'Simpson')
+//[select_print_all_sql
 select id, first_name, name, age from person
+//]
+//[select_into_vector_sql
+select first_name, age from person
+//]
+//[select_fetch_sql
+select first_name, age from person
+//]
 select id, first_name, name, age from person
-//[ alias_sql
+//[aliases_sql
 insert into partner (husband, wife) values (1, 2)
 select husband.id, husband.first_name, husband.name, wife.id, wife.first_name from person as husband, person as wife, partner where husband.id = husband and wife.id = wife
 //]

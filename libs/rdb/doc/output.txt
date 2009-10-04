@@ -1,10 +1,14 @@
-//[select_1_result
-(1 Homer Simpson 37)
+//[select_print_all_result
+((1 Homer Simpson 37) (2 Marge Simpson null))
 //]
-//[select_2_result
-(1 Homer Simpson 37)
-(2 Marge Simpson 34)
+//[select_into_vector_result
+Homer, age: 37
+Marge, age: unknown
 //]
-//[alias_result
+//[select_fetch_result
+Homer, age: 37
+Marge, age: unknown
+//]
+//[aliases_result
 ((1 Homer Simpson 2 Marge))
 //]

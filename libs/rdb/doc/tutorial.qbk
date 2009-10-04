@@ -75,47 +75,45 @@ This is a general pattern in __rdb__: when it sees a type, it doesn't forget abo
 we shall see in the next section.
 
 [heading Retrieving data]
+[#retrieve_data]
 
 Let's retrieve a row now.
 
-[select_1]
+[select_print_all]
 
 This code snippet prints:
 
-[select_1_result]
+[select_print_all_result]
 
-What is being returned here is not a vector of variants, it's a standard `deque` of __fusion__ `vector`s.
-Incidentally, fusion provides an output operator for its vectors, provided that you include the
-necessary header as we did above.
+What is happening here is this : `execute` senses that it is passed a query, so it returns `result_set` object.
+The shift operator is overloaded and displays all the rows in the result set.
 
-The amount of data returned by a select query can be huge. There is another version of `select` which takes a container
-by reference and puts the results in it - and here we get to choose the container:
+Usually we don't want to just print the data though. Let's see how we can read all the results in a vector. But a
+vector of what ? Certainly not of "variants". Instead we use a __fusion__ vector wrapped in a __rdb__ class that
+receives the data along with flags that indicates which columns contain `NULL`:
 
-[select_2]
+[select_into_vector]
+
+The amount of data returned by a select query can be huge. The result set provides a `fetch` function that retrieves
+the data row by row:
 
 And the result is:
 
-[select_2_result]
-
-Your compiler probably supports `BOOST_TYPEOF`. It can be of great help because inside the (mysterious) Statement
-type there is a typedef for the row and the result set:
-
-[select_with_nested_row_type]
-
-From now on we will assume that we have overloaded the output operator to print standard `deque`s:
-
-[output_deque]
+[select_fetch]
 
 [heading Aliases]
 
 Sometimes we need to refer to the same table several times, for example when using self-joins.
 In __sql__ we use aliases for that. Here is how we make them with __rdb__:
 
-[alias_test]
+[aliases]
 
-[alias_sql]
+[aliases_sql]
 
+[heading Jumbo select]
 [#jumbo_select]
+
+The following query recaps all the constructs that are currently supported in a __select__ statement. It doesn't makemuch sense but at least it is type-correct ;-)
 
 [jumbo_select]
 

@@ -18,6 +18,7 @@ Use, modification, and distribution are subject to the Boost Software License, V
 [def __rdb__                    Boost.RDB]
 [def __odbc__                   ODBC]
 [def __sql__					SQL]
+[def __select__					SELECT]
 [def __fusion__                 [@http://boost.org/libs/fusion/index.html fusion]]
 [def __mpl__                    [@http://www.boost.org/libs/mpl/index.html MPL]]
 [def __preprocessor__           [@http://www.boost.org/libs/preprocessor/index.html preprocessor]]
