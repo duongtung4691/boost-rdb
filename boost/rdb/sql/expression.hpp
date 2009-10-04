@@ -4,6 +4,8 @@
 #ifndef BOOST_RDB_EXPRESSION_HPP
 #define BOOST_RDB_EXPRESSION_HPP
 
+#include <boost/rdb/sql/common.hpp>
+
 namespace boost { namespace rdb { namespace sql {
 
   template<class Expr>

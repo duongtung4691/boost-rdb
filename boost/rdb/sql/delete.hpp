@@ -4,6 +4,8 @@
 #ifndef BOOST_RDB_DELETE_HPP
 #define BOOST_RDB_DELETE_HPP
 
+#include <boost/rdb/sql/common.hpp>
+
 namespace boost { namespace rdb { namespace sql {
 
   struct delete_statement_tag : statement_tag { };

@@ -4,6 +4,9 @@
 #ifndef BOOST_RDB_TABLE_HPP
 #define BOOST_RDB_TABLE_HPP
 
+#include <boost/rdb/sql/common.hpp>
+#include <boost/rdb/sql/expression.hpp>
+
 namespace boost { namespace rdb { namespace sql {
 
   struct any_table : boost::noncopyable {

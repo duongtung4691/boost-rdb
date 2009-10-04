@@ -4,6 +4,10 @@
 #ifndef BOOST_RDB_INSERT_HPP
 #define BOOST_RDB_INSERT_HPP
 
+#include <boost/rdb/sql/common.hpp>
+#include <boost/rdb/sql/expression.hpp>
+#include <boost/rdb/sql/select.hpp>
+
 namespace boost { namespace rdb { namespace sql {
 
   struct insert_statement_tag : statement_tag { };

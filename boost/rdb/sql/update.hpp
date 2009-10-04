@@ -4,6 +4,8 @@
 #ifndef BOOST_RDB_UPDATE_HPP
 #define BOOST_RDB_UPDATE_HPP
 
+#include <boost/rdb/sql/common.hpp>
+
 namespace boost { namespace rdb { namespace sql {
 
   struct update_statement_tag : statement_tag { };

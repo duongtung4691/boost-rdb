@@ -1,8 +1,7 @@
 #ifndef BOOST_RDB_TEST_HPP
 #define BOOST_RDB_TEST_HPP
 
-#include <boost/fusion/include/io.hpp>
-#include <boost/test/unit_test.hpp>
+#include <boost/rdb/sql/table.hpp>
 
 #include "test_tables.hpp"
 
@@ -17,5 +16,8 @@ std::string str(const Stat& statement) {
   statement.str(os);
   return os.str();
 }
+
+#include <boost/fusion/include/io.hpp>
+#include <boost/test/unit_test.hpp>
 
 #endif

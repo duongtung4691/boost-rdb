@@ -1,4 +1,4 @@
-#include <boost/rdb/sql.hpp>
+#include <boost/rdb/sql/select.hpp>
 
 #include "test.hpp"
 
