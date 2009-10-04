@@ -165,6 +165,7 @@ namespace boost { namespace rdb { namespace odbc {
 
     template<class Expr, class Container> friend class result_set;
   };
+
   template<class ExprList, class Container>
   class result_set {
     database& db_;
@@ -172,6 +173,10 @@ namespace boost { namespace rdb { namespace odbc {
 
   public:
     result_set(database& db, const ExprList& exprs) : db_(db), exprs_(exprs) { }
+
+    ~result_set() {
+      SQLCloseCursor(db_.hstmt_);
+    }
 
     template<class T>
     struct enable {
