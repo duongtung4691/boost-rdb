@@ -27,26 +27,20 @@ namespace boost { namespace rdb { namespace sql {
     >::type type;
   };
 
-  struct standard_select_context {
-
-    template<class Data>
-    struct from {
-      typedef select_statement<standard_select_context, Data> type;
-    };
-
-    template<class Data>
-    struct select {
-      typedef select_projection<standard_select_context, Data> type;
-    };
-
-    template<class Data>
-    struct where {
-      typedef select_statement<standard_select_context, Data> type;
-    };
+  struct standard_select_where_context {
   };
 
-  template<class Context, class Data>
-  struct select_projection;
+  struct standard_select_from_context {
+    template<class Data> struct where { typedef select_statement<standard_select_where_context, Data> type; };
+  };
+
+  struct standard_select_projection_context {
+    template<class Data> struct from { typedef select_statement<standard_select_from_context, Data> type; };
+  };
+
+  struct standard_select_context {
+    template<class Data> struct select { typedef select_statement<standard_select_projection_context, Data> type; };
+  };
   
   template<class Context, class Data>
   struct select_begin : select_impl
@@ -56,22 +50,6 @@ namespace boost { namespace rdb { namespace sql {
 #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
 //#define BOOST_PP_ITERATION_LIMITS (1, 1)
 #define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/select_begin_call.hpp>
-#include BOOST_PP_ITERATE()
-  };
-
-  template<class Context, class Data>
-  struct select_projection : select_impl {
-
-    select_projection(const Data& data) : data_(data) { }
-    Data data_;
-
-    void str(std::ostream& os) const {
-      select_impl::str<Context>(os, data_);
-    }
-
-#include <boost/preprocessor/iteration/iterate.hpp>
-#define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
-#define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/select_from.hpp>
 #include BOOST_PP_ITERATE()
   };
 
@@ -101,6 +79,11 @@ namespace boost { namespace rdb { namespace sql {
     void str(std::ostream& os) const {
       select_impl::str<Context>(os, data_);
     }
+
+    #include <boost/preprocessor/iteration/iterate.hpp>
+    #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
+    #define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/select_from.hpp>
+    #include BOOST_PP_ITERATE()
 
     template<class Predicate>
     typename transition::where<

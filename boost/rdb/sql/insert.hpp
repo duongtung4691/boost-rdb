@@ -187,10 +187,10 @@ namespace boost { namespace rdb { namespace sql {
   };
 
   template<class Context, class Data>
-  struct insert_select : insert_impl, select_projection<Context, Data> {
+  struct insert_select : insert_impl, select_statement<Context, Data> {
 
     typedef void result;
-    typedef select_projection<Context, Data> base;
+    typedef select_statement<Context, Data> base;
 
     insert_select(const Data& data) : base(data) {
       typedef typename fusion::result_of::value_at_key<Data, insert_impl::cols>::type insert_list;

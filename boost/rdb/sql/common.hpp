@@ -450,16 +450,17 @@ namespace boost { namespace rdb { namespace sql {
   namespace transition {
     // work around msvc9 bug : normally we could directly call Context::template T<> but it makes msvc9 crash
 
-    #define BOOST_RDB_DEFINE_TRANSITION_WORKAROUND(NAME) \
+    #define BOOST_RDB_DEFINE_TRANSITION(NAME) \
     template<class Context, class Data> \
     struct NAME { typedef typename Context::template NAME<Data>::type type; };
 
-    BOOST_RDB_DEFINE_TRANSITION_WORKAROUND(select)
-    BOOST_RDB_DEFINE_TRANSITION_WORKAROUND(from)
-    BOOST_RDB_DEFINE_TRANSITION_WORKAROUND(where)
-    BOOST_RDB_DEFINE_TRANSITION_WORKAROUND(cols)
-    BOOST_RDB_DEFINE_TRANSITION_WORKAROUND(values)
-    BOOST_RDB_DEFINE_TRANSITION_WORKAROUND(set)
+    // compilation errors here probably means a syntax error, e.g. `select from from`
+    BOOST_RDB_DEFINE_TRANSITION(select)
+    BOOST_RDB_DEFINE_TRANSITION(from)
+    BOOST_RDB_DEFINE_TRANSITION(where)
+    BOOST_RDB_DEFINE_TRANSITION(cols)
+    BOOST_RDB_DEFINE_TRANSITION(values)
+    BOOST_RDB_DEFINE_TRANSITION(set)
   }
 
   template<class Context, class Data>
