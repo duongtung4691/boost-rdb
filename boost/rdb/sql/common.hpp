@@ -456,6 +456,8 @@ namespace boost { namespace rdb { namespace sql {
 
     // compilation errors here probably means a syntax error, e.g. `select from from`
     BOOST_RDB_DEFINE_TRANSITION(select)
+    BOOST_RDB_DEFINE_TRANSITION(distinct)
+    BOOST_RDB_DEFINE_TRANSITION(all)
     BOOST_RDB_DEFINE_TRANSITION(from)
     BOOST_RDB_DEFINE_TRANSITION(where)
     BOOST_RDB_DEFINE_TRANSITION(cols)

@@ -177,6 +177,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\..\..\boost\rdb\sql\common.hpp"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\..\boost\rdb\sql\detail\comparison_operator.hpp"
 			>
 		</File>
@@ -225,7 +229,15 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\..\..\boost\rdb\sql\detail\select_all.hpp"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\..\boost\rdb\sql\detail\select_begin_call.hpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\boost\rdb\sql\detail\select_distinct.hpp"
 			>
 		</File>
 		<File

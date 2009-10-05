@@ -29,6 +29,10 @@ BOOST_AUTO_TEST_CASE(test_select_temp) {
     "select distinct name");
 
   BOOST_RDB_CHECK_SQL(
+    select.distinct(p.name),
+    "select distinct name");
+
+  BOOST_RDB_CHECK_SQL(
     select.all(p.name),
     "select all name");
 }

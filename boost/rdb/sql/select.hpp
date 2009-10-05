@@ -40,6 +40,8 @@ namespace boost { namespace rdb { namespace sql {
 
   struct standard_select_context {
     template<class Data> struct select { typedef select_statement<standard_select_projection_context, Data> type; };
+    template<class Data> struct distinct { typedef select_statement<standard_select_projection_context, Data> type; };
+    template<class Data> struct all { typedef select_statement<standard_select_projection_context, Data> type; };
   };
   
   template<class Context, class Data>
@@ -51,14 +53,20 @@ namespace boost { namespace rdb { namespace sql {
 //#define BOOST_PP_ITERATION_LIMITS (1, 1)
 #define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/select_begin_call.hpp>
 #include BOOST_PP_ITERATE()
+
+#define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
+//#define BOOST_PP_ITERATION_LIMITS (1, 1)
+#define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/select_distinct.hpp>
+#include BOOST_PP_ITERATE()
+
+#define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
+//#define BOOST_PP_ITERATION_LIMITS (1, 1)
+#define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/select_all.hpp>
+#include BOOST_PP_ITERATE()
+
   };
 
-  struct plain_select : select_begin<standard_select_context, fusion::map<> > {
-    select_begin< standard_select_context, fusion::map<fusion::pair< select_impl::distinct, int> > > distinct;
-    select_begin< standard_select_context, fusion::map<fusion::pair< select_impl::all, int> > > all;
-  };
-
-  extern plain_select select;
+  extern select_begin< standard_select_context, fusion::map<> > select;
 
   template<class Context, class Data>
   struct select_statement : select_impl {
