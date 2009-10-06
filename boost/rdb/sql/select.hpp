@@ -59,7 +59,7 @@ namespace boost { namespace rdb { namespace sql {
   struct select_transition {
     typedef select_statement<
       Dialect,
-      typename State,
+      State,
       typename result_of::add_key<
         Data,
         State,

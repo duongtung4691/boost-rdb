@@ -45,7 +45,7 @@ namespace boost { namespace rdb { namespace sql {
   struct insert_transition {
     typedef insert_statement<
       Dialect,
-      typename State,
+      State,
       typename result_of::add_key<
         Data,
         State,
@@ -162,26 +162,6 @@ namespace boost { namespace rdb { namespace sql {
       fusion::for_each(data_, str_clause(os));
     }
 
-  };
-
-  template<class Context, class Data>
-  struct insert_values: insert_impl {
-
-    explicit insert_values(const Data& data) : data_(data) {
-      typedef typename fusion::result_of::value_at_key<Data, typename Subdialect::insert::cols>::type cols;
-      typedef typename fusion::result_of::value_at_key<Data, typename Subdialect::insert::values>::type vals;
-      BOOST_MPL_ASSERT((mpl::equal_to<
-        fusion::result_of::size<cols>,
-        fusion::result_of::size<vals> >));
-      BOOST_MPL_ASSERT((sql_lists_compatible<cols, vals>));
-    }
-
-    typedef insert_statement_tag tag;
-    typedef void result;
-
-    Data data_;
-
-    void str(std::ostream& os) const { typename Subdialect::insert::str(os, data_); }
   };
 
 #if 0
