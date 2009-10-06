@@ -64,6 +64,20 @@ namespace boost { namespace rdb { namespace sql {
 
   extern select_statement<sql2003, sql2003::select::begin, fusion::map<>, sql2003> select;
 
+  template<class Dialect, class State, class Data, class T>
+  struct select_transition {
+    typedef select_statement<
+      Dialect,
+      typename State,
+      typename result_of::add_key<
+        Data,
+        State,
+        T
+      >::type,
+      Dialect
+    > type;
+  };
+  
   template<class Dialect, class State, class Data, class Subdialect>
   struct select_statement : select_impl {
 
@@ -77,7 +91,7 @@ namespace boost { namespace rdb { namespace sql {
     Data data_;
 
     const select_list& exprs() const {
-      return fusion::at_key<cols>(data_);
+      return fusion::at_key<typename Subdialect::select::exprs>(data_);
     }
 
     void str(std::ostream& os) const {
