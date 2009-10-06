@@ -37,6 +37,8 @@ namespace boost { namespace rdb { namespace sql {
       struct where;
     };
   };
+  
+  template<> struct allow<sql2003, sql2003::select::from, sql2003::select::where> : mpl::true_ { };
 
   template<class Dialect, class Data, class Subdialect>
   struct select_statement<Dialect, typename Dialect::select::begin, Data, Subdialect> : select_impl
@@ -95,6 +97,7 @@ namespace boost { namespace rdb { namespace sql {
       Subdialect
     >
     where(const Predicate& predicate) const {
+      BOOST_MPL_ASSERT((allow<Subdialect, State, Subdialect::select::where>));
       return select_statement<
         Subdialect,
         typename Subdialect::select::where,

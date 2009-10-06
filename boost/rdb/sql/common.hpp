@@ -94,6 +94,12 @@ namespace boost { namespace rdb { namespace sql {
   
   template<class Dialect, class State, class Data, class Subdialect>
   struct select_statement;
+  
+  #define BOOST_RDB_ALLOW(Dialect, State, New) \
+    template<> struct allow<Dialect, Dialect::State, Dialect::New> : mpl::true_ { }
+  
+  template<class Dialect, class State, class New>
+  struct allow : mpl::false_ { };
 
   template<typename Iter>
   void quote_text(std::ostream& os, Iter iter, Iter last) {
