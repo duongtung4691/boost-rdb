@@ -27,21 +27,27 @@ namespace boost { namespace rdb { namespace sql {
     >::type type;
   };
 
-  struct standard_select_where_context {
+  struct sql2003;
+
+  template<class Dialect>
+  struct select_where_context {
   };
 
-  struct standard_select_from_context {
-    template<class Data> struct where { typedef select_statement<standard_select_where_context, Data> type; };
+  template<class Dialect>
+  struct select_from_context {
+    template<class Data> struct where { typedef select_statement<select_where_context<Dialect>, Data> type; };
   };
 
-  struct standard_select_projection_context {
-    template<class Data> struct from { typedef select_statement<standard_select_from_context, Data> type; };
+  template<class Dialect>
+  struct select_projection_context {
+    template<class Data> struct from { typedef select_statement<select_from_context<Dialect>, Data> type; };
   };
 
-  struct standard_select_context {
-    template<class Data> struct select { typedef select_statement<standard_select_projection_context, Data> type; };
-    template<class Data> struct distinct { typedef select_statement<standard_select_projection_context, Data> type; };
-    template<class Data> struct all { typedef select_statement<standard_select_projection_context, Data> type; };
+  template<class Dialect>
+  struct select_context {
+    template<class Data> struct select { typedef select_statement<select_projection_context<Dialect>, Data> type; };
+    template<class Data> struct distinct { typedef select_statement<select_projection_context<Dialect>, Data> type; };
+    template<class Data> struct all { typedef select_statement<select_projection_context<Dialect>, Data> type; };
   };
   
   template<class Context, class Data>
@@ -66,7 +72,7 @@ namespace boost { namespace rdb { namespace sql {
 
   };
 
-  extern select_begin< standard_select_context, fusion::map<> > select;
+  extern select_begin< select_context<sql2003>, fusion::map<> > select;
 
   template<class Context, class Data>
   struct select_statement : select_impl {
