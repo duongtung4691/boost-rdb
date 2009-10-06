@@ -94,9 +94,8 @@ namespace boost { namespace rdb { namespace sql {
   extern select_statement<sql2003, sql2003::select::begin, fusion::map<>, sql2003> select;
   
   template<class Dialect, class State, class Data, class Subdialect>
-  struct select_statement : select_impl {
+  struct select_statement : select_impl, State::tags {
 
-    typedef select_statement_tag tag;
     typedef typename fusion::result_of::value_at_key<Data, typename Subdialect::select::exprs>::type select_list;
     typedef nullable<typename select_row<select_list>::type> row;
     //typedef std::deque<row> raw_result;

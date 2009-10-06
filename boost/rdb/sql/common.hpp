@@ -92,21 +92,32 @@ namespace boost { namespace rdb { namespace sql {
     };
   }
 
+  struct statement_tag { };
+  struct insert_statement_tag : statement_tag { };
+  struct select_statement_tag : statement_tag { };
+
   struct sql2003 {
 
+    struct partial { struct tags { }; };
+
     struct select {
-      struct begin;
-      struct distinct;
-      struct all;
-      struct exprs;
-      struct from;
-      struct where;
+      struct complete { struct tags { typedef select_statement_tag tag; }; };
+      // states
+      struct begin : partial { };
+      struct distinct : partial { };
+      struct all : partial { };
+      struct exprs : partial { };
+      struct from : complete { };
+      struct where : complete { };
     };
 
     struct insert {
-      struct begin;
-      struct cols;
-      struct set;
+      struct complete { struct tags { typedef insert_statement_tag tag; }; };
+      // states
+      struct table : partial { };
+      struct cols : partial { };
+      struct values : complete { };
+      struct select : complete { };
     };
   };
   
@@ -178,8 +189,6 @@ namespace boost { namespace rdb { namespace sql {
 
 
 
-  struct statement_tag { };
-
   template<class St>
   struct Statement
   {
@@ -191,8 +200,6 @@ namespace boost { namespace rdb { namespace sql {
       st.str(stream);
     }
   };
-
-  struct select_statement_tag : statement_tag { };
 
   template<class St>
   struct SelectStatement : Statement<St> {
