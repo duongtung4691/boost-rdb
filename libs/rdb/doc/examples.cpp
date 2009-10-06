@@ -20,64 +20,49 @@ namespace boost { namespace rdb { namespace sql {
 
   namespace mysql {
 
-    struct mysql5;
-    
-    namespace key {
+    struct mysql5 : sql2003 {
+    struct select : sql2003::select {
       struct limit;
-    }
-
-    template<class Dialect>
-    struct select_limit_context {
     };
+  };
 
-    namespace transition {
-      BOOST_RDB_DEFINE_TRANSITION(limit)
+  template<class Data>
+  struct select_statement<mysql::mysql5, mysql::mysql5::select::begin, Data>
+    : select_statement<sql2003, mysql::mysql5::select::begin, Data> {
+
+    select_statement(const Data& data) : select_statement<sql2003, sql2003::select::begin, Data>(data) { }
+  };
+  
+  template<class State, class Data>
+  struct select_statement<mysql::mysql5, State, Data> : select_statement<sql2003, State, Data> {
+
+    select_statement(const Data& data) : select_statement<sql2003, State, Data>(data) { }
+
+    select_statement<
+      mysql::mysql5,
+      mysql::mysql5::select::limit,
+      typename result_of::add_key<Data, mysql::mysql5::select::limit, int>::type
+    >
+    limit(int n) const {
+      return select_statement<
+        mysql::mysql5,
+        mysql::mysql5::select::limit,
+        typename result_of::add_key<Data, mysql::mysql5::select::limit, int>::type
+      >(add_key<key::limit>(data_, n));
     }
-
-    template<class Context, class Data>
-    struct mysql_select_statement : select_statement<Context, Data> {
-
-      mysql_select_statement(const Data& data) : select_statement<Context, Data>(data) { }
-
-      typename transition::limit<
-        Context,
-        typename result_of::add_key<Data, key::limit, int>::type
-      >::type
-      limit(int n) const {
-        return typename transition::limit<
-          Context,
-          typename result_of::add_key<Data, key::limit, int>::type
-        >::type(add_key<key::limit>(data_, n));
-      }
-    };
+  };
   
   }
 
-  template<>
-  struct select_where_context<mysql::mysql5> {
-    template<class Data> struct limit { typedef mysql::mysql_select_statement<select_where_context<mysql::mysql5>, Data> type; };
-    //template<class Data> struct limit { typedef mysql::mysql_select_statement<mysql::select_limit_context<mysql::mysql5>, Data> type; };
-  };
-
-  template<>
-  struct select_from_context<mysql::mysql5> {
-    template<class Data> struct where { typedef mysql::mysql_select_statement<select_where_context<mysql::mysql5>, Data> type; };
-    template<class Data> struct limit { typedef mysql::mysql_select_statement<select_where_context<mysql::mysql5>, Data> type; };
-    //template<class Data> struct limit { typedef mysql::mysql_select_statement<mysql::select_limit_context<mysql::mysql5>, Data> type; };
-  };
-
-  template<>
-  struct select_projection_context<mysql::mysql5> {
-    template<class Data> struct from { typedef mysql::mysql_select_statement<select_from_context<mysql::mysql5>, Data> type; };
-  };
-
   namespace mysql {
 
-    extern select_begin< select_context<mysql5>, fusion::map<> > select;
+    extern select_statement<mysql::mysql5, mysql::mysql5::select::begin, fusion::map<> > select;
 
 
     void test() {
       person p;
+      //select++;
+      select(p.id)++;
       select(p.id).from(p).limit(10);
       select(p.id).from(p).where(p.id > 1).limit(10);
     }

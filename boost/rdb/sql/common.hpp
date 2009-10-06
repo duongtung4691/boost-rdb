@@ -91,8 +91,8 @@ namespace boost { namespace rdb { namespace sql {
       highest
     };
   }
-
-  template<class Context, class Data>
+  
+  template<class Dialect, class State, class Data>
   struct select_statement;
 
   template<typename Iter>
@@ -466,9 +466,6 @@ namespace boost { namespace rdb { namespace sql {
   }
 
   template<class Context, class Data>
-  struct select_statement;
-
-  template<class Context, class Data>
   struct select_projection;
 
   struct select_impl {
@@ -481,7 +478,7 @@ namespace boost { namespace rdb { namespace sql {
     class group_by;
     class order_by;
 
-    template<class Context, class Data>
+    template<class Data>
     static void str(std::ostream& os, const Data& data) {
       os << "select";
       

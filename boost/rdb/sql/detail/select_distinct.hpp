@@ -4,8 +4,9 @@
 #define n BOOST_PP_ITERATION()
 
     template<BOOST_PP_ENUM_PARAMS(n, class Expr)>
-    typename transition::distinct<
-      Context,
+    select_statement<
+      Dialect,
+      typename Dialect::select::distinct,
       typename result_of::add_key<
         typename result_of::add_key<
           Data,
@@ -17,10 +18,11 @@
         select_impl::distinct,
         int
       >::type
-    >::type
+    >
     distinct(BOOST_PP_ENUM_BINARY_PARAMS(n, const Expr, &expr)) {
-      return typename transition::distinct<
-        Context,
+      return select_statement<
+        Dialect,
+        typename Dialect::select::distinct,
         typename result_of::add_key<
           typename result_of::add_key<
             Data,
@@ -32,7 +34,7 @@
           select_impl::distinct,
           int
         >::type
-      >::type(
+      >(
         add_key<select_impl::distinct>(
           add_key<cols>(
             data_,

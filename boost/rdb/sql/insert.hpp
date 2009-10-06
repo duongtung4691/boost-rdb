@@ -185,12 +185,12 @@ namespace boost { namespace rdb { namespace sql {
     void str(std::ostream& os) const { insert_impl::str(os, data_); }
 
   };
-
-  template<class Context, class Data>
-  struct insert_select : insert_impl, select_statement<Context, Data> {
+#if 0
+  template<class Dialect, class State, class Data>
+  struct insert_select : insert_impl, select_statement<Dialect, State, Data> {
 
     typedef void result;
-    typedef select_statement<Context, Data> base;
+    typedef select_statement<Dialect, State, Data> base;
 
     insert_select(const Data& data) : base(data) {
       typedef typename fusion::result_of::value_at_key<Data, insert_impl::cols>::type insert_list;
@@ -223,6 +223,8 @@ namespace boost { namespace rdb { namespace sql {
       base::str(os);
     }
   };
+#endif
+
   template<class Table>
   insert_table<
     standard_insert,

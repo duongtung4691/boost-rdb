@@ -1,6 +1,7 @@
     template<BOOST_PP_ENUM_PARAMS(n, class Table)>
-    typename transition::from<
-      Context,
+    select_statement<
+      Dialect,
+      typename Dialect::select::from,
       typename result_of::add_key<
         Data,
         tables,
@@ -8,10 +9,11 @@
           BOOST_PP_REPEAT(n, BOOST_RDB_PP_REFERENCE, const Table)
         >
       >::type
-    >::type
+    >
     from(BOOST_PP_ENUM_BINARY_PARAMS(n, const Table, &table)) {
-      return typename transition::from<
-        Context,
+      return select_statement<
+      Dialect,
+      typename Dialect::select::from,
         typename result_of::add_key<
           Data,
           tables,
@@ -19,7 +21,7 @@
             BOOST_PP_REPEAT(n, BOOST_RDB_PP_REFERENCE, const Table)
           >
         >::type
-      >::type(add_key<tables>(
+      >(add_key<tables>(
         data_,
         fusion::vector<
           BOOST_PP_REPEAT(n, BOOST_RDB_PP_REFERENCE, const Table)

@@ -27,31 +27,19 @@ namespace boost { namespace rdb { namespace sql {
     >::type type;
   };
 
-  struct sql2003;
-
-  template<class Dialect>
-  struct select_where_context {
+  struct sql2003 {
+    struct select {
+      struct begin;
+      struct distinct;
+      struct all;
+      struct exprs;
+      struct from;
+      struct where;
+    };
   };
 
-  template<class Dialect>
-  struct select_from_context {
-    template<class Data> struct where { typedef select_statement<select_where_context<Dialect>, Data> type; };
-  };
-
-  template<class Dialect>
-  struct select_projection_context {
-    template<class Data> struct from { typedef select_statement<select_from_context<Dialect>, Data> type; };
-  };
-
-  template<class Dialect>
-  struct select_context {
-    template<class Data> struct select { typedef select_statement<select_projection_context<Dialect>, Data> type; };
-    template<class Data> struct distinct { typedef select_statement<select_projection_context<Dialect>, Data> type; };
-    template<class Data> struct all { typedef select_statement<select_projection_context<Dialect>, Data> type; };
-  };
-  
-  template<class Context, class Data>
-  struct select_begin : select_impl
+  template<class Dialect, class Data>
+  struct select_statement<Dialect, typename Dialect::select::begin, Data> : select_impl
   {
     Data data_;
 
@@ -72,9 +60,9 @@ namespace boost { namespace rdb { namespace sql {
 
   };
 
-  extern select_begin< select_context<sql2003>, fusion::map<> > select;
+  extern select_statement<sql2003, sql2003::select::begin, fusion::map<> > select;
 
-  template<class Context, class Data>
+  template<class Dialect, class State, class Data>
   struct select_statement : select_impl {
 
     typedef select_statement_tag tag;
@@ -91,7 +79,7 @@ namespace boost { namespace rdb { namespace sql {
     }
 
     void str(std::ostream& os) const {
-      select_impl::str<Context>(os, data_);
+      select_impl::str(os, data_);
     }
 
     #include <boost/preprocessor/iteration/iterate.hpp>
@@ -100,21 +88,23 @@ namespace boost { namespace rdb { namespace sql {
     #include BOOST_PP_ITERATE()
 
     template<class Predicate>
-    typename transition::where<
-      Context,
+    select_statement<
+      Dialect,
+      typename Dialect::select::where,
       typename result_of::add_key<Data, select_impl::where, Predicate>::type
-    >::type
+    >
     where(const Predicate& predicate) const {
-      return typename transition::where<
-        Context,
+      return select_statement<
+        Dialect,
+        typename Dialect::select::where,
         typename result_of::add_key<Data, select_impl::where, Predicate>::type
-      >::type(add_key<select_impl::where>(data_, predicate));
+      >(add_key<select_impl::where>(data_, predicate));
     }
   };
 
-  template<class Context, class Data>
-  struct tag_of< select_statement<Context, Data> > {
-    typedef typename select_statement<Context, Data>::tag type;
+  template<class Dialect, class State, class Data>
+  struct tag_of< select_statement<Dialect, State, Data> > {
+    typedef typename select_statement<Dialect, State, Data>::tag type;
   };
 
 } } }
