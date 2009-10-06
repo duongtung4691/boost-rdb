@@ -1,0 +1,85 @@
+[/==============================================================================
+Copyright Jean-Louis Leroy 2009.
+Use, modification, and distribution are subject to the Boost Software License, Version 1.0.
+===============================================================================/]
+[library RDB
+    [quickbook 1.3]
+    [version 0.0 - NOTE: this library is not officially part of Boost (yet)]
+    [authors [Leroy, Jean-Louis]]
+    [copyright 2009 Jean-Louis Leroy]
+    [purpose Interface with relational databases]
+    [license
+        Distributed under the Boost Software License, Version 1.0.
+        (See accompanying file LICENSE_1_0.txt or copy at
+        [@http://www.boost.org/LICENSE_1_0.txt])
+    ]
+]
+
+[def __rdb__                    Boost.RDB]
+[def __odbc__                   ODBC]
+[def __sql__					SQL]
+[def __select__					SELECT]
+[def __fusion__                 [@http://boost.org/libs/fusion/index.html fusion]]
+[def __mpl__                    [@http://www.boost.org/libs/mpl/index.html MPL]]
+[def __preprocessor__           [@http://www.boost.org/libs/preprocessor/index.html preprocessor]]
+[def __concept_check__          [@http://www.boost.org/libs/concept_check/index.html concept_check]]
+[def __test__                   [@http://www.boost.org/libs/test/index.html test]]
+[def __vector__                 [link fusion.container.vector `vector`]]
+
+
+[section Overview]
+
+[heading Purpose]
+
+C++ is a statically typed language. __sql__ is also a statically typed language. It looks like they should play ball together.
+So how comes thatmost C++/__sql__ bindings make it possible write and compile code that contain not-so-subtle errors ?
+They could be caught at compile time since all the necessary information is there.
+
+Well this is just what this library does.
+
+__rdb__ provides bindings to various relational database systems. It supports creating and executing
+SQL statements and retrieving the results by means of C++ objects. Most of the time the resulting syntax
+is very close to plain SQL. Moreover, __rdb__ is a good citizen of the type-rich C++ world: all constructs
+are statically checked, which eliminates the risks of type errors. If your RDB code compiles, then it
+generates correct SQL. Since everything happens at compile-time, the library delivers performance that is
+close to hand-written code.
+
+[heading What it's not]
+__rdb__ does /not/ hide the database behind an abstraction layer. On the contrary, it ambitions
+to make the pecularities of each system readily accessible. However, SQL is standardized, and while it's
+true that few vendors - if any - comply to the standard in every small detail, most of the SQL code uses constructs
+that are portable between vendors.
+
+__rdb__ neither attempts to add extra functionality on top of the database (like object-relational mapping).
+These tasks belong to higher-level libraries, possibly built on top of __rdb__.
+
+[heading Organization]
+
+__rdb__ is organized in several subsystems:
+
+* The SQL generation subsystem (in namespace boost::rdb) is responsible for composing SQL code and gathering
+type information.
+* The ODBC subsystem (in namespace boost::rdb::odbc) interfaces with ODBC databases.
+
+[heading Requirements]
+
+The libraries rely heavily on __fusion__, the __mpl__, __preprocessor__, __concept_check__ and the various
+utilities found in Boost. For the most part you don't need any knowledge of these libraries to use __rdb__.
+Basic understanding of __fusion__ vectors will get you by.
+
+If you want to run the test suite, __test__ is also needed, and a test database for each backend you want to test.
+See the documentation of the backends for more information.
+
+[endsect]
+
+[include tutorial.qbk]
+[include sql.qbk]
+
+[section Acknowledgements]
+
+The macros for defining tables and columns are stronly inspired by Matus Chochlik's Mirror library.
+
+I have used the documentation of __fusion__ as an inspiration for this one. Besides, this entire library is an exercise
+in fusion programming.
+
+[endsect]
