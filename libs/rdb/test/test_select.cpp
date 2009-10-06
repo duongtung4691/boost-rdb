@@ -272,3 +272,18 @@ BOOST_AUTO_TEST_CASE(test_is_null) {
     select(p.id).from(p).where(p.age != null),
     "select id from person where age is not null");
 }
+
+
+
+BOOST_AUTO_TEST_CASE(locals) {
+
+  person_<1> p1("p1");
+  person_<2> p2("p2");
+  
+  BOOST_AUTO(s, select(p1.id).from(p1, p2).where(p1.id + p2.age > p1.age));
+  
+  BOOST_RDB_CHECK_SQL(
+    s,
+    "select p1.id from person as p1, person as p2 where p1.id + p2.age > p1.age");
+}
+
