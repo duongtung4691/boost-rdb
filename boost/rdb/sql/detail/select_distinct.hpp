@@ -5,8 +5,8 @@
 
     template<BOOST_PP_ENUM_PARAMS(n, class Expr)>
     select_statement<
-      Dialect,
-      typename Dialect::select::distinct,
+      Subdialect,
+      typename Subdialect::select::distinct,
       typename result_of::add_key<
         typename result_of::add_key<
           Data,
@@ -17,12 +17,13 @@
         >::type,
         select_impl::distinct,
         int
-      >::type
+      >::type,
+      Subdialect
     >
     distinct(BOOST_PP_ENUM_BINARY_PARAMS(n, const Expr, &expr)) {
       return select_statement<
-        Dialect,
-        typename Dialect::select::distinct,
+        Subdialect,
+        typename Subdialect::select::distinct,
         typename result_of::add_key<
           typename result_of::add_key<
             Data,
@@ -33,7 +34,8 @@
           >::type,
           select_impl::distinct,
           int
-        >::type
+        >::type,
+        Subdialect
       >(
         add_key<select_impl::distinct>(
           add_key<cols>(

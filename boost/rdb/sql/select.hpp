@@ -38,8 +38,8 @@ namespace boost { namespace rdb { namespace sql {
     };
   };
 
-  template<class Dialect, class Data>
-  struct select_statement<Dialect, typename Dialect::select::begin, Data> : select_impl
+  template<class Dialect, class Data, class Subdialect>
+  struct select_statement<Dialect, typename Dialect::select::begin, Data, Subdialect> : select_impl
   {
     Data data_;
 
@@ -60,9 +60,9 @@ namespace boost { namespace rdb { namespace sql {
 
   };
 
-  extern select_statement<sql2003, sql2003::select::begin, fusion::map<> > select;
+  extern select_statement<sql2003, sql2003::select::begin, fusion::map<>, sql2003> select;
 
-  template<class Dialect, class State, class Data>
+  template<class Dialect, class State, class Data, class Subdialect>
   struct select_statement : select_impl {
 
     typedef select_statement_tag tag;
@@ -89,22 +89,24 @@ namespace boost { namespace rdb { namespace sql {
 
     template<class Predicate>
     select_statement<
-      Dialect,
-      typename Dialect::select::where,
-      typename result_of::add_key<Data, select_impl::where, Predicate>::type
+      Subdialect,
+      typename Subdialect::select::where,
+      typename result_of::add_key<Data, select_impl::where, Predicate>::type,
+      Subdialect
     >
     where(const Predicate& predicate) const {
       return select_statement<
-        Dialect,
-        typename Dialect::select::where,
-        typename result_of::add_key<Data, select_impl::where, Predicate>::type
+        Subdialect,
+        typename Subdialect::select::where,
+        typename result_of::add_key<Data, select_impl::where, Predicate>::type,
+        Subdialect
       >(add_key<select_impl::where>(data_, predicate));
     }
   };
 
-  template<class Dialect, class State, class Data>
-  struct tag_of< select_statement<Dialect, State, Data> > {
-    typedef typename select_statement<Dialect, State, Data>::tag type;
+  template<class Dialect, class State, class Data, class Subdialect>
+  struct tag_of< select_statement<Dialect, State, Data, Subdialect> > {
+    typedef typename select_statement<Dialect, State, Data, Subdialect>::tag type;
   };
 
 } } }

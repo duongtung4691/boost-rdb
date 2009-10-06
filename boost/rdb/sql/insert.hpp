@@ -186,7 +186,7 @@ namespace boost { namespace rdb { namespace sql {
 
   };
 #if 0
-  template<class Dialect, class State, class Data>
+  template<class Dialect, class State, class Data, class Subdialect>
   struct insert_select : insert_impl, select_statement<Dialect, State, Data> {
 
     typedef void result;

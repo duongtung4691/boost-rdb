@@ -27,28 +27,31 @@ namespace boost { namespace rdb { namespace sql {
   };
 
   template<class Data>
-  struct select_statement<mysql::mysql5, mysql::mysql5::select::begin, Data>
-    : select_statement<sql2003, mysql::mysql5::select::begin, Data> {
+  struct select_statement<mysql::mysql5, mysql::mysql5::select::begin, Data, mysql::mysql5>
+    : select_statement<sql2003, mysql::mysql5::select::begin, Data, mysql::mysql5> {
 
-    select_statement(const Data& data) : select_statement<sql2003, sql2003::select::begin, Data>(data) { }
+    select_statement(const Data& data) : select_statement<sql2003, sql2003::select::begin, Data, mysql::mysql5>(data) { }
   };
   
-  template<class State, class Data>
-  struct select_statement<mysql::mysql5, State, Data> : select_statement<sql2003, State, Data> {
+  template<class State, class Data, class Subdialect>
+  struct select_statement<mysql::mysql5, State, Data, Subdialect>
+    : select_statement<sql2003, State, Data, Subdialect> {
 
-    select_statement(const Data& data) : select_statement<sql2003, State, Data>(data) { }
+    select_statement(const Data& data) : select_statement<sql2003, State, Data, Subdialect>(data) { }
 
     select_statement<
-      mysql::mysql5,
-      mysql::mysql5::select::limit,
-      typename result_of::add_key<Data, mysql::mysql5::select::limit, int>::type
+      Subdialect,
+      typename Subdialect::select::limit,
+      typename result_of::add_key<Data, typename Subdialect::select::limit, int>::type,
+      Subdialect
     >
     limit(int n) const {
       return select_statement<
-        mysql::mysql5,
-        mysql::mysql5::select::limit,
-        typename result_of::add_key<Data, mysql::mysql5::select::limit, int>::type
-      >(add_key<key::limit>(data_, n));
+        Subdialect,
+        typename Subdialect::select::limit,
+        typename result_of::add_key<Data, mysql::mysql5::select::limit, int>::type,
+        Subdialect
+      >(add_key<typename Subdialect::select::limit>(data_, n));
     }
   };
   
@@ -56,13 +59,13 @@ namespace boost { namespace rdb { namespace sql {
 
   namespace mysql {
 
-    extern select_statement<mysql::mysql5, mysql::mysql5::select::begin, fusion::map<> > select;
+    extern select_statement<mysql::mysql5, mysql::mysql5::select::begin, fusion::map<>, mysql::mysql5> select;
 
 
     void test() {
       person p;
       //select++;
-      select(p.id)++;
+      //select(p.id)++;
       select(p.id).from(p).limit(10);
       select(p.id).from(p).where(p.id > 1).limit(10);
     }

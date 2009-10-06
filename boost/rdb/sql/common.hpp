@@ -92,7 +92,7 @@ namespace boost { namespace rdb { namespace sql {
     };
   }
   
-  template<class Dialect, class State, class Data>
+  template<class Dialect, class State, class Data, class Subdialect>
   struct select_statement;
 
   template<typename Iter>

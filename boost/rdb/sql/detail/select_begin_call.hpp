@@ -5,27 +5,29 @@
 
     template<BOOST_PP_ENUM_PARAMS(n, class Expr)>
     select_statement<
-      Dialect,
-      typename Dialect::select::exprs,
+      Subdialect,
+      typename Subdialect::select::exprs,
       typename result_of::add_key<
         Data,
         cols,
         fusion::vector<
           BOOST_PP_REPEAT(n, BOOST_RDB_PP_RESULT_OF_AS_EXPRESSION, Expr)
         >
-      >::type
+      >::type,
+      Subdialect
     >
     operator ()(BOOST_PP_ENUM_BINARY_PARAMS(n, const Expr, &expr)) {
       return select_statement<
-        Dialect,
-        typename Dialect::select::exprs,
+        Subdialect,
+        typename Subdialect::select::exprs,
         typename result_of::add_key<
           Data,
           cols,
           fusion::vector<
             BOOST_PP_REPEAT(n, BOOST_RDB_PP_RESULT_OF_AS_EXPRESSION, Expr)
           >
-        >::type
+        >::type,
+        Subdialect
       >(add_key<cols>(data_,
         fusion::vector<
           BOOST_PP_REPEAT(n, BOOST_RDB_PP_RESULT_OF_AS_EXPRESSION, Expr)
