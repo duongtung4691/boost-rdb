@@ -4,7 +4,7 @@
       typename Subdialect::select::from,
       typename result_of::add_key<
         Data,
-        tables,
+        typename Subdialect::select::from,
         fusion::vector<
           BOOST_PP_REPEAT(n, BOOST_RDB_PP_REFERENCE, const Table)
         >
@@ -17,13 +17,13 @@
       typename Subdialect::select::from,
         typename result_of::add_key<
           Data,
-          tables,
+          typename Subdialect::select::from,
           fusion::vector<
             BOOST_PP_REPEAT(n, BOOST_RDB_PP_REFERENCE, const Table)
           >
         >::type,
         Subdialect
-      >(add_key<tables>(
+      >(add_key<typename Subdialect::select::from>(
         data_,
         fusion::vector<
           BOOST_PP_REPEAT(n, BOOST_RDB_PP_REFERENCE, const Table)

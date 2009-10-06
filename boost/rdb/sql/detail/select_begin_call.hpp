@@ -9,7 +9,7 @@
       typename Subdialect::select::exprs,
       typename result_of::add_key<
         Data,
-        cols,
+        typename Subdialect::select::exprs,
         fusion::vector<
           BOOST_PP_REPEAT(n, BOOST_RDB_PP_RESULT_OF_AS_EXPRESSION, Expr)
         >
@@ -22,13 +22,13 @@
         typename Subdialect::select::exprs,
         typename result_of::add_key<
           Data,
-          cols,
+          typename Subdialect::select::exprs,
           fusion::vector<
             BOOST_PP_REPEAT(n, BOOST_RDB_PP_RESULT_OF_AS_EXPRESSION, Expr)
           >
         >::type,
         Subdialect
-      >(add_key<cols>(data_,
+      >(add_key<typename Subdialect::select::exprs>(data_,
         fusion::vector<
           BOOST_PP_REPEAT(n, BOOST_RDB_PP_RESULT_OF_AS_EXPRESSION, Expr)
         >(

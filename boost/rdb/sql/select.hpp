@@ -68,7 +68,7 @@ namespace boost { namespace rdb { namespace sql {
   struct select_statement : select_impl {
 
     typedef select_statement_tag tag;
-    typedef typename fusion::result_of::value_at_key<Data, select_impl::cols>::type select_list;
+    typedef typename fusion::result_of::value_at_key<Data, typename Subdialect::select::exprs>::type select_list;
     typedef nullable<typename select_row<select_list>::type> row;
     //typedef std::deque<row> raw_result;
     typedef std::deque<row> result;
@@ -93,17 +93,17 @@ namespace boost { namespace rdb { namespace sql {
     select_statement<
       Subdialect,
       typename Subdialect::select::where,
-      typename result_of::add_key<Data, select_impl::where, Predicate>::type,
+      typename result_of::add_key<Data, typename Subdialect::select::where, Predicate>::type,
       Subdialect
     >
     where(const Predicate& predicate) const {
-      BOOST_MPL_ASSERT((allow<Subdialect, State, Subdialect::select::where>));
+      BOOST_MPL_ASSERT((allow<Subdialect, State, typename Subdialect::select::where>));
       return select_statement<
         Subdialect,
         typename Subdialect::select::where,
-        typename result_of::add_key<Data, select_impl::where, Predicate>::type,
+        typename result_of::add_key<Data, typename Subdialect::select::where, Predicate>::type,
         Subdialect
-      >(add_key<select_impl::where>(data_, predicate));
+      >(add_key<typename Subdialect::select::where>(data_, predicate));
     }
   };
 

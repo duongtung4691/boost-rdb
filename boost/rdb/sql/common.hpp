@@ -476,26 +476,18 @@ namespace boost { namespace rdb { namespace sql {
 
   struct select_impl {
 
-    class cols;
-    class distinct;
-    class all;
-    class tables;
-    class where;
-    class group_by;
-    class order_by;
-
     template<class Data>
     static void str(std::ostream& os, const Data& data) {
       os << "select";
       
-      str_opt_kw<distinct>(os, "distinct", data);
-      str_opt_kw<all>(os, "all", data);
+      str_opt_kw<sql2003::select::distinct>(os, "distinct", data);
+      str_opt_kw<sql2003::select::all>(os, "all", data);
 
       os << " ";
-      fusion::for_each(fusion::at_key<cols>(data), comma_output(os));
+      fusion::for_each(fusion::at_key<sql2003::select::exprs>(data), comma_output(os));
 
-      str_opt_list<tables>(os, "from", data);
-      str_opt<where>(os, "where", data);
+      str_opt_list<sql2003::select::from>(os, "from", data);
+      str_opt<sql2003::select::where>(os, "where", data);
     }
   };
   

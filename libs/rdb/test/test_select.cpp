@@ -273,8 +273,6 @@ BOOST_AUTO_TEST_CASE(test_is_null) {
     "select id from person where age is not null");
 }
 
-
-
 BOOST_AUTO_TEST_CASE(locals) {
 
   person_<1> p1("p1");

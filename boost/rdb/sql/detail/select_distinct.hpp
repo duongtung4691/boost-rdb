@@ -10,12 +10,12 @@
       typename result_of::add_key<
         typename result_of::add_key<
           Data,
-          cols,
+          typename Subdialect::select::exprs,
           fusion::vector<
             BOOST_PP_REPEAT(n, BOOST_RDB_PP_RESULT_OF_AS_EXPRESSION, Expr)
           >
         >::type,
-        select_impl::distinct,
+        typename Subdialect::select::distinct,
         int
       >::type,
       Subdialect
@@ -27,18 +27,18 @@
         typename result_of::add_key<
           typename result_of::add_key<
             Data,
-            cols,
+            typename Subdialect::select::exprs,
             fusion::vector<
               BOOST_PP_REPEAT(n, BOOST_RDB_PP_RESULT_OF_AS_EXPRESSION, Expr)
             >
           >::type,
-          select_impl::distinct,
+          typename Subdialect::select::distinct,
           int
         >::type,
         Subdialect
       >(
-        add_key<select_impl::distinct>(
-          add_key<cols>(
+        add_key<typename Subdialect::select::distinct>(
+          add_key<typename Subdialect::select::exprs>(
             data_,
             fusion::vector<
               BOOST_PP_REPEAT(n, BOOST_RDB_PP_RESULT_OF_AS_EXPRESSION, Expr)
