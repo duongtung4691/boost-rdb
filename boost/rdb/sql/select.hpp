@@ -27,17 +27,6 @@ namespace boost { namespace rdb { namespace sql {
     >::type type;
   };
 
-  struct sql2003 {
-    struct select {
-      struct begin;
-      struct distinct;
-      struct all;
-      struct exprs;
-      struct from;
-      struct where;
-    };
-  };
-
   template<class ExprList>
   void str(std::ostream& os, const fusion::pair<sql2003::select::exprs, ExprList>& p) {
     os << " ";
@@ -54,17 +43,31 @@ namespace boost { namespace rdb { namespace sql {
 
   template<class TableList>
   void str(std::ostream& os, const fusion::pair<sql2003::select::from, TableList>& p) {
-    os << " from";
+    os << " from ";
     fusion::for_each(p.second, comma_output(os));
   }
 
   template<class Predicate>
   void str(std::ostream& os, const fusion::pair<sql2003::select::where, Predicate>& p) {
-    os << " where";
+    os << " where ";
     p.second.str(os);
   }
   
   template<> struct allow<sql2003, sql2003::select::from, sql2003::select::where> : mpl::true_ { };
+
+  template<class Dialect, class State, class Data, class T>
+  struct select_transition {
+    typedef select_statement<
+      Dialect,
+      typename State,
+      typename result_of::add_key<
+        Data,
+        State,
+        T
+      >::type,
+      Dialect
+    > type;
+  };
 
   template<class Dialect, class Data, class Subdialect>
   struct select_statement<Dialect, typename Dialect::select::begin, Data, Subdialect> : select_impl
@@ -89,20 +92,6 @@ namespace boost { namespace rdb { namespace sql {
   };
 
   extern select_statement<sql2003, sql2003::select::begin, fusion::map<>, sql2003> select;
-
-  template<class Dialect, class State, class Data, class T>
-  struct select_transition {
-    typedef select_statement<
-      Dialect,
-      typename State,
-      typename result_of::add_key<
-        Data,
-        State,
-        T
-      >::type,
-      Dialect
-    > type;
-  };
   
   template<class Dialect, class State, class Data, class Subdialect>
   struct select_statement : select_impl {

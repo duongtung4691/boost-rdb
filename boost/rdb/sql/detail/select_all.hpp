@@ -4,46 +4,33 @@
 #define n BOOST_PP_ITERATION()
 
     template<BOOST_PP_ENUM_PARAMS(n, class Expr)>
-    select_statement<
+    typename select_transition<
       Subdialect,
-      typename Subdialect::select::all,
+      typename Subdialect::select::exprs,
       typename result_of::add_key<
-        typename result_of::add_key<
-          Data,
-          typename Subdialect::select::exprs,
-          fusion::vector<
-            BOOST_PP_REPEAT(n, BOOST_RDB_PP_RESULT_OF_AS_EXPRESSION, Expr)
-          >
-        >::type,
+        Data,
         typename Subdialect::select::all,
         int
       >::type,
-      Subdialect
-    >
+      fusion::vector<
+        BOOST_PP_REPEAT(n, BOOST_RDB_PP_RESULT_OF_AS_EXPRESSION, Expr)
+      >
+    >::type
     all(BOOST_PP_ENUM_BINARY_PARAMS(n, const Expr, &expr)) {
-      return select_statement<
+      return typename select_transition<
         Subdialect,
-        typename Subdialect::select::all,
+        typename Subdialect::select::exprs,
         typename result_of::add_key<
-          typename result_of::add_key<
-            Data,
-            typename Subdialect::select::exprs,
-            fusion::vector<
-              BOOST_PP_REPEAT(n, BOOST_RDB_PP_RESULT_OF_AS_EXPRESSION, Expr)
-            >
-          >::type,
+          Data,
           typename Subdialect::select::all,
           int
         >::type,
-        Subdialect
-      >(
-        add_key<typename Subdialect::select::all>(
-          add_key<typename Subdialect::select::exprs>(
-            data_,
-            fusion::vector<
-              BOOST_PP_REPEAT(n, BOOST_RDB_PP_RESULT_OF_AS_EXPRESSION, Expr)
-            >(
-              BOOST_PP_REPEAT(n, BOOST_RDB_PP_AS_EXPRESSION, expr)
-            )),
-          0));
+        fusion::vector<
+          BOOST_PP_REPEAT(n, BOOST_RDB_PP_RESULT_OF_AS_EXPRESSION, Expr)
+        >
+      >::type(add_key<typename Subdialect::select::exprs>(
+        add_key<typename Subdialect::select::all>(data_, 0),
+        fusion::vector<
+          BOOST_PP_REPEAT(n, BOOST_RDB_PP_RESULT_OF_AS_EXPRESSION, Expr)
+        >(BOOST_PP_REPEAT(n, BOOST_RDB_PP_AS_EXPRESSION, expr))));
     }

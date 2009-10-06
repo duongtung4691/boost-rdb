@@ -91,6 +91,24 @@ namespace boost { namespace rdb { namespace sql {
       highest
     };
   }
+
+  struct sql2003 {
+
+    struct select {
+      struct begin;
+      struct distinct;
+      struct all;
+      struct exprs;
+      struct from;
+      struct where;
+    };
+
+    struct insert {
+      struct begin;
+      struct cols;
+      struct set;
+    };
+  };
   
   template<class Dialect, class State, class Data, class Subdialect>
   struct select_statement;
