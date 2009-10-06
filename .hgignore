@@ -1,0 +1,7 @@
+glob:Debug/*
+glob:bin.v2/*
+glob:*.orig
+glob:*.user
+glob:*.suo
+glob:*.ncb
+glob:*.rsp
