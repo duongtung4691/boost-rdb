@@ -130,6 +130,7 @@ namespace boost { namespace rdb { namespace odbc {
     // BOOST_CONCEPT_REQUIRES(((Statement<Stat>)), (typename Stat::result))
     typename discriminate_execute<typename Stat::tag, Stat>::type
     execute(const Stat& st) { 
+      // error "tag is not a member..." probably means that you tried to execute a statement that is not complete, e.g. `insert(t)`
       return discriminate_execute<typename Stat::tag, Stat>::execute(*this, st);
     }
 
