@@ -37,6 +37,32 @@ namespace boost { namespace rdb { namespace sql {
       struct where;
     };
   };
+
+  template<class ExprList>
+  void str(std::ostream& os, const fusion::pair<sql2003::select::exprs, ExprList>& p) {
+    os << " ";
+    fusion::for_each(p.second, comma_output(os));
+  }
+
+  inline void str(std::ostream& os, const fusion::pair<sql2003::select::distinct, int>& p) {
+    os << " distinct";
+  }
+
+  inline void str(std::ostream& os, const fusion::pair<sql2003::select::all, int>& p) {
+    os << " all";
+  }
+
+  template<class TableList>
+  void str(std::ostream& os, const fusion::pair<sql2003::select::from, TableList>& p) {
+    os << " from";
+    fusion::for_each(p.second, comma_output(os));
+  }
+
+  template<class Predicate>
+  void str(std::ostream& os, const fusion::pair<sql2003::select::where, Predicate>& p) {
+    os << " where";
+    p.second.str(os);
+  }
   
   template<> struct allow<sql2003, sql2003::select::from, sql2003::select::where> : mpl::true_ { };
 

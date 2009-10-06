@@ -474,20 +474,25 @@ namespace boost { namespace rdb { namespace sql {
   template<class Context, class Data>
   struct select_projection;
 
-  struct select_impl {
+  //template<class Key, class ExprList>
+  //void str(std::ostream& os, const fusion::pair<Key, ExprList>& clause);
 
+  struct str_clause {
+    str_clause(std::ostream& os) : os_(os) { }
+    std::ostream& os_;
+
+    template<typename Clause>
+    void operator ()(const Clause& clause) const {
+      str(os_, clause);
+    }
+  };
+
+  struct select_impl {
+  
     template<class Data>
     static void str(std::ostream& os, const Data& data) {
       os << "select";
-      
-      str_opt_kw<sql2003::select::distinct>(os, "distinct", data);
-      str_opt_kw<sql2003::select::all>(os, "all", data);
-
-      os << " ";
-      fusion::for_each(fusion::at_key<sql2003::select::exprs>(data), comma_output(os));
-
-      str_opt_list<sql2003::select::from>(os, "from", data);
-      str_opt<sql2003::select::where>(os, "where", data);
+      fusion::for_each(data, str_clause(os));
     }
   };
   
