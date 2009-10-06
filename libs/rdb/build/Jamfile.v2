@@ -18,9 +18,6 @@ SOURCES =
     rdb odbc ;
 
 lib boost_rdb
-    :
-    $(SOURCES).cpp
-    : <include>boost
-    :
-    :
+	: $(SOURCES).cpp
+    : <include>../../.. 
     ;

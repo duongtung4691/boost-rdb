@@ -13,10 +13,11 @@ project
     : requirements
     <library>../build//boost_rdb
     <link>static
+    <include>../../.. 
     ;
 {
    test-suite "rdb"
+        : [ run test.cpp  $(boost-build)libs/test/build//boost_test_exec_monitor ]
         :
-        [ run test.cpp  ../../test/build//boost_test_exec_monitor  ]
-       ;
+		;
 }
