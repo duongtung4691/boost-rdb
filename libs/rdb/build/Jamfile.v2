@@ -20,9 +20,7 @@ SOURCES =
 lib boost_rdb
     :
     $(SOURCES).cpp
-    :
+    : <include>boost
     :
     :
     ;
-
-boost-install boost_rdb ;

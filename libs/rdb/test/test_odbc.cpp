@@ -28,17 +28,18 @@ struct springfield_fixture {
   springfield_fixture() : db("boost", "boost", "boost") {
 
     try {
-      db.execute(drop_table(person::_));
+      db.execute(create_table(person::_));
     } catch (error) {
+      db.execute(drop_table(person::_));
+      db.execute(create_table(person::_));
     }
 
     try {
-      db.execute(drop_table(partner::_));
+      db.execute(create_table(partner::_));
     } catch (error) {
+      db.execute(drop_table(partner::_));
+      db.execute(create_table(partner::_));
     }
-
-    db.execute(create_table(person::_));
-    db.execute(create_table(partner::_));
     
     person p;
     partner l;
