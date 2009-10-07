@@ -69,50 +69,56 @@ namespace boost { namespace rdb { namespace sql {
     > type;
   };
 
-  template<class Dialect, class Data, class Subdialect>
-  struct select_statement<Dialect, typename Dialect::select::begin, Data, Subdialect> : select_impl
-  {
-    Data data_;
-
-#define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
-//#define BOOST_PP_ITERATION_LIMITS (1, 1)
-#define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/select_begin_call.hpp>
-#include BOOST_PP_ITERATE()
-
-#define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
-//#define BOOST_PP_ITERATION_LIMITS (1, 1)
-#define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/select_distinct.hpp>
-#include BOOST_PP_ITERATE()
-
-#define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
-//#define BOOST_PP_ITERATION_LIMITS (1, 1)
-#define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/select_all.hpp>
-#include BOOST_PP_ITERATE()
-
-  };
-
   extern select_statement<sql2003, sql2003::select::begin, fusion::map<>, sql2003> select;
   
-  template<class Dialect, class State, class Data, class Subdialect>
-  struct select_statement : select_impl, State::tags {
+  template<class Data, class Key, class Enable = void>
+  struct select_statement_exprs : select_impl {
+    select_statement_exprs(const Data& data) : data_(data) { }
+    Data data_;
+  };
+  
+  template<class Data, class Key>
+  struct select_statement_exprs<
+    Data,
+    Key,
+    typename enable_if<
+      fusion::result_of::has_key<Data, Key>
+    >::type
+  > : select_impl {
 
-    typedef typename fusion::result_of::value_at_key<Data, typename Subdialect::select::exprs>::type select_list;
+    typedef typename fusion::result_of::value_at_key<Data, Key>::type select_list;
     typedef nullable<typename select_row<select_list>::type> row;
-    //typedef std::deque<row> raw_result;
     typedef std::deque<row> result;
 
-    select_statement(const Data& data) : data_(data) { }
+    select_statement_exprs(const Data& data) : data_(data) { }
     Data data_;
 
     const select_list& exprs() const {
-      return fusion::at_key<typename Subdialect::select::exprs>(data_);
+      return fusion::at_key<Key>(data_);
     }
+  };
+  
+  template<class Dialect, class State, class Data, class Subdialect>
+  struct select_statement : select_statement_exprs<Data, typename Subdialect::select::exprs>, State::tags  {
 
+    select_statement(const Data& data) : select_statement_exprs<Data, typename Subdialect::select::exprs>(data) { }
+    
     void str(std::ostream& os) const {
       select_impl::str(os, data_);
     }
 
-    #include <boost/preprocessor/iteration/iterate.hpp>
+    #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
+    #define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/select_begin_call.hpp>
+    #include BOOST_PP_ITERATE()
+
+    #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
+    #define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/select_distinct.hpp>
+    #include BOOST_PP_ITERATE()
+
+    #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
+    #define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/select_all.hpp>
+    #include BOOST_PP_ITERATE()
+
     #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
     #define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/select_from.hpp>
     #include BOOST_PP_ITERATE()
