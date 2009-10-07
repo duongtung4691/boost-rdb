@@ -20,4 +20,10 @@ project
         : [ run test.cpp  $(boost-build)libs/test/build//boost_test_exec_monitor ]
         :
 		;
+
+    test-suite "compile_fail_test"
+        :
+        [ compile-fail compile_fail/select_sans_from.cpp ]
+        [ compile-fail compile_fail/select_where_from.cpp ]
+        ;
 }
