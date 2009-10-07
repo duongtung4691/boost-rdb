@@ -27,7 +27,7 @@
           int
         >::type
       >::type(add_key<typename Subdialect::select::exprs>(
-        add_key<typename Subdialect::select::distinct>(data_, 0),
+        add_key<typename Subdialect::select::distinct>(this->data_, 0),
         fusion::vector<
           BOOST_PP_REPEAT(n, BOOST_RDB_PP_RESULT_OF_AS_EXPRESSION, Expr)
         >(BOOST_PP_REPEAT(n, BOOST_RDB_PP_AS_EXPRESSION, expr))));
