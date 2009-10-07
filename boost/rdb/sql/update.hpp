@@ -62,7 +62,7 @@ namespace boost { namespace rdb { namespace sql {
 
   template<class SetList>
   inline void str(std::ostream& os, const fusion::pair<sql2003::update::set, SetList>& p) {
-    os << "set ";
+    os << " set ";
     fusion::for_each(p.second, comma_output(os));
   }
 
