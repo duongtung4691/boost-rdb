@@ -10,7 +10,6 @@ BOOST_AUTO_TEST_CASE(test_select_temp) {
   
   person p;
   using namespace boost;
-  //boost::fusion::make_map(boost::fusion::make_pair<int>(1), boost::fusion::make_pair<double>(1));
 
   BOOST_RDB_CHECK_SQL(
     select(p.id),
