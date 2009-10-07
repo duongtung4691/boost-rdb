@@ -10,27 +10,27 @@
 namespace boost { namespace rdb { namespace sql {
 
   template<class Table>
-  inline void str(std::ostream& os, const fusion::pair<sql2003::insert::table, const Table*>& p) {
+  inline void str(std::ostream& os, const fusion::pair<sql2003::insert, const Table*>& p) {
     os << "insert into ";
     os << p.second->table();
   }
 
   template<class ColList>
-  inline void str(std::ostream& os, const fusion::pair<sql2003::insert::cols, ColList>& p) {
+  inline void str(std::ostream& os, const fusion::pair<sql2003::cols, ColList>& p) {
     os << " (";
     fusion::for_each(p.second, comma_output(os));
     os << ")";
   }
 
   template<class ValueList>
-  inline void str(std::ostream& os, const fusion::pair<sql2003::insert::values, ValueList>& p) {
+  inline void str(std::ostream& os, const fusion::pair<sql2003::values, ValueList>& p) {
     os << " values (";
     fusion::for_each(p.second, comma_output(os));
     os << ")";
   }
 
   template<class ExprList>
-  inline void str(std::ostream& os, const fusion::pair<sql2003::insert::select, ExprList>& p) {
+  inline void str(std::ostream& os, const fusion::pair<sql2003::select, ExprList>& p) {
     os << " select ";
     fusion::for_each(p.second, comma_output(os));
   }
@@ -39,8 +39,8 @@ namespace boost { namespace rdb { namespace sql {
   struct insert_statement :
     tag_if<
       mpl::or_<
-        fusion::result_of::has_key<Data, typename Subdialect::insert::values>,
-        fusion::result_of::has_key<Data, typename Subdialect::insert::select>
+        fusion::result_of::has_key<Data, typename Subdialect::values>,
+        fusion::result_of::has_key<Data, typename Subdialect::select>
       >,
       insert_statement_tag
     > {
@@ -117,7 +117,7 @@ namespace boost { namespace rdb { namespace sql {
     template<class Exprs>
     struct with_values {
 
-      typedef typename fusion::result_of::value_at_key<Data, typename Subdialect::insert::cols>::type cols;
+      typedef typename fusion::result_of::value_at_key<Data, typename Subdialect::cols>::type cols;
       typedef typename fusion::result_of::end<cols>::type col_last;
 
       // If this assertion fails the insert list and the value list have different sizes
@@ -133,14 +133,14 @@ namespace boost { namespace rdb { namespace sql {
       > final_value_list;
 
       typedef typename transition<
-        typename Subdialect::insert::values,
+        typename Subdialect::values,
         typename fusion::result_of::as_vector<
           typename final_value_list::type
         >::type
       >::type type;
 
       static type make(const Data& data, const Exprs& exprs) {
-        return type(add_key<typename Subdialect::insert::values>(
+        return type(add_key<typename Subdialect::values>(
           data, fusion::as_vector(final_value_list::make(fusion::begin(exprs)))));
       }
     };
@@ -173,15 +173,15 @@ namespace boost { namespace rdb { namespace sql {
 
   };
   
-  BOOST_RDB_ALLOW(sql2003, insert::cols, insert::select);
+  BOOST_RDB_ALLOW(sql2003, cols, select);
 
   template<class Table>
   insert_statement<
     sql2003,
-    sql2003::insert::table,
+    sql2003::insert,
     fusion::map<
       fusion::pair<
-      sql2003::insert::table, const Table*
+      sql2003::insert, const Table*
       >
     >,
     sql2003
@@ -189,14 +189,14 @@ namespace boost { namespace rdb { namespace sql {
   insert_into(const Table& table) {
     return insert_statement<
       sql2003,
-      sql2003::insert::table,
+      sql2003::insert,
       fusion::map<
         fusion::pair<
-        sql2003::insert::table, const Table*
+        sql2003::insert, const Table*
         >
       >,
       sql2003
-    >(fusion::make_pair<sql2003::insert::table>(&table));
+    >(fusion::make_pair<sql2003::insert>(&table));
   }
 
 } } }

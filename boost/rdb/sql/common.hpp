@@ -106,31 +106,17 @@ namespace boost { namespace rdb { namespace sql {
   };
 
   struct sql2003 {
-
-    struct select {
-      // states
-      struct begin;
-      struct distinct;
-      struct all;
-      struct exprs;
-      struct from;
-      struct where;
-    };
-
-    struct insert {
-      // states
-      struct table;
-      struct cols;
-      struct values;
-      struct select;
-    };
-    
-    struct update {
-      class table;
-      class cols;
-      class set;
-      typedef select::where where;
-    };
+    struct select;
+    struct distinct;
+    struct all;
+    struct exprs;
+    struct from;
+    struct where;
+    struct insert;
+    struct update;
+    struct cols;
+    struct values;
+    struct set;
   };
   
   template<class Dialect, class State, class Data, class Subdialect>
@@ -142,7 +128,7 @@ namespace boost { namespace rdb { namespace sql {
   #define BOOST_RDB_ALLOW(Dialect, State, New) \
     template<> struct allow<Dialect, Dialect::State, Dialect::New> : mpl::true_ { }
   
-  BOOST_RDB_ALLOW(sql2003, select::from, select::where);
+  BOOST_RDB_ALLOW(sql2003, from, where);
 
   template<typename Iter>
   void quote_text(std::ostream& os, Iter iter, Iter last) {
@@ -190,27 +176,27 @@ namespace boost { namespace rdb { namespace sql {
   };
 
   template<class ExprList>
-  void str(std::ostream& os, const fusion::pair<sql2003::select::exprs, ExprList>& p) {
+  void str(std::ostream& os, const fusion::pair<sql2003::exprs, ExprList>& p) {
     os << " ";
     fusion::for_each(p.second, comma_output(os));
   }
 
-  inline void str(std::ostream& os, const fusion::pair<sql2003::select::distinct, int>& p) {
+  inline void str(std::ostream& os, const fusion::pair<sql2003::distinct, int>& p) {
     os << " distinct";
   }
 
-  inline void str(std::ostream& os, const fusion::pair<sql2003::select::all, int>& p) {
+  inline void str(std::ostream& os, const fusion::pair<sql2003::all, int>& p) {
     os << " all";
   }
 
   template<class TableList>
-  void str(std::ostream& os, const fusion::pair<sql2003::select::from, TableList>& p) {
+  void str(std::ostream& os, const fusion::pair<sql2003::from, TableList>& p) {
     os << " from ";
     fusion::for_each(p.second, comma_output(os));
   }
 
   template<class Predicate>
-  void str(std::ostream& os, const fusion::pair<sql2003::select::where, Predicate>& p) {
+  void str(std::ostream& os, const fusion::pair<sql2003::where, Predicate>& p) {
     os << " where ";
     p.second.str(os);
   }
