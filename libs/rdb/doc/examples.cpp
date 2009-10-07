@@ -18,10 +18,9 @@ void examples() {
 
 namespace boost { namespace rdb { namespace sql {
 
+  // add a new keyword
   struct mysql5 : sql2003 {
-    struct select : sql2003::select {
-      struct limit;
-    };
+    struct limit;
   };
   
   // allow all sql2003 constructs
@@ -36,27 +35,27 @@ namespace boost { namespace rdb { namespace sql {
 
     select_statement(const Data& data) : inherited(data) { }
 
-    typename inherited::template transition<typename Subdialect::select::limit, int>::type
+    typename inherited::template transition<typename Subdialect::limit, int>::type
     limit(int n) const {
-      BOOST_MPL_ASSERT((allow<Subdialect, State, Subdialect::select::limit>));
+      BOOST_MPL_ASSERT((allow<Subdialect, State, Subdialect::limit>));
       return typename inherited::template transition<
-        typename Subdialect::select::limit, int
-      >::type(add_key<typename Subdialect::select::limit>(data_, n));
+        typename Subdialect::limit, int
+      >::type(add_key<typename Subdialect::limit>(data_, n));
     }
   };
 
   // tell how to print the clause
-  inline void str(std::ostream& os, const fusion::pair<mysql5::select::limit, int>& p) {
+  inline void str(std::ostream& os, const fusion::pair<mysql5::limit, int>& p) {
     os << " limit " << p.second;
   }
   
   // declare legal transitions
-  BOOST_RDB_ALLOW(mysql5, select::from, select::limit);
-  BOOST_RDB_ALLOW(mysql5, select::where, select::limit);
+  BOOST_RDB_ALLOW(mysql5, from, limit);
+  BOOST_RDB_ALLOW(mysql5, where, limit);
 
   // grammar entry point
   namespace mysql {
-    select_statement<mysql5, mysql5::select::begin, fusion::map<>, mysql5> select = fusion::map<>();
+    select_statement<mysql5, mysql5::select, fusion::map<>, mysql5> select = fusion::map<>();
   }
 
   // that's it !

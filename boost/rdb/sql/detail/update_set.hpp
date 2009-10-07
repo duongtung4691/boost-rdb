@@ -5,16 +5,16 @@
 
     template<BOOST_PP_ENUM_PARAMS(n, class Set)>
     typename transition<
-      typename Subdialect::update::set,
+      typename Subdialect::set,
       fusion::vector<
         BOOST_PP_ENUM_PARAMS(n, Set)
       >
     >::type
     set(BOOST_PP_ENUM_BINARY_PARAMS(n, const Set, &set)) {
       return typename transition<
-        typename Subdialect::update::set,
+        typename Subdialect::set,
         fusion::vector<
           BOOST_PP_ENUM_PARAMS(n, Set)
         >
-      >::type(add_key<Subdialect::update::set>(data_, fusion::make_vector(BOOST_PP_ENUM_PARAMS(n, set))));
+      >::type(add_key<Subdialect::set>(data_, fusion::make_vector(BOOST_PP_ENUM_PARAMS(n, set))));
     }
