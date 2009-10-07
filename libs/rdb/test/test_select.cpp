@@ -127,12 +127,8 @@ BOOST_AUTO_TEST_CASE(simple_where_clause) {
     "select id from person where id in (age + 1, 2)");
     
   // these won't compile    
-  #if 0
-  select(p.id).from(p).where(p.name == 666);
-  #endif
-  #if 0
-  select(p.id).from(p).where(p.name == p.id);
-  #endif
+  // select(p.id).from(p).where(p.name == 666);
+  // select(p.id).from(p).where(p.name == p.id);
 }
 
 BOOST_AUTO_TEST_CASE(alias) {

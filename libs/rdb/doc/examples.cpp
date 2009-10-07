@@ -20,7 +20,7 @@ namespace boost { namespace rdb { namespace sql {
 
   struct mysql5 : sql2003 {
     struct select : sql2003::select {
-      struct limit : complete { };
+      struct limit;
     };
   };
   

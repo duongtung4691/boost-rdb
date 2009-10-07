@@ -6,7 +6,6 @@
 
 #include <boost/rdb/sql/common.hpp>
 #include <boost/rdb/sql/expression.hpp>
-#include <boost/rdb/sql/select.hpp>
 
 namespace boost { namespace rdb { namespace sql {
 
@@ -38,6 +37,12 @@ namespace boost { namespace rdb { namespace sql {
     os << ")";
   }
 
+  template<class ExprList>
+  inline void str(std::ostream& os, const fusion::pair<sql2003::insert::select, ExprList>& p) {
+    os << " select ";
+    fusion::for_each(p.second, comma_output(os));
+  }
+
   template<class Dialect, class State, class Data, class Subdialect>
   struct insert_statement;
 
@@ -56,7 +61,14 @@ namespace boost { namespace rdb { namespace sql {
   };
 
   template<class Dialect, class State, class Data, class Subdialect>
-  struct insert_statement : State::tags {
+  struct insert_statement :
+    tag_if<
+      mpl::or_<
+        fusion::result_of::has_key<Data, typename Subdialect::insert::values>,
+        fusion::result_of::has_key<Data, typename Subdialect::insert::select>
+      >,
+      insert_statement_tag
+    > {
 
     explicit insert_statement(const Data& data) : data_(data) { }
 
@@ -64,6 +76,20 @@ namespace boost { namespace rdb { namespace sql {
     typedef void result;
 
     Data data_;
+
+    template<class K, class T, class D = Data>
+    struct transition {
+      typedef insert_statement<
+        Subdialect,
+        K,
+        typename result_of::add_key<
+          D,
+          K,
+          T
+        >::type,
+        Subdialect
+      > type;
+    };
 
     #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
     #define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/insert_cols.hpp>
@@ -147,62 +173,33 @@ namespace boost { namespace rdb { namespace sql {
       }
     };
 
-
     #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
     #define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/insert_values.hpp>
     #include BOOST_PP_ITERATE()
 
-#if 0
     #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
     #define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/insert_select.hpp>
     #include BOOST_PP_ITERATE()
-    #endif
-#endif
+
+    #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
+    #define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/select_distinct.hpp>
+    #include BOOST_PP_ITERATE()
+
+    #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
+    #define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/select_all.hpp>
+    #include BOOST_PP_ITERATE()
+
+    #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
+    #define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/select_from.hpp>
+    #include BOOST_PP_ITERATE()
+    
+    #include "detail/select_where.hpp"
+
     void str(std::ostream& os) const {
       fusion::for_each(data_, str_clause(os));
     }
 
   };
-
-#if 0
-  template<class Dialect, class State, class Data, class Subdialect>
-  struct insert_select : insert_impl, select_statement<Dialect, State, Data> {
-
-    typedef void result;
-    typedef select_statement<Dialect, State, Data> base;
-
-    insert_select(const Data& data) : base(data) {
-      typedef typename fusion::result_of::value_at_key<Data, typename Subdialect::insert::cols>::type insert_list;
-      typedef typename fusion::result_of::value_at_key<Data, select_impl::cols>::type select_list;
-      BOOST_MPL_ASSERT((mpl::equal_to<
-        fusion::result_of::size<insert_list>,
-        fusion::result_of::size<select_list> >));
-      BOOST_MPL_ASSERT((sql_lists_compatible<insert_list, select_list>));
-    }
-
-    void str(std::ostream& os) const {
-      typename Subdialect::insert::str(os, base::data_);
-      os << " ";
-      base::str(os);
-    }
-  };
-
-  template<class Context, class Data>
-  struct insert_select_from : insert_impl, select_statement<Context, Data> {
-
-    typedef insert_statement_tag tag;
-    typedef void result;
-    typedef select_statement<Context, Data> base;
-
-    insert_select_from(const Data& data) : base(data) { }
-
-    void str(std::ostream& os) const {
-      typename Subdialect::insert::str(os, base::data_);
-      os << " ";
-      base::str(os);
-    }
-  };
-#endif
 
   template<class Table>
   insert_statement<
@@ -229,3 +226,5 @@ namespace boost { namespace rdb { namespace sql {
   }
 
 } } }
+
+#endif

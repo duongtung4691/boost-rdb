@@ -27,44 +27,16 @@ namespace boost { namespace rdb { namespace sql {
     >::type type;
   };
 
-  template<class ExprList>
-  void str(std::ostream& os, const fusion::pair<sql2003::select::exprs, ExprList>& p) {
-    os << " ";
-    fusion::for_each(p.second, comma_output(os));
-  }
-
-  inline void str(std::ostream& os, const fusion::pair<sql2003::select::distinct, int>& p) {
-    os << " distinct";
-  }
-
-  inline void str(std::ostream& os, const fusion::pair<sql2003::select::all, int>& p) {
-    os << " all";
-  }
-
-  template<class TableList>
-  void str(std::ostream& os, const fusion::pair<sql2003::select::from, TableList>& p) {
-    os << " from ";
-    fusion::for_each(p.second, comma_output(os));
-  }
-
-  template<class Predicate>
-  void str(std::ostream& os, const fusion::pair<sql2003::select::where, Predicate>& p) {
-    os << " where ";
-    p.second.str(os);
-  }
-  
-  template<> struct allow<sql2003, sql2003::select::from, sql2003::select::where> : mpl::true_ { };
-
   extern select_statement<sql2003, sql2003::select::begin, fusion::map<>, sql2003> select;
   
   template<class Data, class Key, class Enable = void>
-  struct select_statement_exprs : select_impl {
-    select_statement_exprs(const Data& data) : data_(data) { }
+  struct select_result_if : select_impl {
+    select_result_if(const Data& data) : data_(data) { }
     Data data_;
   };
   
   template<class Data, class Key>
-  struct select_statement_exprs<
+  struct select_result_if<
     Data,
     Key,
     typename enable_if<
@@ -76,7 +48,7 @@ namespace boost { namespace rdb { namespace sql {
     typedef nullable<typename select_row<select_list>::type> row;
     typedef std::deque<row> result;
 
-    select_statement_exprs(const Data& data) : data_(data) { }
+    select_result_if(const Data& data) : data_(data) { }
     Data data_;
 
     const select_list& exprs() const {
@@ -84,24 +56,13 @@ namespace boost { namespace rdb { namespace sql {
     }
   };
   
-  template<class Dialect, class State, class Data, class T>
-  struct select_transition {
-    typedef select_statement<
-      Dialect,
-      State,
-      typename result_of::add_key<
-        Data,
-        State,
-        T
-      >::type,
-      Dialect
-    > type;
-  };
-  
   template<class Dialect, class State, class Data, class Subdialect>
-  struct select_statement : select_statement_exprs<Data, typename Subdialect::select::exprs>, State::tags  {
+  struct select_statement :
+    select_result_if<Data, typename Subdialect::select::exprs>,
+    tag_if<fusion::result_of::has_key<Data, typename Subdialect::select::from>, select_statement_tag>
+    {
 
-    select_statement(const Data& data) : select_statement_exprs<Data, typename Subdialect::select::exprs>(data) { }
+    select_statement(const Data& data) : select_result_if<Data, typename Subdialect::select::exprs>(data) { }
     
     void str(std::ostream& os) const {
       select_impl::str(os, data_);
@@ -136,18 +97,8 @@ namespace boost { namespace rdb { namespace sql {
     #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
     #define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/select_from.hpp>
     #include BOOST_PP_ITERATE()
-
-    template<class Predicate>
-    typename transition<typename Subdialect::select::where, Predicate>::type
-    where(const Predicate& predicate) const {
-      BOOST_MPL_ASSERT((allow<Subdialect, State, typename Subdialect::select::where>));
-      return select_statement<
-        Subdialect,
-        typename Subdialect::select::where,
-        typename result_of::add_key<Data, typename Subdialect::select::where, Predicate>::type,
-        Subdialect
-      >(add_key<typename Subdialect::select::where>(data_, predicate));
-    }
+    
+    #include "detail/select_where.hpp"
   };
 
   template<class Dialect, class State, class Data, class Subdialect>
