@@ -30,7 +30,7 @@ namespace boost { namespace rdb { namespace sql {
   extern select_statement<sql2003, sql2003::select, fusion::map<>, sql2003> select;
   
   template<class Data, class Key, class Enable = void>
-  struct select_result_if : select_impl {
+  struct select_result_if {
     select_result_if(const Data& data) : data_(data) { }
     Data data_;
   };
@@ -42,7 +42,7 @@ namespace boost { namespace rdb { namespace sql {
     typename enable_if<
       fusion::result_of::has_key<Data, Key>
     >::type
-  > : select_impl {
+  > {
 
     typedef typename fusion::result_of::value_at_key<Data, Key>::type select_list;
     typedef nullable<typename select_row<select_list>::type> row;
@@ -63,9 +63,10 @@ namespace boost { namespace rdb { namespace sql {
     {
 
     select_statement(const Data& data) : select_result_if<Data, typename Subdialect::exprs>(data) { }
-    
+
     void str(std::ostream& os) const {
-      select_impl::str(os, this->data_);
+      os << "select";
+      fusion::for_each(data_, str_clause(os));
     }
 
     template<class K, class T, class D = Data>

@@ -537,15 +537,6 @@ namespace boost { namespace rdb { namespace sql {
       str(os_, clause);
     }
   };
-
-  struct select_impl {
-  
-    template<class Data>
-    static void str(std::ostream& os, const Data& data) {
-      os << "select";
-      fusion::for_each(data, str_clause(os));
-    }
-  };
   
   struct null_type {
     typedef null_type sql_type;
