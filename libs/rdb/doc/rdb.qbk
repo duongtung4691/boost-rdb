@@ -32,7 +32,7 @@ Use, modification, and distribution are subject to the Boost Software License, V
 [heading Purpose]
 
 C++ is a statically typed language. __sql__ is also a statically typed language. It looks like they should play ball together.
-So how comes thatmost C++/__sql__ bindings make it possible write and compile code that contain not-so-subtle errors ?
+So how comes that most C++/__sql__ bindings make it possible to write and compile code that contains not-so-subtle errors ?
 They could be caught at compile time since all the necessary information is there.
 
 Well this is just what this library does.
