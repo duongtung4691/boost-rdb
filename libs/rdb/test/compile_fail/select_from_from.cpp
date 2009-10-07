@@ -1,6 +1,6 @@
 #include "test_fail.hpp"
 
 void test() {
-  check_incomplete(select(p.id));
+  select(p.id).from(p).from(p);
 }
 
