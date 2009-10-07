@@ -65,7 +65,7 @@ namespace boost { namespace rdb { namespace sql {
     select_statement(const Data& data) : select_result_if<Data, typename Subdialect::select::exprs>(data) { }
     
     void str(std::ostream& os) const {
-      select_impl::str(os, data_);
+      select_impl::str(os, this->data_);
     }
 
     template<class K, class T, class D = Data>
