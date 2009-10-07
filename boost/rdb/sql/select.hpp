@@ -55,20 +55,6 @@ namespace boost { namespace rdb { namespace sql {
   
   template<> struct allow<sql2003, sql2003::select::from, sql2003::select::where> : mpl::true_ { };
 
-  template<class Dialect, class State, class Data, class T>
-  struct select_transition {
-    typedef select_statement<
-      Dialect,
-      State,
-      typename result_of::add_key<
-        Data,
-        State,
-        T
-      >::type,
-      Dialect
-    > type;
-  };
-
   extern select_statement<sql2003, sql2003::select::begin, fusion::map<>, sql2003> select;
   
   template<class Data, class Key, class Enable = void>
@@ -98,6 +84,20 @@ namespace boost { namespace rdb { namespace sql {
     }
   };
   
+  template<class Dialect, class State, class Data, class T>
+  struct select_transition {
+    typedef select_statement<
+      Dialect,
+      State,
+      typename result_of::add_key<
+        Data,
+        State,
+        T
+      >::type,
+      Dialect
+    > type;
+  };
+  
   template<class Dialect, class State, class Data, class Subdialect>
   struct select_statement : select_statement_exprs<Data, typename Subdialect::select::exprs>, State::tags  {
 
@@ -106,6 +106,20 @@ namespace boost { namespace rdb { namespace sql {
     void str(std::ostream& os) const {
       select_impl::str(os, data_);
     }
+
+    template<class K, class T, class D = Data>
+    struct transition {
+      typedef select_statement<
+        Subdialect,
+        K,
+        typename result_of::add_key<
+          D,
+          K,
+          T
+        >::type,
+        Subdialect
+      > type;
+    };
 
     #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
     #define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/select_begin_call.hpp>
@@ -124,12 +138,7 @@ namespace boost { namespace rdb { namespace sql {
     #include BOOST_PP_ITERATE()
 
     template<class Predicate>
-    select_statement<
-      Subdialect,
-      typename Subdialect::select::where,
-      typename result_of::add_key<Data, typename Subdialect::select::where, Predicate>::type,
-      Subdialect
-    >
+    typename transition<typename Subdialect::select::where, Predicate>::type
     where(const Predicate& predicate) const {
       BOOST_MPL_ASSERT((allow<Subdialect, State, typename Subdialect::select::where>));
       return select_statement<
