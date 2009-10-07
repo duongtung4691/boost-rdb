@@ -1,4 +1,4 @@
-# Boost reflection Library test Jamfile
+# Boost rdb Library test Jamfile
 
 #  (C) Copyright Jean-Louis Leroy 2009.
 #  Use, modification, and distribution are subject to the 
@@ -6,8 +6,19 @@
 #  LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 #
 
-# bring in rules for testing
 import testing ;
+
+rule compile_fail_test_all
+{
+   #ECHO executing test_all rule ;
+   local all_rules = ;
+   for local file in [ glob compile_fail/*.cpp ]
+   {
+      all_rules += [ compile-fail $(file) ] ;
+   }
+   #ECHO $(all_rules) ;
+   return $(all_rules) ;
+}
 
 project
     : requirements
@@ -21,9 +32,5 @@ project
         :
 		;
 
-    test-suite "compile_fail_test"
-        :
-        [ compile-fail compile_fail/select_sans_from.cpp ]
-        [ compile-fail compile_fail/select_where_from.cpp ]
-        ;
+    test-suite syntax_checks : [ compile_fail_test_all ] ; 
 }
