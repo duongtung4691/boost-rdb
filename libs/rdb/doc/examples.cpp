@@ -30,31 +30,24 @@ namespace boost { namespace rdb { namespace sql {
   
   // augment the standard sql statement
   template<class State, class Data, class Subdialect>
-  struct select_statement<mysql5, State, Data, Subdialect>
-    : select_statement<sql2003, State, Data, Subdialect> {
+  struct select_statement<mysql5, State, Data, Subdialect> : select_statement<sql2003, State, Data, Subdialect> {
 
-    select_statement(const Data& data) : select_statement<sql2003, State, Data, Subdialect>(data) { }
+    typedef select_statement<sql2003, State, Data, Subdialect> inherited;
 
-    select_statement<
-      Subdialect,
-      typename Subdialect::select::limit,
-      typename result_of::add_key<Data, typename Subdialect::select::limit, int>::type,
-      Subdialect
-    >
+    select_statement(const Data& data) : inherited(data) { }
+
+    typename inherited::template transition<typename Subdialect::select::limit, int>::type
     limit(int n) const {
       BOOST_MPL_ASSERT((allow<Subdialect, State, Subdialect::select::limit>));
-      return select_statement<
-        Subdialect,
-        typename Subdialect::select::limit,
-        typename result_of::add_key<Data, mysql5::select::limit, int>::type,
-        Subdialect
-      >(add_key<typename Subdialect::select::limit>(data_, n));
+      return typename inherited::template transition<
+        typename Subdialect::select::limit, int
+      >::type(add_key<typename Subdialect::select::limit>(data_, n));
     }
   };
 
   // tell how to print the clause
   inline void str(std::ostream& os, const fusion::pair<mysql5::select::limit, int>& p) {
-    os << " limit(" << p.second << ")";
+    os << " limit " << p.second;
   }
   
   // declare legal transitions
