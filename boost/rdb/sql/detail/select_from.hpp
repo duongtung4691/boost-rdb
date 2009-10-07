@@ -1,20 +1,12 @@
     template<BOOST_PP_ENUM_PARAMS(n, class Table)>
-    typename select_transition<
-      Subdialect,
+    typename transition<
       typename Subdialect::select::from,
-      Data,
-      fusion::vector<
-        BOOST_PP_REPEAT(n, BOOST_RDB_PP_REFERENCE, const Table)
-      >
+      fusion::vector<BOOST_PP_REPEAT(n, BOOST_RDB_PP_REFERENCE, const Table)>
     >::type
     from(BOOST_PP_ENUM_BINARY_PARAMS(n, const Table, &table)) {
-      return typename select_transition<
-        Subdialect,
+      return typename transition<
         typename Subdialect::select::from,
-        Data,
-        fusion::vector<
-          BOOST_PP_REPEAT(n, BOOST_RDB_PP_REFERENCE, const Table)
-        >
+        fusion::vector<BOOST_PP_REPEAT(n, BOOST_RDB_PP_REFERENCE, const Table)>
       >::type(add_key<typename Subdialect::select::from>(
         data_,
         fusion::vector<
