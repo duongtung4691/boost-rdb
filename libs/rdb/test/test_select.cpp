@@ -52,9 +52,6 @@ BOOST_AUTO_TEST_CASE(select_from) {
   
   person p;
 
-  // this will not compile
-  //select(p.id).from(p).from(p);
-
   BOOST_RDB_CHECK_SQL(
     select(p.id).from(p),
     "select id from person");

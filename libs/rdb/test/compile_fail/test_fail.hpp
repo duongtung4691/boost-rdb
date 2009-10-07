@@ -1,11 +1,11 @@
 #include "../test.hpp"
-#include <boost/rdb/sql/select.hpp>
+#include <boost/rdb/sql.hpp>
 
 using namespace boost::rdb::sql;
 using namespace boost::rdb::sql::test::springfield;
 
 template<class T>
-void check_tag(const T&) {
+void check_incomplete(const T&) {
   typedef typename T::tag tag;
 };
 
