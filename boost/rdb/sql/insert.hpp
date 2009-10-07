@@ -183,6 +183,8 @@ namespace boost { namespace rdb { namespace sql {
     }
 
   };
+  
+  BOOST_RDB_ALLOW(sql2003, insert::cols, insert::select);
 
   template<class Table>
   insert_statement<

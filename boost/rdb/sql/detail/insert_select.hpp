@@ -11,6 +11,7 @@
       >
     >::type
     select(BOOST_PP_ENUM_BINARY_PARAMS(n, const Expr, &expr)) {
+      BOOST_MPL_ASSERT((allow<Subdialect, State, typename Subdialect::insert::select>));
       return typename transition<
         typename Subdialect::insert::select,
         fusion::vector<
