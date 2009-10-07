@@ -16,7 +16,7 @@
         fusion::vector<
           BOOST_PP_REPEAT(n, BOOST_RDB_PP_RESULT_OF_AS_EXPRESSION, Expr)
         >
-      >::type(add_key<typename Subdialect::select::exprs>(data_,
+      >::type(add_key<typename Subdialect::select::exprs>(this->data_,
         fusion::vector<
           BOOST_PP_REPEAT(n, BOOST_RDB_PP_RESULT_OF_AS_EXPRESSION, Expr)
         >(

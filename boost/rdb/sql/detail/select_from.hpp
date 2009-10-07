@@ -8,7 +8,7 @@
         typename Subdialect::select::from,
         fusion::vector<BOOST_PP_REPEAT(n, BOOST_RDB_PP_REFERENCE, const Table)>
       >::type(add_key<typename Subdialect::select::from>(
-        data_,
+        this->data_,
         fusion::vector<
           BOOST_PP_REPEAT(n, BOOST_RDB_PP_REFERENCE, const Table)
         >(BOOST_PP_ENUM_PARAMS(n, table)) ));
