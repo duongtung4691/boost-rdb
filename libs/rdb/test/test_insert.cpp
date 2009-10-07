@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(test_insert_select) {
 
   person h("h"), w("w");
   partner p;
-#if 0
+
   BOOST_RDB_CHECK_SQL(
     insert_into(p)(p.husband, p.wife).
       select(h.id, w.id).from(h, w),
@@ -116,7 +116,7 @@ BOOST_AUTO_TEST_CASE(test_insert_select) {
     insert_into(p)(p.husband, p.wife).
       select(h.id, w.id).from(h, w).where(h.name == w.name),
       "insert into partner (husband, wife) select h.id, w.id from person as h, person as w where h.name = w.name");
-#endif
+
   //these won't compile
   //insert_into(p)(p.husband, p.wife).select(h.id).from(h, w).where(h.name == w.name);
   //insert_into(p)(p.husband, p.wife).select(h.id, w.name).from(h, w).where(h.name == w.name);

@@ -245,6 +245,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\..\..\boost\rdb\sql\detail\select_where.hpp"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\..\boost\rdb\sql.hpp"
 			>
 		</File>

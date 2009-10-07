@@ -95,40 +95,47 @@ namespace boost { namespace rdb { namespace sql {
   struct statement_tag { };
   struct insert_statement_tag : statement_tag { };
   struct select_statement_tag : statement_tag { };
+  
+  template<class Condition, typename Tag, class Enable = void>
+  struct tag_if {
+  };
+  
+  template<class Condition, typename Tag>
+  struct tag_if<Condition, Tag, typename enable_if<Condition>::type> {
+    typedef Tag tag;
+  };
 
   struct sql2003 {
 
-    struct partial { struct tags { }; };
-
     struct select {
-      struct complete { struct tags { typedef select_statement_tag tag; }; };
       // states
-      struct begin : partial { };
-      struct distinct : partial { };
-      struct all : partial { };
-      struct exprs : partial { };
-      struct from : complete { };
-      struct where : complete { };
+      struct begin;
+      struct distinct;
+      struct all;
+      struct exprs;
+      struct from;
+      struct where;
     };
 
     struct insert {
-      struct complete { struct tags { typedef insert_statement_tag tag; }; };
       // states
-      struct table : partial { };
-      struct cols : partial { };
-      struct values : complete { };
-      struct select : complete { };
+      struct table;
+      struct cols;
+      struct values;
+      struct select;
     };
   };
   
   template<class Dialect, class State, class Data, class Subdialect>
   struct select_statement;
   
+  template<class Dialect, class State, class New>
+  struct allow : mpl::false_ { };
+  
   #define BOOST_RDB_ALLOW(Dialect, State, New) \
     template<> struct allow<Dialect, Dialect::State, Dialect::New> : mpl::true_ { }
   
-  template<class Dialect, class State, class New>
-  struct allow : mpl::false_ { };
+  BOOST_RDB_ALLOW(sql2003, select::from, select::where);
 
   template<typename Iter>
   void quote_text(std::ostream& os, Iter iter, Iter last) {
@@ -174,6 +181,32 @@ namespace boost { namespace rdb { namespace sql {
       at_c<1>(p).str(os);
     }
   };
+
+  template<class ExprList>
+  void str(std::ostream& os, const fusion::pair<sql2003::select::exprs, ExprList>& p) {
+    os << " ";
+    fusion::for_each(p.second, comma_output(os));
+  }
+
+  inline void str(std::ostream& os, const fusion::pair<sql2003::select::distinct, int>& p) {
+    os << " distinct";
+  }
+
+  inline void str(std::ostream& os, const fusion::pair<sql2003::select::all, int>& p) {
+    os << " all";
+  }
+
+  template<class TableList>
+  void str(std::ostream& os, const fusion::pair<sql2003::select::from, TableList>& p) {
+    os << " from ";
+    fusion::for_each(p.second, comma_output(os));
+  }
+
+  template<class Predicate>
+  void str(std::ostream& os, const fusion::pair<sql2003::select::where, Predicate>& p) {
+    os << " where ";
+    p.second.str(os);
+  }
 
   //namespace result_of {
   //  template<class Key, class Value, class Sequence>
