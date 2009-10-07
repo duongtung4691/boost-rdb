@@ -10,102 +10,84 @@ namespace boost { namespace rdb { namespace sql {
 
   struct update_statement_tag : statement_tag { };
 
-  template<class Context, class Data>
-  struct update_set;
+  template<class Dialect, class State, class Data, class Subdialect>
+  struct update_statement :
+    tag_if<fusion::result_of::has_key<Data, typename Subdialect::update::set>, update_statement_tag> {
 
-  template<class Table, class AssignList>
-  struct update_where;
+    explicit update_statement(const Data& data) : data_(data) { }
 
-  struct standard_update {
-    typedef standard_update this_context;
-    template<class Data> struct set { typedef update_set<this_context, Data> type; };
-    template<class Data> struct where { typedef update_where<this_context, Data> type; };
-  };
-
-  struct update_impl {
-
-    class table;
-    class cols;
-    class set;
-    class where;
-
-    template<class Data>
-    static void str(std::ostream& os, const Data& data) {
-      os << "update " << fusion::at_key<table>(data)->table();
-      str_list_if_has_key<set>(os, " set ", data, "");
-      str_obj_if_has_key<where>(os, " where ", data, "");
-    }
-  };
-
-  template<class Context, class Data>
-  struct update_table : update_impl {
-
-    explicit update_table(const Data& data) : data_(data) { }
+    typedef void result;
 
     Data data_;
+
+    template<class K, class T, class D = Data>
+    struct transition {
+      typedef update_statement<
+        Subdialect,
+        K,
+        typename result_of::add_key<
+          D,
+          K,
+          T
+        >::type,
+        Subdialect
+      > type;
+    };
 
     #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
     #define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/update_set.hpp>
     #include BOOST_PP_ITERATE()
 
-    void str(std::ostream& os) const { update_impl::str(os, data_); }
-
-  };
-
-  template<class Context, class Data>
-  struct update_set : update_impl {
-
-    typedef update_statement_tag tag;
-    typedef void result;
-
-    explicit update_set(const Data& data) : data_(data) { }
-    Data data_;
-
     template<class Predicate>
-    typename transition::where<
-      Context,
-      typename result_of::add_key<Data, update_impl::where, Predicate>::type
-    >::type
+    typename transition<typename Subdialect::update::where, Predicate>::type
     where(const Predicate& predicate) const {
-      return typename transition::where<
-        Context,
-        typename result_of::add_key<Data, update_impl::where, Predicate>::type
-      >::type(add_key<update_impl::where>(data_, predicate));
+      BOOST_MPL_ASSERT((allow<Subdialect, State, typename Subdialect::update::where>));
+      return typename transition<typename Subdialect::update::where, Predicate>::type(
+        add_key<typename Subdialect::update::where>(this->data_, predicate));
     }
 
-    void str(std::ostream& os) const { update_impl::str(os, data_); }
+    void str(std::ostream& os) const {
+      fusion::for_each(data_, str_clause(os));
+    }
   };
 
-  template<class Context, class Data>
-  struct update_where : update_impl {
-
-    typedef update_statement_tag tag;
-    typedef void result;
-
-    explicit update_where(const Data& data) : data_(data) { }
-    Data data_;
-
-    void str(std::ostream& os) const { update_impl::str(os, data_); }
-  };
+  BOOST_RDB_ALLOW(sql2003, update::set, update::where);
 
   template<class Table>
-  update_table<
-    standard_update,
+
+  inline void str(std::ostream& os, const fusion::pair<sql2003::update::table, const Table*>& p) {
+    os << "update ";
+    os << p.second->table();
+  }
+
+  template<class SetList>
+  inline void str(std::ostream& os, const fusion::pair<sql2003::update::set, SetList>& p) {
+    os << "set ";
+    fusion::for_each(p.second, comma_output(os));
+  }
+
+  template<class Table>
+  update_statement<
+    sql2003,
+    sql2003::update::table,
     fusion::map<
       fusion::pair<
-      update_impl::table, const Table*
+      sql2003::update::table, const Table*
       >
-    >
+    >,
+    sql2003
   >
   update(const Table& table) {
-    return update_table<
-      standard_update,
+    return update_statement<
+      sql2003,
+      sql2003::update::table,
       fusion::map<
         fusion::pair<
-          update_impl::table, const Table*
+        sql2003::update::table, const Table*
         >
-      >
-    >(fusion::make_pair<update_impl::table>(&table));
+      >,
+      sql2003
+    >(fusion::make_pair<sql2003::update::table>(&table));
   }
 
 } } }
