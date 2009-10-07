@@ -51,25 +51,36 @@ namespace boost { namespace rdb { namespace sql {
       >(add_key<typename Subdialect::select::limit>(data_, n));
     }
   };
+
+  // tell how to print the clause
+  inline void str(std::ostream& os, const fusion::pair<mysql5::select::limit, int>& p) {
+    os << " limit(" << p.second << ")";
+  }
   
   // declare legal transitions
   BOOST_RDB_ALLOW(mysql5, select::from, select::limit);
   BOOST_RDB_ALLOW(mysql5, select::where, select::limit);
 
-  // that's it !
-
+  // grammar entry point
   namespace mysql {
-
-    extern select_statement<mysql5, mysql5::select::begin, fusion::map<>, mysql5> select;
-
-
-    void test() {
-      person p;
-      select(p.id).from(p).limit(10);
-      select(p.id).from(p).where(p.id > 1).limit(10);
-    }
+    select_statement<mysql5, mysql5::select::begin, fusion::map<>, mysql5> select = fusion::map<>();
   }
 
+  // that's it !
+
 } } }
+
+#include <iostream>
+
+int main() {
+  using namespace std;
+  using namespace boost::rdb::sql;
+  using mysql::select;
+  person p;
+  select(p.id).from(p).limit(10);
+  select(p.id).from(p).where(p.id > 1).limit(10);
+  select(p.id).from(p).limit(10).str(cout);
+  cout << endl;
+}
 
 #endif
