@@ -5,3 +5,8 @@ glob:*.user
 glob:*.suo
 glob:*.ncb
 glob:*.rsp
+glob:bin/*
+glob:html/*
+glob:bjam.log
+glob:Jamroot
+glob:boost-build.jam
