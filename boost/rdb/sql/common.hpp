@@ -124,6 +124,13 @@ namespace boost { namespace rdb { namespace sql {
       struct values;
       struct select;
     };
+    
+    struct update {
+      class table;
+      class cols;
+      class set;
+      typedef select::where where;
+    };
   };
   
   template<class Dialect, class State, class Data, class Subdialect>
