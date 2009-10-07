@@ -1,0 +1,187 @@
+
+[section SQL subsystem]
+
+[section Concepts]
+
+[section SqlType]
+
+[heading Description]
+
+[heading Expression requirements]
+
+[heading Models]
+
+[endsect]
+
+[section Table]
+
+[heading Description]
+
+[heading Expression requirements]
+
+[heading Models]
+
+[endsect]
+
+[section Column]
+
+[heading Description]
+
+[heading Expression requirements]
+
+[heading Models]
+
+[endsect]
+
+[section Expression]
+
+[heading Description]
+
+[heading Expression requirements]
+
+[heading Models]
+
+[endsect]
+
+[section StringExpression]
+
+[heading Description]
+
+[heading Expression requirements]
+
+[heading Models]
+
+[endsect]
+
+[section NumericExpression]
+
+[heading Description]
+
+[heading Expression requirements]
+
+[heading Models]
+
+[endsect]
+
+[section BooleanExpression]
+
+[heading Description]
+
+[heading Expression requirements]
+
+[heading Models]
+
+[endsect]
+
+[section Statement]
+
+[heading Description]
+
+[heading Expression requirements]
+
+[heading Models]
+
+[endsect]
+
+[section Database]
+
+[heading Description]
+
+[heading Expression requirements]
+
+[heading Models]
+
+[endsect]
+
+[endsect]
+
+[section Statements]
+
+__sql__ statements like SELECT and INSERT are too complex to be built in one function call.
+__rdb__ uses calls to member functions chained by the dot operator to achieve a syntax that is very close to
+__sql__. Intermediate objects of unspecified types are produced inside thet chain. These classes are implementation
+details and thus are not documented. The entire chain is.
+
+[section create_table]
+
+[heading Description]
+
+Create a `CREATE TABLE` statement.
+
+[heading Synopsis]
+
+[heading Parameters]
+
+[table
+    [[Parameter]        [Requirement]                   [Description]]
+    [[`T`]				[Model of Table]				[The table type]]
+]
+
+[heading Expression Semantics]
+
+[*Return type]: A model of Statement
+
+[*Semantics]: Create an insert statement.
+
+[*Preconditions]:
+
+[heading Header]
+
+[heading Example]
+[example_create_table
+
+[endsect]
+
+[section drop_table]
+
+[endsect]
+
+[section insert_into]
+
+[heading Description]
+
+Create an insert statement.
+
+[heading Synopsis]
+
+	insert(const T& table)(const C0& c0, const C1& c1, ... const CN& cN).values(const E0& e0, const E1& e1, ... const EN& eN);
+	
+	insert(const T& table)(const C0& c0, const C1& c1, ... const CN& cN).select(const E0& e0, const E1& e1, ... const EN& eN).from(...) ...
+
+[heading Parameters]
+
+[table
+    [[Parameter]        [Requirement]                   [Description]]
+    [[`T`]				[Model of Table]				[The table type]]
+    [[`table`]			[Instance of T]					[The table]]
+    [[`C0, C1,... CN`]  [Models of Column]				[The column types]]
+    [[`c0, c1,... cN`]  [Instances of `C0, C1, CN`]		[The columns to insert the data into]]
+]
+
+[heading Expression Semantics]
+
+[*Return type]: A model of Statement
+
+[*Semantics]: Create an insert statement.
+
+[*Preconditions]: for n = 0 .. N : is_same<Tn::sql_type, En::sql_type>
+
+[heading Example]
+
+[endsect]
+
+[section update]
+
+[endsect]
+
+[section select]
+
+[endsect]
+
+[section update]
+
+[endsect]
+
+[endsect]
+
+[endsect]
