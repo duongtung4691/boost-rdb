@@ -24,16 +24,11 @@ namespace boost { namespace rdb { namespace sql {
     };
   };
   
+  // allow all sql2003 constructs
   template<class State, class New>
   struct allow<mysql5, State, New> : allow<sql2003, State, New> { };
-
-  template<class Data>
-  struct select_statement<mysql5, mysql5::select::begin, Data, mysql5>
-    : select_statement<sql2003, mysql5::select::begin, Data, mysql5> {
-
-    select_statement(const Data& data) : select_statement<sql2003, sql2003::select::begin, Data, mysql5>(data) { }
-  };
   
+  // augment the standard sql statement
   template<class State, class Data, class Subdialect>
   struct select_statement<mysql5, State, Data, Subdialect>
     : select_statement<sql2003, State, Data, Subdialect> {
@@ -57,8 +52,11 @@ namespace boost { namespace rdb { namespace sql {
     }
   };
   
+  // declare legal transitions
   BOOST_RDB_ALLOW(mysql5, select::from, select::limit);
   BOOST_RDB_ALLOW(mysql5, select::where, select::limit);
+
+  // that's it !
 
   namespace mysql {
 
@@ -67,10 +65,7 @@ namespace boost { namespace rdb { namespace sql {
 
     void test() {
       person p;
-      //select++;
-      //select(p.id)++;
       select(p.id).from(p).limit(10);
-      //select(p.id).limit(10).from(p);
       select(p.id).from(p).where(p.id > 1).limit(10);
     }
   }
