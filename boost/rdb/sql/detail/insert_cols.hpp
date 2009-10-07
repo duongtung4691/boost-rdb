@@ -4,19 +4,15 @@
 #define n BOOST_PP_ITERATION()
 
 template<BOOST_PP_ENUM_PARAMS(n, class Col)>
-typename insert_transition<
-  Subdialect,
+typename transition<
   typename Subdialect::insert::cols,
-  Data,
   fusion::vector<
     BOOST_PP_ENUM_PARAMS(n, Col)
   >
 >::type
 operator ()(BOOST_PP_ENUM_BINARY_PARAMS(n, const Col, &col)) {
-  return typename insert_transition<
-    Subdialect,
+  return typename transition<
     typename Subdialect::insert::cols,
-    Data,
     fusion::vector<
       BOOST_PP_ENUM_PARAMS(n, Col)
     >

@@ -46,20 +46,6 @@ namespace boost { namespace rdb { namespace sql {
   template<class Dialect, class State, class Data, class Subdialect>
   struct insert_statement;
 
-  template<class Dialect, class State, class Data, class T>
-  struct insert_transition {
-    typedef insert_statement<
-      Dialect,
-      State,
-      typename result_of::add_key<
-        Data,
-        State,
-        T
-      >::type,
-      Dialect
-    > type;
-  };
-
   template<class Dialect, class State, class Data, class Subdialect>
   struct insert_statement :
     tag_if<
@@ -72,7 +58,6 @@ namespace boost { namespace rdb { namespace sql {
 
     explicit insert_statement(const Data& data) : data_(data) { }
 
-    // todo: conditionally enable the two typedefs
     typedef void result;
 
     Data data_;
@@ -158,10 +143,8 @@ namespace boost { namespace rdb { namespace sql {
         typename fusion::result_of::begin<Exprs>::type
       > final_value_list;
 
-      typedef typename insert_transition<
-        Subdialect,
+      typedef typename transition<
         typename Subdialect::insert::values,
-        Data,
         typename fusion::result_of::as_vector<
           typename final_value_list::type
         >::type
