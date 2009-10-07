@@ -9,14 +9,6 @@
 
 namespace boost { namespace rdb { namespace sql {
 
-  struct insert_impl {
-
-    template<class Data>
-    static void str(std::ostream& os, const Data& data) {
-      fusion::for_each(data, str_clause(os));
-    }
-  };
-
   template<class Table>
   inline void str(std::ostream& os, const fusion::pair<sql2003::insert::table, const Table*>& p) {
     os << "insert into ";
@@ -42,9 +34,6 @@ namespace boost { namespace rdb { namespace sql {
     os << " select ";
     fusion::for_each(p.second, comma_output(os));
   }
-
-  template<class Dialect, class State, class Data, class Subdialect>
-  struct insert_statement;
 
   template<class Dialect, class State, class Data, class Subdialect>
   struct insert_statement :
