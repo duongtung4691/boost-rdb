@@ -245,6 +245,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\..\..\boost\rdb\sql\operators.hpp"
+			>
+		</File>
+		<File
 			RelativePath="..\..\src\rdb.cpp"
 			>
 		</File>
