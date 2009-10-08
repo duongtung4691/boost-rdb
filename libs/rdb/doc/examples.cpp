@@ -137,6 +137,8 @@ void select_size() {
 
   cout << sizeof(select(p.id).from(p).where(p.age > 18 && p.age < 65)) << endl;
   // 28 with msvc9
+  cout << sizeof(select(p.id).from(p).where(p.age > 18 && p.age < 65).exprs()) << endl;
+  // 28 with msvc9
 }
 
 int main() {
