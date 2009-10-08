@@ -66,7 +66,7 @@ namespace boost { namespace rdb { namespace sql {
 
     void str(std::ostream& os) const {
       os << "select";
-      fusion::for_each(data_, str_clause(os));
+      fusion::for_each(this->data_, str_clause(os));
     }
 
     template<class K, class T, class D = Data>
