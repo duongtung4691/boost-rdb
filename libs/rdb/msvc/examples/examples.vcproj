@@ -132,6 +132,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				GenerateDebugInformation="true"
 				SubSystem="1"
 			/>
 			<Tool
@@ -163,6 +164,14 @@
 		<File
 			RelativePath="..\..\doc\examples.cpp"
 			>
+			<FileConfiguration
+				Name="Release|Win32"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					AssemblerOutput="0"
+				/>
+			</FileConfiguration>
 		</File>
 	</Files>
 	<Globals>
