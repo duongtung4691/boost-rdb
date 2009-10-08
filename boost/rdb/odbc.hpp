@@ -9,6 +9,8 @@
 #include <sql.h>
 #include <sqlext.h>
 
+#include <boost/fusion/include/zip_view.hpp>
+
 namespace boost { namespace rdb { namespace odbc {
 
   struct error : std::exception {

@@ -8,8 +8,6 @@
 
 namespace boost { namespace rdb { namespace sql {
 
-  struct update_statement_tag : statement_tag { };
-
   template<class Dialect, class State, class Data, class Subdialect>
   struct update_statement :
     tag_if<fusion::result_of::has_key<Data, typename Subdialect::set>, update_statement_tag> {

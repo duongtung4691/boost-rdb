@@ -27,8 +27,6 @@
 #include <boost/type_traits/is_same.hpp>
 #include <boost/type_traits/remove_reference.hpp>
 
-#include <boost/fusion/container/list.hpp>
-#include <boost/fusion/include/make_list.hpp>
 #include <boost/fusion/include/vector.hpp>
 #include <boost/fusion/include/make_vector.hpp>
 #include <boost/fusion/include/at.hpp>
@@ -50,7 +48,6 @@
 #include <boost/fusion/include/deref.hpp>
 #include <boost/fusion/include/front.hpp>
 #include <boost/fusion/include/transform.hpp>
-#include <boost/fusion/include/zip_view.hpp>
 
 #include <boost/concept_check.hpp>
 #include <boost/concept/requires.hpp>
@@ -95,6 +92,7 @@ namespace boost { namespace rdb { namespace sql {
   struct statement_tag { };
   struct insert_statement_tag : statement_tag { };
   struct select_statement_tag : statement_tag { };
+  struct update_statement_tag : statement_tag { };
   
   template<class Condition, typename Tag, class Enable = void>
   struct tag_if {
@@ -200,20 +198,6 @@ namespace boost { namespace rdb { namespace sql {
     os << " where ";
     p.second.str(os);
   }
-
-  //namespace result_of {
-  //  template<class Key, class Value, class Sequence>
-  //  struct replace_value {
-  //    typedef typename result_of::replace_if<
-  //      Sequence,
-  //    >::type;
-  //  };
-  //}
-  //    
-  //    
-  //    replace_if(const Sequence& seq
-
-
 
   template<class St>
   struct Statement
@@ -348,35 +332,6 @@ namespace boost { namespace rdb { namespace sql {
   }
 
   namespace result_of {
-    template<typename T>
-    struct make_list {
-      typedef typename fusion::result_of::push_back<
-        const detail::empty,
-        T
-      >::type type;
-    };
-  }
-
-  template<typename T>
-  typename result_of::make_list<T>::type
-  make_list(const T& val) {
-    return fusion::push_back(fusion::list<>(), val);
-  }
-
-  namespace result_of {
-    template<typename T>
-    struct make_list2 {
-      typedef typename fusion::result_of::make_list<T>::type type;
-    };
-  }
-
-  template<typename T>
-  typename result_of::make_list2<T>::type
-  make_list2(const T& val) {
-    return fusion::make_list(val);
-  }
-
-  namespace result_of {
     template<class Map, class Key, class Value>
     struct add_key {
       typedef typename fusion::result_of::as_map<
@@ -431,102 +386,6 @@ namespace boost { namespace rdb { namespace sql {
       typedef typename boost::remove_reference<Expr>::type::sql_type type;
     };
   };
-
-  template<class Key, class Map>
-  inline typename disable_if<fusion::result_of::has_key<Map, Key>, void>::type
-  str_opt_list(std::ostream& os, const char* keyword, const Map& data) {
-  }
-
-  template<class Key, class Map>
-  inline typename enable_if<fusion::result_of::has_key<Map, Key>, void>::type
-  str_opt_list(std::ostream& os, const char* keyword, const Map& data) {
-    os << " " << keyword << " ";
-    fusion::for_each(fusion::at_key<Key>(data), comma_output(os));
-  }
-
-  template<class Key, class Map>
-  inline typename disable_if<fusion::result_of::has_key<Map, Key>, void>::type
-  str_if_has_key(std::ostream& os, const Map& data, const char* str) {
-  }
-
-  template<class Key, class Map>
-  inline typename enable_if<fusion::result_of::has_key<Map, Key>, void>::type
-  str_if_has_key(std::ostream& os, const Map& data, const char* str) {
-    os << str;
-  }
-
-  template<class Key, class Map>
-  inline typename disable_if<fusion::result_of::has_key<Map, Key>, void>::type
-  str_obj_if_has_key(std::ostream& os, const char* prefix, const Map& data, const char* suffix) {
-  }
-
-  template<class Key, class Map>
-  inline typename enable_if<fusion::result_of::has_key<Map, Key>, void>::type
-  str_obj_if_has_key(std::ostream& os, const char* prefix, const Map& data, const char* suffix) {
-    os << prefix;
-    fusion::at_key<Key>(data).str(os);
-    os << suffix;
-  }
-
-  template<class Key, class Map>
-  inline typename disable_if<fusion::result_of::has_key<Map, Key>, void>::type
-  str_list_if_has_key(std::ostream& os, const char* prefix, const Map& data, const char* suffix) {
-  }
-
-  template<class Key, class Map>
-  inline typename enable_if<fusion::result_of::has_key<Map, Key>, void>::type
-  str_list_if_has_key(std::ostream& os, const char* prefix, const Map& data, const char* suffix) {
-    os << prefix;
-    fusion::for_each(fusion::at_key<Key>(data), comma_output(os));
-    os << suffix;
-  }
-
-  template<class Key, class Map>
-  inline typename disable_if<fusion::result_of::has_key<Map, Key>, void>::type
-  str_opt(std::ostream& os, const char* keyword, const Map& data) {
-  }
-
-  template<class Key, class Map>
-  inline typename enable_if<fusion::result_of::has_key<Map, Key>, void>::type
-  str_opt(std::ostream& os, const char* keyword, const Map& data) {
-    os << " " << keyword << " ";
-    fusion::at_key<Key>(data).str(os);
-  }
-
-  template<class Key, class Map>
-  inline typename disable_if<fusion::result_of::has_key<Map, Key>, void>::type
-  str_opt_kw(std::ostream& os, const char* keyword, const Map& data) {
-  }
-
-  template<class Key, class Map>
-  inline typename enable_if<fusion::result_of::has_key<Map, Key>, void>::type
-  str_opt_kw(std::ostream& os, const char* keyword, const Map& data) {
-    os << " " << keyword;
-  }
-
-  namespace transition {
-    // work around msvc9 bug : normally we could directly call Context::template T<> but it makes msvc9 crash
-
-    #define BOOST_RDB_DEFINE_TRANSITION(NAME) \
-    template<class Context, class Data> \
-    struct NAME { typedef typename Context::template NAME<Data>::type type; };
-
-    // compilation errors here probably means a syntax error, e.g. `select from from`
-    BOOST_RDB_DEFINE_TRANSITION(select)
-    BOOST_RDB_DEFINE_TRANSITION(distinct)
-    BOOST_RDB_DEFINE_TRANSITION(all)
-    BOOST_RDB_DEFINE_TRANSITION(from)
-    BOOST_RDB_DEFINE_TRANSITION(where)
-    BOOST_RDB_DEFINE_TRANSITION(cols)
-    BOOST_RDB_DEFINE_TRANSITION(values)
-    BOOST_RDB_DEFINE_TRANSITION(set)
-  }
-
-  template<class Context, class Data>
-  struct select_projection;
-
-  //template<class Key, class ExprList>
-  //void str(std::ostream& os, const fusion::pair<Key, ExprList>& clause);
 
   struct str_clause {
     str_clause(std::ostream& os) : os_(os) { }
