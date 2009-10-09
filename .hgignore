@@ -10,3 +10,4 @@ glob:html/*
 glob:bjam.log
 glob:Jamroot
 glob:boost-build.jam
+glob:*~
