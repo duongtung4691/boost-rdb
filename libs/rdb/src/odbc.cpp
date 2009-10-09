@@ -76,6 +76,13 @@ void database::exec_str(HSTMT hstmt, const string& sql) {
   sql_check(SQL_HANDLE_STMT, hstmt, SQLExecDirect(hstmt, (SQLCHAR*) sql.c_str(), SQL_NTS));
 }
 
+void database::prepare_str(HSTMT hstmt, const string& sql) {
+  if (trace_stream)
+    *trace_stream << sql << "\n";
+  //TR << sql << endl;
+  sql_check(SQL_HANDLE_STMT, hstmt, SQLPrepare(hstmt, (SQLCHAR*) sql.c_str(), SQL_NTS));
+}
+
 const char* error::what() const throw() {
   return msg;
 }
