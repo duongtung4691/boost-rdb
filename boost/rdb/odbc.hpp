@@ -124,8 +124,10 @@ namespace boost { namespace rdb { namespace odbc {
       typedef result_set<typename Select::select_list, typename Select::result> execute_results;
 
       static execute_results execute(database& db, const Select& select) {
-        db.exec_str(as_string(select));
-        return execute_results(db);
+        HSTMT hstmt;
+        sql_check(SQL_HANDLE_DBC, db.hdbc_, SQLAllocStmt(db.hdbc_, &hstmt));
+        db.exec_str(hstmt, as_string(select));
+        return execute_results(hstmt);
       }
 
       //typedef prepared_statement<typename Select::select_list, typename Select::result> execute_results;
@@ -147,7 +149,8 @@ namespace boost { namespace rdb { namespace odbc {
       return discriminate<typename Stat::tag, Stat>::prepare(*this, st);
     }
 
-    void exec_str(const std::string& sql);
+    void exec_str(HSTMT hstmt, const std::string& sql);
+    void exec_str(const std::string& sql) { return exec_str(hstmt_, sql); }
 
     void set_autocommit(on_type) {
       SQLSetConnectOption(hdbc_, SQL_AUTOCOMMIT, SQL_AUTOCOMMIT_ON);
@@ -183,13 +186,14 @@ namespace boost { namespace rdb { namespace odbc {
   template<class ExprList, class Container>
   class result_set {
 
-    database& db_;
+    SQLHSTMT hstmt_;
 
   public:
-    result_set(database& db) : db_(db) { }
+    result_set(SQLHSTMT hstmt) : hstmt_(hstmt) { }
 
     ~result_set() {
-      SQLCloseCursor(db_.hstmt_);
+      SQLCloseCursor(hstmt_);
+      SQLFreeHandle(SQL_HANDLE_STMT, hstmt_);
     }
 
     template<class T>
@@ -200,14 +204,14 @@ namespace boost { namespace rdb { namespace odbc {
     typedef typename Container::value_type value_type;
 
     bool fetch(value_type& row) const {
-      long rc = SQLFetch(db_.hstmt_);
+      long rc = SQLFetch(hstmt_);
 
       if (rc == SQL_NO_DATA) {
         return false;
       }
 
       if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO)
-        throw error(SQL_HANDLE_STMT, db_.hstmt_, rc);
+        throw error(SQL_HANDLE_STMT, hstmt_, rc);
 
       typedef fusion::vector<const ExprList&, typename value_type::value_vector_type&> zip;
 
@@ -215,7 +219,7 @@ namespace boost { namespace rdb { namespace odbc {
       // Ugly hack: we don't need the expressions themselves, just their type. 
       // What we'd need here is the ability to zip a mpl::vector with a fusion::vector.
       fusion::for_each(fusion::zip_view<zip>(zip(*(const ExprList*) 0, row.values())),
-        read_row<value_type>(db_.hstmt_, row));
+        read_row<value_type>(hstmt_, row));
 
       return true;
     }
