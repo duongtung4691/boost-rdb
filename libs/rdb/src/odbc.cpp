@@ -69,11 +69,11 @@ void database::close() {
     SQLFreeHandle(SQL_HANDLE_ENV, henv_);
 }
 
-void database::exec_str(const string& sql) {
+void database::exec_str(HSTMT hstmt, const string& sql) {
   if (trace_stream)
     *trace_stream << sql << "\n";
   //TR << sql << endl;
-  sql_check(SQL_HANDLE_STMT, hstmt_, SQLExecDirect(hstmt_, (SQLCHAR*) sql.c_str(), SQL_NTS));
+  sql_check(SQL_HANDLE_STMT, hstmt, SQLExecDirect(hstmt, (SQLCHAR*) sql.c_str(), SQL_NTS));
 }
 
 const char* error::what() const throw() {

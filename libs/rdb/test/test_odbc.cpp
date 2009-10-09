@@ -9,6 +9,7 @@
 
 #include "test_tables.hpp"
 
+using namespace std;
 using namespace boost;
 using namespace boost::rdb::sql;
 using namespace boost::rdb::odbc;
@@ -132,9 +133,16 @@ BOOST_FIXTURE_TEST_CASE(tx, springfield_fixture) {
   BOOST_CHECK(db.execute(select(p.age).from(p).where(p.id == 1)).all()[0].get<0>() == 39);
 }
 
+template<class Results1, class Results2>
+pair<string, string> fetch_parallel(const Results1& results1, const Results2& results2) {
+  return make_pair(results1.fetch().get<0>(), results2.fetch().get<0>());
+}
 
-BOOST_FIXTURE_TEST_CASE(drop_pending_results, springfield_fixture) {
+BOOST_FIXTURE_TEST_CASE(parallel_result_sets, springfield_fixture) {
   person p;
-  db.execute(select(p.age).from(p)).fetch();
-  db.execute(select(p.age).from(p)).fetch();
+  pair<string, string> res = fetch_parallel(
+    db.execute(select(p.first_name).from(p)),
+    db.execute(select(p.first_name).from(p)));
+  BOOST_CHECK(res.first == "Homer");
+  BOOST_CHECK(res.first == res.second);
 }
