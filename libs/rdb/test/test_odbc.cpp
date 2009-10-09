@@ -151,3 +151,15 @@ BOOST_FIXTURE_TEST_CASE(parallel_result_sets, springfield_fixture) {
   BOOST_CHECK(res[1].first == "Marge");
   BOOST_CHECK(res[1].first == res[1].second);
 }
+
+BOOST_FIXTURE_TEST_CASE(parameterless_prepared_statements, springfield_fixture) {
+  person p;
+  BOOST_AUTO(st, db.prepare(select(p.id, p.first_name, p.name, p.age).from(p)));
+  BOOST_RDB_CHECK_SELECT_RESULTS(
+    st.execute(),
+    "((1 Homer Simpson 37) (2 Marge Simpson 34))"); // WRONG: assumes row order
+  // again
+  BOOST_RDB_CHECK_SELECT_RESULTS(
+    st.execute(),
+    "((1 Homer Simpson 37) (2 Marge Simpson 34))"); // WRONG: assumes row order
+}

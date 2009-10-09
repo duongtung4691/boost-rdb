@@ -95,7 +95,13 @@ namespace boost { namespace rdb { namespace odbc {
     }
   };
 
-  template<class ExprList, class Container>
+  template<class Select>
+  class prepared_select_statement;
+
+  template<class Statement>
+  class prepared_statement;
+
+  template<class ExprList, class Container, bool Own>
   class result_set;
 
   class database /*: public generic_database<database>*/ {
@@ -112,43 +118,63 @@ namespace boost { namespace rdb { namespace odbc {
 
     template<class Tag, class Stat>
     struct discriminate {
-      typedef typename Stat::result execute_results;
-      static execute_results execute(database& db, const Stat& stat) {
+
+      typedef typename Stat::result execute_return_type;
+
+      static execute_return_type execute(database& db, const Stat& stat) {
         return db.exec_str(as_string(stat));
       }
+
+      typedef prepared_statement<Stat> prepare_return_type;
+
+      static prepare_return_type prepare(database& db, const Stat& st) {
+        HSTMT hstmt;
+        sql_check(SQL_HANDLE_DBC, db.hdbc_, SQLAllocStmt(db.hdbc_, &hstmt));
+        db.prepare_str(hstmt, as_string(select));
+        return prepare_return_type(hstmt);
+      }
+
     };
 
     template<class Select>
     struct discriminate<sql::select_statement_tag, Select> {
 
-      typedef result_set<typename Select::select_list, typename Select::result> execute_results;
+      typedef result_set<typename Select::select_list, typename Select::result, false> execute_return_type;
 
-      static execute_results execute(database& db, const Select& select) {
+      static execute_return_type execute(database& db, const Select& select) {
         HSTMT hstmt;
         sql_check(SQL_HANDLE_DBC, db.hdbc_, SQLAllocStmt(db.hdbc_, &hstmt));
         db.exec_str(hstmt, as_string(select));
-        return execute_results(hstmt);
+        return execute_return_type(hstmt);
       }
 
-      //typedef prepared_statement<typename Select::select_list, typename Select::result> execute_results;
+      typedef prepared_select_statement<Select> prepare_return_type;
+
+      static prepare_return_type prepare(database& db, const Select& select) {
+        HSTMT hstmt;
+        sql_check(SQL_HANDLE_DBC, db.hdbc_, SQLAllocStmt(db.hdbc_, &hstmt));
+        db.prepare_str(hstmt, as_string(select));
+        return prepare_return_type(hstmt);
+      }
     };
     
     template<class Stat>
     // why doesn't the line below work ?
-    // BOOST_CONCEPT_REQUIRES(((Statement<Stat>)), (typename discriminate<typename Stat::tag, Stat>::execute_results))
-    typename discriminate<typename Stat::tag, Stat>::execute_results
+    // BOOST_CONCEPT_REQUIRES(((Statement<Stat>)), (typename discriminate<typename Stat::tag, Stat>::execute_return_type))
+    typename discriminate<typename Stat::tag, Stat>::execute_return_type
     execute(const Stat& st) { 
       // error "tag is not a member..." probably means that you tried to execute a statement that is not complete, e.g. `insert(t)`
       return discriminate<typename Stat::tag, Stat>::execute(*this, st);
     }
     
     template<class Stat>
-    typename discriminate<typename Stat::tag, Stat>::prepare_results
-    execute(const Stat& st) { 
-      // error "tag is not a member..." probably means that you tried to execute a statement that is not complete, e.g. `insert(t)`
+    typename discriminate<typename Stat::tag, Stat>::prepare_return_type
+    prepare(const Stat& st) { 
+      // error "tag is not a member..." probably means that you tried to prepare a statement that is not complete, e.g. `insert(t)`
       return discriminate<typename Stat::tag, Stat>::prepare(*this, st);
     }
 
+    void prepare_str(HSTMT hstmt, const std::string& sql);
     void exec_str(HSTMT hstmt, const std::string& sql);
     void exec_str(const std::string& sql) { return exec_str(hstmt_, sql); }
 
@@ -180,10 +206,47 @@ namespace boost { namespace rdb { namespace odbc {
     SQLHDBC hdbc_;
     SQLHSTMT hstmt_;
 
-    template<class Expr, class Container> friend class result_set;
+    //template<class Expr, class Container> friend class result_set;
   };
 
-  template<class ExprList, class Container>
+  template<class Statement>
+  class prepared_statement {
+
+    SQLHSTMT hstmt_;
+  
+  public:
+    prepared_statement(SQLHSTMT hstmt) : hstmt_(hstmt) { }
+
+    ~prepared_statement() {
+      SQLCloseCursor(hstmt_);
+      SQLFreeHandle(SQL_HANDLE_STMT, hstmt_);
+    }
+
+  };
+
+  template<class Select>
+  class prepared_select_statement {
+
+    SQLHSTMT hstmt_;
+  
+  public:
+    typedef typename Select::select_list select_list;
+    typedef typename Select::result container;
+
+    prepared_select_statement(SQLHSTMT hstmt) : hstmt_(hstmt) { }
+
+    ~prepared_select_statement() {
+      SQLCloseCursor(hstmt_);
+      SQLFreeHandle(SQL_HANDLE_STMT, hstmt_);
+    }
+
+    result_set<select_list, container, false> execute() {
+      sql_check(SQL_HANDLE_STMT, hstmt_, SQLExecute(hstmt_));
+      return result_set<select_list, container, false>(hstmt_);
+    }
+  };
+
+  template<class ExprList, class Container, bool Own>
   class result_set {
 
     SQLHSTMT hstmt_;
@@ -193,7 +256,8 @@ namespace boost { namespace rdb { namespace odbc {
 
     ~result_set() {
       SQLCloseCursor(hstmt_);
-      SQLFreeHandle(SQL_HANDLE_STMT, hstmt_);
+      if (Own)
+        SQLFreeHandle(SQL_HANDLE_STMT, hstmt_);
     }
 
     template<class T>
