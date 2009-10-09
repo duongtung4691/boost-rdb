@@ -397,10 +397,12 @@ namespace boost { namespace rdb { namespace sql {
     }
   };
   
+  struct universal_type;
+  
   struct null_type {
     typedef null_type sql_type;
     typedef null_type comparable_type;
-    typedef null_type kind;
+    typedef universal_type kind;
     enum { precedence = precedence_level::highest };
     void str(std::ostream& os) const {
       os << "null";
@@ -413,8 +415,8 @@ namespace boost { namespace rdb { namespace sql {
       typename remove_reference<Expr1>::type::sql_type::kind,
       typename remove_reference<Expr2>::type::sql_type::kind
     >,
-    is_same<typename remove_reference<Expr1>::type::sql_type, null_type>,
-    is_same<typename remove_reference<Expr2>::type::sql_type, null_type>
+    is_same<typename remove_reference<Expr1>::type::sql_type::kind, universal_type>,
+    is_same<typename remove_reference<Expr2>::type::sql_type::kind, universal_type>
   > {
   };
 
