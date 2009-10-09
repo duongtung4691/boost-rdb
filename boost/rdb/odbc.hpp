@@ -111,29 +111,40 @@ namespace boost { namespace rdb { namespace odbc {
     void close();
 
     template<class Tag, class Stat>
-    struct discriminate_execute {
-      typedef typename Stat::result type;
-      static type execute(database& db, const Stat& stat) {
+    struct discriminate {
+      typedef typename Stat::result execute_results;
+      static execute_results execute(database& db, const Stat& stat) {
         return db.exec_str(as_string(stat));
       }
     };
 
     template<class Select>
-    struct discriminate_execute<sql::select_statement_tag, Select> {
-      typedef result_set<typename Select::select_list, typename Select::result> type;
-      static type execute(database& db, const Select& select) {
+    struct discriminate<sql::select_statement_tag, Select> {
+
+      typedef result_set<typename Select::select_list, typename Select::result> execute_results;
+
+      static execute_results execute(database& db, const Select& select) {
         db.exec_str(as_string(select));
-        return type(db, select.exprs());
+        return execute_results(db);
       }
+
+      //typedef prepared_statement<typename Select::select_list, typename Select::result> execute_results;
     };
     
     template<class Stat>
     // why doesn't the line below work ?
-    // BOOST_CONCEPT_REQUIRES(((Statement<Stat>)), (typename Stat::result))
-    typename discriminate_execute<typename Stat::tag, Stat>::type
+    // BOOST_CONCEPT_REQUIRES(((Statement<Stat>)), (typename discriminate<typename Stat::tag, Stat>::execute_results))
+    typename discriminate<typename Stat::tag, Stat>::execute_results
     execute(const Stat& st) { 
       // error "tag is not a member..." probably means that you tried to execute a statement that is not complete, e.g. `insert(t)`
-      return discriminate_execute<typename Stat::tag, Stat>::execute(*this, st);
+      return discriminate<typename Stat::tag, Stat>::execute(*this, st);
+    }
+    
+    template<class Stat>
+    typename discriminate<typename Stat::tag, Stat>::prepare_results
+    execute(const Stat& st) { 
+      // error "tag is not a member..." probably means that you tried to execute a statement that is not complete, e.g. `insert(t)`
+      return discriminate<typename Stat::tag, Stat>::prepare(*this, st);
     }
 
     void exec_str(const std::string& sql);
@@ -171,11 +182,11 @@ namespace boost { namespace rdb { namespace odbc {
 
   template<class ExprList, class Container>
   class result_set {
+
     database& db_;
-    const ExprList& exprs_;
 
   public:
-    result_set(database& db, const ExprList& exprs) : db_(db), exprs_(exprs) { }
+    result_set(database& db) : db_(db) { }
 
     ~result_set() {
       SQLCloseCursor(db_.hstmt_);
@@ -200,7 +211,10 @@ namespace boost { namespace rdb { namespace odbc {
 
       typedef fusion::vector<const ExprList&, typename value_type::value_vector_type&> zip;
 
-      fusion::for_each(fusion::zip_view<zip>(zip(exprs_, row.values())),
+      // TODO
+      // Ugly hack: we don't need the expressions themselves, just their type. 
+      // What we'd need here is the ability to zip a mpl::vector with a fusion::vector.
+      fusion::for_each(fusion::zip_view<zip>(zip(*(const ExprList*) 0, row.values())),
         read_row<value_type>(db_.hstmt_, row));
 
       return true;
