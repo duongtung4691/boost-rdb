@@ -5,6 +5,7 @@
 #define BOOST_RDB_UPDATE_HPP
 
 #include <boost/rdb/sql/common.hpp>
+#include <boost/rdb/sql/expression.hpp>
 
 namespace boost { namespace rdb { namespace sql {
 
