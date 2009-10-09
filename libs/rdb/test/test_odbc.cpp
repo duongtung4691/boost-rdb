@@ -134,15 +134,20 @@ BOOST_FIXTURE_TEST_CASE(tx, springfield_fixture) {
 }
 
 template<class Results1, class Results2>
-pair<string, string> fetch_parallel(const Results1& results1, const Results2& results2) {
-  return make_pair(results1.fetch().get<0>(), results2.fetch().get<0>());
+vector< pair<string, string> > fetch_parallel(const Results1& results1, const Results2& results2) {
+  vector< pair<string, string> > res;
+  res.push_back(make_pair(results1.fetch().get<0>(), results2.fetch().get<0>()));
+  res.push_back(make_pair(results1.fetch().get<0>(), results2.fetch().get<0>()));
+  return res;
 }
 
 BOOST_FIXTURE_TEST_CASE(parallel_result_sets, springfield_fixture) {
   person p;
-  pair<string, string> res = fetch_parallel(
+  vector< pair<string, string> > res = fetch_parallel(
     db.execute(select(p.first_name).from(p)),
     db.execute(select(p.first_name).from(p)));
-  BOOST_CHECK(res.first == "Homer");
-  BOOST_CHECK(res.first == res.second);
+  BOOST_CHECK(res[0].first == "Homer");
+  BOOST_CHECK(res[0].first == res[0].second);
+  BOOST_CHECK(res[1].first == "Marge");
+  BOOST_CHECK(res[1].first == res[1].second);
 }
