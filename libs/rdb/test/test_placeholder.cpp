@@ -24,6 +24,10 @@ BOOST_AUTO_TEST_CASE(test_placeholder) {
     update(p).set(p.id = p.age + _),
     "update person set id = age + %");
 
+  BOOST_RDB_CHECK_SQL(
+    update(p).set(p.age = 75).where(p.name.like("O'%")),
+    "update person set age = 75 where name like O'%");
+
   //BOOST_RDB_CHECK_SQL(
   //  update(p).set(p.age = 33).where(p.name.like(_)),
   //  "update person set age = 33 where name like %");

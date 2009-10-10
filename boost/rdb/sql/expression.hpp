@@ -71,7 +71,7 @@ namespace boost { namespace rdb { namespace sql {
     };
   }
 
-  template<class Expr>
+  template<class Expr1, class Expr2>
   struct like;
 
   template<class Expr, class Subquery>
@@ -116,6 +116,21 @@ namespace boost { namespace rdb { namespace sql {
     }
   };
 
+  template<class Expr1, class Expr2>
+  struct like {
+    like(const Expr1& expr1, const Expr2& expr2_) : expr1_(expr1), expr2_(expr2_) { }
+    Expr1 expr1_;
+    Expr2 expr2_;
+    typedef boolean sql_type;
+    enum { precedence = precedence_level::compare };
+    void str(std::ostream& os) const {
+      expr1_.str(os);
+      os << " like ";
+      expr2_.str(os);
+    }
+  };
+
+
   template<class Expr>
   struct expression : Expr {
     typedef expression this_type;
@@ -130,7 +145,12 @@ namespace boost { namespace rdb { namespace sql {
       return result_of::make_expression<Expr, T>::make(any);
     }
     
-    expression< sql::like<Expr> > like(const std::string& pattern) const;
+    template<class Pattern>
+    expression< sql::like<Expr, typename result_of::make_expression<Expr, Pattern>::type> >
+    like(const Pattern& pattern) const {
+      BOOST_MPL_ASSERT((boost::is_same<typename Expr::sql_type::kind, char_type>));
+      return sql::like<Expr, typename result_of::make_expression<Expr, Pattern>::type>(*this, make_expression(pattern));
+    }
     
     template<class Tag, class T>
     struct dispatch_in {
