@@ -223,6 +223,7 @@ namespace boost { namespace rdb { namespace sql {
 
   struct any_literal {
     enum { precedence = precedence_level::highest };
+    typedef fusion::vector<> placeholders;
   };
 
   template<typename T, class SqlType /* temporary !!! */ = void>
@@ -284,6 +285,7 @@ namespace boost { namespace rdb { namespace sql {
   struct numeric_type;
   struct char_type;
   struct boolean_type;
+  struct placeholder_type;
 
   struct integer
   {
@@ -397,16 +399,12 @@ namespace boost { namespace rdb { namespace sql {
     }
   };
   
-  struct universal_type;
-  
-  struct null_type {
-    typedef null_type sql_type;
-    typedef null_type comparable_type;
-    typedef universal_type kind;
-    enum { precedence = precedence_level::highest };
-    void str(std::ostream& os) const {
-      os << "null";
-    }
+  struct universal;
+
+  struct placeholder_type {
+    typedef boost::mpl::true_::type is_numeric;
+    typedef placeholder_type comparable_type;
+    typedef sql::universal kind;
   };
 
   template<class Expr1, class Expr2>
@@ -415,8 +413,8 @@ namespace boost { namespace rdb { namespace sql {
       typename remove_reference<Expr1>::type::sql_type::kind,
       typename remove_reference<Expr2>::type::sql_type::kind
     >,
-    is_same<typename remove_reference<Expr1>::type::sql_type::kind, universal_type>,
-    is_same<typename remove_reference<Expr2>::type::sql_type::kind, universal_type>
+    is_same<typename remove_reference<Expr1>::type::sql_type::kind, universal>,
+    is_same<typename remove_reference<Expr2>::type::sql_type::kind, universal>
   > {
   };
 

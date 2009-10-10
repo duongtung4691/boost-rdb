@@ -12,3 +12,4 @@ glob:Jamroot
 glob:boost-build.jam
 glob:*~
 glob:Release/*
+glob:Fast Compilation/*

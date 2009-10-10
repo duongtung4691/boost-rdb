@@ -8,11 +8,6 @@
 
 namespace boost { namespace rdb { namespace sql {
 
-  struct placeholder_type {
-    typedef universal_type kind;
-    typedef boost::mpl::true_::type is_numeric;
-  };
-
   template<int N>
   struct placeholder {
     typedef placeholder_type sql_type;
@@ -23,6 +18,27 @@ namespace boost { namespace rdb { namespace sql {
   };
 
   const expression< placeholder<0> > _;
+
+  //struct make_placeholders_for_expr {
+
+  //  template<typename Sig>
+  //  struct result;
+
+  //  template<typename Self, typename Expr>
+  //  struct result<Self(Expr)>
+  //  {
+  //    typedef typename boost::remove_reference<Expr>::type::cpp_type type;
+  //  };
+  //};
+
+  //namespace result_of {
+  //  template<class ExprList>
+  //  struct make_placeholders_for_list {
+  //    typedef typename fusion::result_of::as_vector<
+  //      typename fusion::result_of::transform<ExprList, make_placeholders_for_expr>::type
+  //    >::type type;
+  //  };
+  //}
 
 } } }
 

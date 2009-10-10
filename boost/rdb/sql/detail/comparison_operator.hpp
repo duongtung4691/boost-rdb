@@ -36,7 +36,7 @@ BOOST_CONCEPT_REQUIRES(
   ((ComparableExpression<Expr2>)),
   (expression< BOOST_RDB_OPERATOR_CLASS<Expr1, Expr2> >))
 operator BOOST_RDB_OPERATOR(const expression<Expr1>& expr1, const expression<Expr2>& expr2) {
-  BOOST_MPL_ASSERT((boost::is_same<typename Expr1::sql_type::comparable_type, typename Expr2::sql_type::comparable_type>));
+  BOOST_MPL_ASSERT((is_sql_compatible<Expr1, Expr2>));
   return expression< BOOST_RDB_OPERATOR_CLASS<Expr1, Expr2> >(expr1, expr2);
 }
 

@@ -9,30 +9,6 @@
 
 namespace boost { namespace rdb { namespace sql {
 
-  template<class Expr1, class Expr2, int Precedence>
-  struct binary_operation {
-
-    enum { precedence = Precedence };
-
-    static void write(std::ostream& os, const Expr1& expr1, const char* op, const Expr2& expr2) {
-      write(os, expr1, boost::mpl::bool_<static_cast<int>(Expr1::precedence) < precedence>());
-      os << op;
-      write(os, expr2, boost::mpl::bool_<static_cast<int>(Expr2::precedence) < precedence>());
-    }
-
-    template<class Expr>
-    static void write(std::ostream& os, const Expr& expr, boost::mpl::true_) {
-      os << "(";
-      expr.str(os);
-      os << ")";
-    }
-
-    template<class Expr>
-    static void write(std::ostream& os, const Expr& expr, boost::mpl::false_) {
-      expr.str(os);
-    }
-  };
-
   #define BOOST_RDB_OPERATOR +
   #define BOOST_RDB_OPERATOR_STRING " + "
   #define BOOST_RDB_OPERATOR_CLASS plus
@@ -109,6 +85,8 @@ namespace boost { namespace rdb { namespace sql {
     not_(const Expr& expr) : expr_(expr) { }
 
     typedef boolean sql_type;
+    
+    typedef typename Expr::placeholders placeholders;
 
     enum { precedence = precedence_level::logical_not };
     
@@ -176,6 +154,7 @@ namespace boost { namespace rdb { namespace sql {
     typedef boolean sql_type;
 
     enum { precedence = precedence_level::logical_not };
+    typedef fusion::vector<> placeholders; // TODO
     
     void str(std::ostream& os) const {
       os << "exists (";
