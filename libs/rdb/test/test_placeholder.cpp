@@ -1,7 +1,6 @@
 #include "test.hpp"
 
-#include <boost/rdb/sql/update.hpp>
-#include <boost/rdb/sql/placeholder.hpp>
+#include <boost/rdb/sql.hpp>
 
 using namespace boost::rdb::sql;
 using namespace boost::rdb::sql::test::springfield;
@@ -25,8 +24,20 @@ BOOST_AUTO_TEST_CASE(test_placeholder) {
     "update person set id = age + %");
 
   BOOST_RDB_CHECK_SQL(
-    update(p).set(p.age = 75).where(p.name.like("O'%")),
-    "update person set age = 75 where name like 'O''%'");
+    update(p).set(p.age = 75).where(p.name.like(_)),
+    "update person set age = 75 where name like %");
+
+  using namespace boost;
+
+  BOOST_MPL_ASSERT((is_same<
+    BOOST_TYPEOF(p.age == _)::placeholders,
+    fusion::vector<integer>
+    >));
+
+  BOOST_MPL_ASSERT((is_same<
+    BOOST_TYPEOF((p.age + _) == _)::placeholders,
+    fusion::vector<integer, integer>
+    >));
 
   //BOOST_RDB_CHECK_SQL(
   //  update(p).set(p.age = 33).where(p.name.like(_)),

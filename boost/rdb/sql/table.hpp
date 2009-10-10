@@ -24,6 +24,8 @@ namespace boost { namespace rdb { namespace sql {
     void initialize(const any_table* table) {
       table_ = table;
     }
+
+    typedef fusion::vector<> placeholders;
   };
 
   template<class Table, class SqlType, class Base>
