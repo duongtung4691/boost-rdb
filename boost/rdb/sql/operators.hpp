@@ -154,7 +154,8 @@ namespace boost { namespace rdb { namespace sql {
     typedef boolean sql_type;
 
     enum { precedence = precedence_level::logical_not };
-    typedef fusion::vector<> placeholders; // TODO
+
+    typedef typename Select::placeholders placeholders;
     
     void str(std::ostream& os) const {
       os << "exists (";
