@@ -1,6 +1,6 @@
-#include <boost/rdb/sql/update.hpp>
-
 #include "test.hpp"
+
+#include <boost/rdb/sql/update.hpp>
 
 using namespace boost::rdb::sql;
 using namespace boost::rdb::sql::test::springfield;

@@ -1,6 +1,7 @@
 #ifndef BOOST_RDB_TEST_HPP
 #define BOOST_RDB_TEST_HPP
 
+#include <boost/rdb/sql/common.hpp>
 #include <boost/rdb/sql/table.hpp>
 
 #include "test_tables.hpp"
