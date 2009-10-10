@@ -55,6 +55,16 @@ namespace boost { namespace rdb { namespace sql {
       return fusion::at_key<Key>(data_);
     }
   };
+
+  template<class ExprList>
+  struct extract_placeholders_from_pair<sql2003::exprs, ExprList> {
+    typedef typename placeholders_from_list<ExprList>::type type;
+  };
+
+  template<class Predicate>
+  struct extract_placeholders_from_pair<sql2003::where, Predicate> {
+    typedef typename Predicate::placeholders type;
+  };
   
   template<class Dialect, class State, class Data, class Subdialect>
   struct select_statement :
@@ -100,6 +110,8 @@ namespace boost { namespace rdb { namespace sql {
     #include BOOST_PP_ITERATE()
     
     #include "detail/select_where.hpp"
+
+    typedef typename placeholders_from_pair_list<Data>::type placeholders;
   };
 
   template<class Dialect, class State, class Data, class Subdialect>

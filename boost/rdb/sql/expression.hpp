@@ -43,6 +43,10 @@ namespace boost { namespace rdb { namespace sql {
   };
 
   template<class Expr>
+  struct is_placeholder : is_same<typename Expr::sql_type, placeholder_type> {
+  };
+
+  template<class Expr>
   struct expression;
     
   namespace result_of {
@@ -71,9 +75,6 @@ namespace boost { namespace rdb { namespace sql {
     };
   }
 
-  template<class Expr1, class Expr2>
-  struct like;
-
   template<class Expr, class Subquery>
   struct in_subquery {
     in_subquery(const Expr& expr, const Subquery& subquery) : expr_(expr), subquery_(subquery) { }
@@ -81,7 +82,7 @@ namespace boost { namespace rdb { namespace sql {
     const Subquery& subquery_;
     typedef boolean sql_type;
     enum { precedence = precedence_level::highest };
-    typedef fusion::vector<> placeholders; // TODO
+    typedef typename Subquery::placeholders placeholders;
     void str(std::ostream& os) const {
       if (Expr::precedence < precedence) {
         os << "(";
@@ -96,6 +97,21 @@ namespace boost { namespace rdb { namespace sql {
     }
   };
 
+  template<class Expr>
+  struct make_in_values_placeholders {
+    template<typename Sig>
+    struct result;
+
+    template<class Self, class Value, class Placeholders>
+    struct result<Self(Value&, Placeholders&)> {
+      typedef typename mpl::if_<
+        is_placeholder<Value>,
+        typename fusion::result_of::push_back<Placeholders, typename Expr::sql_type>::type,
+        Placeholders
+      >::type type;
+    };
+  };
+
   template<class Expr, class ExprList>
   struct in_values {
     in_values(const Expr& expr, const ExprList& alt) : expr_(expr), alt_(alt) { }
@@ -103,7 +119,15 @@ namespace boost { namespace rdb { namespace sql {
     ExprList alt_;
     typedef boolean sql_type;
     enum { precedence = precedence_level::highest };
-    typedef fusion::vector<> placeholders; // TODO
+
+    typedef typename fusion::result_of::as_vector<
+      typename fusion::result_of::accumulate<
+        ExprList,
+        fusion::vector<>,
+        make_in_values_placeholders<Expr>
+      >::type
+    >::type placeholders;
+
     void str(std::ostream& os) const {
       if (Expr::precedence < precedence) {
         os << "(";
@@ -116,10 +140,6 @@ namespace boost { namespace rdb { namespace sql {
       fusion::for_each(alt_, comma_output(os));
       os << ")";
     }
-  };
-
-  template<class Expr>
-  struct is_placeholder : is_same<typename Expr::sql_type, placeholder_type> {
   };
 
   template<class Expr1, class Expr2, int Precedence>
@@ -288,6 +308,53 @@ namespace boost { namespace rdb { namespace sql {
   };
 
   const expression< placeholder<0> > _;
+
+  struct extract_placeholders_from_list {
+
+    template<typename Sig>
+    struct result;
+
+    template<class Self, class Expr, class Placeholders>
+    struct result<Self(Expr&, Placeholders&)> {
+      typedef typename fusion::result_of::join<
+        typename Placeholders,
+        typename Expr::placeholders
+      >::type type;
+    };
+  };
+
+  template<class ExprList>
+  struct placeholders_from_list {
+    typedef typename fusion::result_of::as_vector<
+      typename fusion::result_of::accumulate<ExprList, fusion::vector<>, extract_placeholders_from_list>::type
+    >::type type;
+  };
+
+  template<class Key, class Value>
+  struct extract_placeholders_from_pair {
+    typedef fusion::vector<> type;
+  };
+  
+  struct extract_placeholders_from_pair_list {
+
+    template<typename Sig>
+    struct result;
+
+    template<class Self, class Key, class Value, class Placeholders>
+    struct result<Self(fusion::pair<Key, Value>&, Placeholders&)> {
+      typedef typename fusion::result_of::join<
+        typename Placeholders,
+        typename extract_placeholders_from_pair<Key, Value>::type
+      >::type type;
+    };
+  };
+
+  template<class PairList>
+  struct placeholders_from_pair_list {
+    typedef typename fusion::result_of::as_vector<
+      typename fusion::result_of::accumulate<PairList, fusion::vector<>, extract_placeholders_from_pair_list>::type
+    >::type type;
+  };
 
 } } }
 
