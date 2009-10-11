@@ -35,15 +35,27 @@ namespace boost { namespace rdb { namespace sql {
     fusion::for_each(p.second, comma_output(os));
   }
 
+  template<class Data, class HasValues, class HasSelect, class Subdialect>
+  struct insert_impl {
+  };
+
+  template<class Data, class Subdialect>
+  struct insert_impl<Data, mpl::true_, mpl::false_, Subdialect> {
+    typedef insert_statement_tag tag;
+  };
+
+  template<class Data, class Subdialect>
+  struct insert_impl<Data, mpl::false_, mpl::true_, Subdialect> {
+    typedef insert_statement_tag tag;
+    typedef typename placeholders_from_pair_list<Data>::type placeholders;
+  };
+
   template<class Dialect, class State, class Data, class Subdialect>
-  struct insert_statement :
-    tag_if<
-      mpl::or_<
-        fusion::result_of::has_key<Data, typename Subdialect::values>,
-        fusion::result_of::has_key<Data, typename Subdialect::select>
-      >,
-      insert_statement_tag
-    > {
+  struct insert_statement : insert_impl<Data,
+    typename fusion::result_of::has_key<Data, typename Subdialect::values>::type,
+    typename fusion::result_of::has_key<Data, typename Subdialect::select>::type,
+    Subdialect
+  > {
 
     explicit insert_statement(const Data& data) : data_(data) { }
 

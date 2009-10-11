@@ -10,6 +10,19 @@ namespace boost { namespace rdb { namespace sql {
 
 } } }
 
+//template<class Expected, class T>
+//void check_placeholders(const T&) {
+//  BOOST_MPL_ASSERT((is_same<typename T::placeholders, Expected>));
+//}
+
+//struct Test {
+//  typedef int placeholders;
+//};
+//
+//void f() {
+//  check_placeholders<int>(Test());
+//}
+
 BOOST_AUTO_TEST_CASE(test_placeholder) {
 
   using namespace boost::rdb::sql;
@@ -34,10 +47,7 @@ BOOST_AUTO_TEST_CASE(test_placeholder) {
 
   using namespace boost;
 
-  BOOST_MPL_ASSERT((is_same<
-    BOOST_TYPEOF(p.age == _)::placeholders,
-    fusion::vector<integer>
-    >));
+  //check_placeholders< fusion::vector<integer> >(p.age == _);
 
   BOOST_MPL_ASSERT((is_same<
     BOOST_TYPEOF((p.age + _) == _)::placeholders,
@@ -81,5 +91,20 @@ BOOST_AUTO_TEST_CASE(test_placeholder) {
     BOOST_TYPEOF(p.id.in(1, _, 2, _))::placeholders,
     fusion::vector<integer, integer>
     >));
+
+  BOOST_MPL_ASSERT((is_same<
+    BOOST_TYPEOF(p.id.in(1, _, 2, _))::placeholders,
+    fusion::vector<integer, integer>
+    >));
+
+  //BOOST_MPL_ASSERT((is_same<
+  //  BOOST_TYPEOF(insert_into(p)(p.id, p.first_name, p.name, p.age).values(_, _, _, _))::placeholders,
+  //  fusion::vector<integer, varchar<30>, varchar<20>, integer>
+  //  >));
+
+  {
+    typedef BOOST_TYPEOF(insert_into(p)(p.id).select(p.id).from(p).where(p.age > _))::placeholders placeholders;
+    BOOST_MPL_ASSERT((is_same<placeholders, fusion::vector<integer>>));
+  }
 }
 
