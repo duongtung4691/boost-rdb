@@ -303,7 +303,7 @@ namespace boost { namespace rdb { namespace sql {
     typedef fusion::vector<> placeholders; // not really used; exists to please mpl::if_ which is not lazy
     enum { precedence = precedence_level::highest };
     void str(std::ostream& os) const {
-      os << "%";
+      os << "?";
     }
   };
 
@@ -317,7 +317,7 @@ namespace boost { namespace rdb { namespace sql {
     template<class Self, class Expr, class Placeholders>
     struct result<Self(Expr&, Placeholders&)> {
       typedef typename fusion::result_of::join<
-        typename Placeholders,
+        Placeholders,
         typename Expr::placeholders
       >::type type;
     };

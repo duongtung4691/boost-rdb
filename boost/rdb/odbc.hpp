@@ -9,7 +9,7 @@
 #include <sql.h>
 #include <sqlext.h>
 
-#include <boost/fusion/include/zip_view.hpp>
+#include <boost/rdb/sql/common.hpp>
 
 namespace boost { namespace rdb { namespace odbc {
 
@@ -105,8 +105,13 @@ namespace boost { namespace rdb { namespace odbc {
       static prepare_return_type prepare(database& db, const Stat& st) {
         HSTMT hstmt;
         sql_check(SQL_HANDLE_DBC, db.hdbc_, SQLAllocStmt(db.hdbc_, &hstmt));
-        db.prepare_str(hstmt, as_string(select));
-        return prepare_return_type(hstmt);
+        try {
+          db.prepare_str(hstmt, as_string(st));
+          return prepare_return_type(hstmt);
+        } catch (...) {
+          SQLFreeHandle(SQL_HANDLE_STMT, &hstmt);
+          throw;
+        }
       }
 
     };
@@ -119,8 +124,13 @@ namespace boost { namespace rdb { namespace odbc {
       static execute_return_type execute(database& db, const Select& select) {
         HSTMT hstmt;
         sql_check(SQL_HANDLE_DBC, db.hdbc_, SQLAllocStmt(db.hdbc_, &hstmt));
-        db.exec_str(hstmt, as_string(select));
-        return execute_return_type(hstmt);
+        try {
+          db.exec_str(hstmt, as_string(select));
+          return execute_return_type(hstmt);
+        } catch (...) {
+          SQLFreeHandle(SQL_HANDLE_STMT, &hstmt);
+          throw;
+        }
       }
 
       typedef prepared_select_statement<Select> prepare_return_type;
@@ -180,40 +190,99 @@ namespace boost { namespace rdb { namespace odbc {
     SQLHENV	henv_;
     SQLHDBC hdbc_;
     SQLHSTMT hstmt_;
-
-    //template<class Expr, class Container> friend class result_set;
   };
+
+  struct make_param_vector {
+
+    template<typename Sig>
+    struct result;
+
+    template<class Self, class SqlType, class Vector>
+    struct result<Self(SqlType&, Vector&)> {
+      typedef typename fusion::result_of::push_back<
+        Vector,
+        typename SqlType::c_type
+      >::type type;
+    };
+  };
+
+  struct bind_parameters {
+    bind_parameters(SQLHSTMT hstmt) : hstmt_(hstmt), i_(1) { }
+    SQLHSTMT hstmt_;
+    mutable int i_;
+
+    void operator ()(fusion::vector<const sql::integer&, long&>& zip) const {
+      using namespace fusion;
+      SQLINTEGER length = sizeof(&at_c<1>(zip));
+      sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindParameter(hstmt_, i_, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0,
+        &at_c<1>(zip), 0, &length));
+      ++i_;
+    }
+
+    template<size_t N>
+    void operator ()(fusion::vector<const sql::varchar<N>&, sql::varchar<N>&>& zip) const {
+      using namespace fusion;
+      sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindParameter(hstmt_, i_, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
+        at_c<1>(zip).chars_, 0, &at_c<1>(zip).length_));
+      ++i_;
+    }
+  };
+
 
   template<class Statement>
   class prepared_statement {
-
-    SQLHSTMT hstmt_;
   
   public:
-    prepared_statement(SQLHSTMT hstmt) : hstmt_(hstmt) { }
+    prepared_statement(SQLHSTMT hstmt) : hstmt_(hstmt) {
+      typedef fusion::vector<const placeholders&, param_vector&> zip;
+
+    fusion::for_each(fusion::zip_view<zip>(zip(*(const placeholders*) 0, params_)),
+      bind_parameters(hstmt_));
+    }
 
     ~prepared_statement() {
       SQLCloseCursor(hstmt_);
       SQLFreeHandle(SQL_HANDLE_STMT, hstmt_);
     }
 
+    template<class Vector>
+    void executev(const Vector& params) {
+      // if you have this on your error stack, it's likely that the types of the values don't agree with the types of the parameters
+      // TODO: assert on this
+      params_ = params;
+      sql_check(SQL_HANDLE_STMT, hstmt_, SQLExecute(hstmt_));
+    }
+
+    #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
+    #define BOOST_PP_FILENAME_1       <boost/rdb/odbc/detail/execute.hpp>
+    #include BOOST_PP_ITERATE()
+
+  protected:
+    SQLHSTMT hstmt_;
+
+    typedef typename Statement::placeholders placeholders;
+
+    typedef typename fusion::result_of::as_vector<
+      typename fusion::result_of::accumulate<
+        placeholders, 
+        fusion::vector<>, 
+        make_param_vector
+      >::type
+    >::type param_vector;
+
+    param_vector params_;
+    
   };
 
   template<class Select>
-  class prepared_select_statement {
-
-    SQLHSTMT hstmt_;
+  class prepared_select_statement : prepared_statement<Select> {
   
   public:
     typedef typename Select::select_list select_list;
     typedef typename Select::result container;
+    typedef prepared_statement<Select> base;
 
-    prepared_select_statement(SQLHSTMT hstmt) : hstmt_(hstmt) { }
-
-    ~prepared_select_statement() {
-      SQLCloseCursor(hstmt_);
-      SQLFreeHandle(SQL_HANDLE_STMT, hstmt_);
-    }
+    prepared_select_statement(SQLHSTMT hstmt) : base(hstmt) { }
 
     result_set<select_list, container, false> execute() {
       sql_check(SQL_HANDLE_STMT, hstmt_, SQLExecute(hstmt_));
@@ -324,6 +393,19 @@ namespace boost { namespace rdb {
       SQLGetData(hstmt, col, SQL_C_CHAR, value.chars_, sizeof value.chars_, &value.length_);
       if (value.length_ == SQL_NULL_DATA)
         return false;
+      return true;
+    }
+  };
+
+  template<int N>
+  struct sql_type_adapter<sql::varchar<N>, std::string, odbc::odbc_tag> {
+    static bool get_data(SQLHSTMT hstmt, int col, std::string& value) {
+      char buf[N];
+      SQLLEN n;
+      SQLGetData(hstmt, col, SQL_C_CHAR, buf, sizeof buf, &n);
+      if (n == SQL_NULL_DATA)
+        return false;
+      value.assign(buf, buf + n);
       return true;
     }
   };
