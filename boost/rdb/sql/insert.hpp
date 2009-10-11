@@ -57,13 +57,6 @@ namespace boost { namespace rdb { namespace sql {
     };
   };
 
-  template<class ExprList>
-  struct insert_values_placeholders {
-    typedef typename fusion::result_of::as_vector<
-      typename fusion::result_of::accumulate<ExprList, fusion::vector<>, extract_insert_values_placeholders>::type
-    >::type type;
-  };
-
   template<class Data, class Subdialect>
   struct insert_impl<Data, mpl::true_, mpl::false_, Subdialect> {
     typedef insert_statement_tag tag;
