@@ -104,7 +104,7 @@ int main() {
 
     markup(select_into_vector) {
       //[ select_into_vector
-      typedef nullable< boost::fusion::vector<string, long> > row_type;
+      typedef nullable< boost::fusion::vector<varchar<30>, long> > row_type;
       std::deque<row_type> results;
       db.execute(select(p.first_name, p.age).from(p)).all(results);
       for (size_t i = 0; i < results.size(); i++) {

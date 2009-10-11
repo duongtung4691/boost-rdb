@@ -47,32 +47,7 @@ namespace boost { namespace rdb { namespace odbc {
   public:
   };
 
-  template<class SqlType, class Value, class Tag>
-  struct sql_type_adapter;
-
   struct odbc_tag { };
-
-  template<>
-  struct sql_type_adapter<sql::integer, long, odbc_tag> {
-    static bool get_data(SQLHSTMT hstmt, int col, long& value) {    
-      SQLLEN n;
-      SQLGetData(hstmt, col, SQL_C_LONG, &value, 0, &n);
-      return n != SQL_NULL_DATA;
-    }
-  };
-
-  template<int N>
-  struct sql_type_adapter<sql::varchar<N>, std::string, odbc_tag> {
-    static bool get_data(SQLHSTMT hstmt, int col, std::string& value) {
-      char buf[N];
-      SQLLEN n;
-      SQLGetData(hstmt, col, SQL_C_CHAR, buf, sizeof buf, &n);
-      if (n == SQL_NULL_DATA)
-        return false;
-      value.assign(buf, buf + n);
-      return true;
-    }
-  };
 
   class database;
 
@@ -330,5 +305,30 @@ namespace boost { namespace rdb { namespace odbc {
   }
 
 } } }
+
+namespace boost { namespace rdb {
+
+  template<>
+  struct sql_type_adapter<sql::integer, long, odbc::odbc_tag> {
+    static bool get_data(SQLHSTMT hstmt, int col, long& value) {    
+      SQLLEN n;
+      SQLGetData(hstmt, col, SQL_C_LONG, &value, 0, &n);
+      return n != SQL_NULL_DATA;
+    }
+  };
+
+  template<int N>
+  struct sql_type_adapter<sql::varchar<N>, sql::varchar<N>, odbc::odbc_tag> {
+    static bool get_data(SQLHSTMT hstmt, int col, sql::varchar<N>& value) {
+      SQLLEN n;
+      SQLGetData(hstmt, col, SQL_C_CHAR, value.chars_, sizeof value.chars_, &n);
+      if (n == SQL_NULL_DATA)
+        return false;
+      value.length_ = n;
+      return true;
+    }
+  };
+
+} }
 
 #endif // BOOST_ODBC_HPP

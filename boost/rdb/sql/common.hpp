@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <deque>
 #include <bitset>
 
@@ -69,6 +70,13 @@
 #define BOOST_RDB_MAKE_EXPRESSION(z, n, t) BOOST_PP_COMMA_IF(n) make_expression(t##n)
 #define BOOST_RDB_RESULT_OF_MAKE_EXPRESSION(z, n, t) \
   BOOST_PP_COMMA_IF(n) typename result_of::make_expression<this_type, t##n>::type
+
+namespace boost { namespace rdb {
+
+  template<class SqlType, class Value, class Tag>
+  struct sql_type_adapter;
+
+} }
 
 namespace boost { namespace rdb { namespace sql {
 
@@ -309,17 +317,31 @@ namespace boost { namespace rdb { namespace sql {
 
   struct char_comparable_type;
 
-  template<int N>
-  struct varchar
+  template<size_t N>
+  class varchar
   {
+  public:
+    BOOST_STATIC_CONSTANT(size_t, size = N);
     static void str(std::ostream& os) { os << "varchar(" << N << ")"; }
     typedef literal< std::string, varchar<N> > literal_type;
     static literal_type make_literal(const char* str) { return literal_type(str); }
     typedef char_comparable_type comparable_type;
     typedef char_type kind;
-    typedef std::string cpp_type;
-    enum { size = N };
+    typedef varchar cpp_type;
+    operator std::string() const { return std::string(chars_, chars_ + length_); }
+    const char* chars() const { return chars_; }
+    size_t length() const { return length_; }
+  private:
+    long length_;
+    char chars_[N + 1];
+    template<class SqlType, class Value, class Tag> friend struct sql_type_adapter;
   };
+
+  template<size_t N>
+  std::ostream& operator <<(std::ostream& os, const varchar<N>& str) {
+    os.write(str.chars(), str.length());
+    return os;
+  }
 
   struct comparison {
     typedef boolean sql_type;
