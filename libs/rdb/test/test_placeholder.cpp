@@ -5,22 +5,10 @@
 using namespace boost::rdb::sql;
 using namespace boost::rdb::sql::test::springfield;
 
-namespace boost { namespace rdb { namespace sql {
-
-} } }
-
-//template<class Expected, class T>
-//void check_placeholders(const T&) {
-//  BOOST_MPL_ASSERT((is_same<typename T::placeholders, Expected>));
-//}
-
-//struct Test {
-//  typedef int placeholders;
-//};
-//
-//void f() {
-//  check_placeholders<int>(Test());
-//}
+template<class Expected, class T>
+void check_placeholders(const T&) {
+  BOOST_MPL_ASSERT((boost::is_same<typename T::placeholders, Expected>));
+}
 
 BOOST_AUTO_TEST_CASE(test_placeholder) {
 
@@ -30,23 +18,23 @@ BOOST_AUTO_TEST_CASE(test_placeholder) {
 
   BOOST_RDB_CHECK_SQL(
     update(p).set(p.id = _),
-    "update person set id = %");
+    "update person set id = ?");
 
   BOOST_RDB_CHECK_SQL(
     update(p).set(p.name = _),
-    "update person set name = %");
+    "update person set name = ?");
 
   BOOST_RDB_CHECK_SQL(
     update(p).set(p.id = p.age + _),
-    "update person set id = age + %");
+    "update person set id = age + ?");
 
   BOOST_RDB_CHECK_SQL(
     update(p).set(p.age = 75).where(p.name.like(_)),
-    "update person set age = 75 where name like %");
+    "update person set age = 75 where name like ?");
 
   using namespace boost;
 
-  //check_placeholders< fusion::vector<integer> >(p.age == _);
+  check_placeholders< fusion::vector<integer> >(p.age == _);
 
   BOOST_MPL_ASSERT((is_same<
     BOOST_TYPEOF((p.age + _) == _)::placeholders,

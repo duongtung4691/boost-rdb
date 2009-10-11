@@ -157,9 +157,26 @@ BOOST_FIXTURE_TEST_CASE(parameterless_prepared_statements, springfield_fixture) 
   BOOST_AUTO(st, db.prepare(select(p.id, p.first_name, p.name, p.age).from(p)));
   BOOST_RDB_CHECK_SELECT_RESULTS(
     st.execute(),
-    "((1 Homer Simpson 37) (2 Marge Simpson 34))"); // WRONG: assumes row order
+    "((1 Homer Simpson 37) (2 Marge Simpson 34))");
   // again
   BOOST_RDB_CHECK_SELECT_RESULTS(
     st.execute(),
-    "((1 Homer Simpson 37) (2 Marge Simpson 34))"); // WRONG: assumes row order
+    "((1 Homer Simpson 37) (2 Marge Simpson 34))");
+}
+
+BOOST_FIXTURE_TEST_CASE(prepared_insert, springfield_fixture) {
+  person p;
+  BOOST_AUTO(st, db.prepare(insert_into(p)(p.id, p.first_name, p.name, p.age).values(_, _, _, _)));
+  st.execute(3, (char*) "Bart", "Simpson", 9);
+  st.execute(4, (const char*) "Lisa", "Simpson", 7);
+  st.execute(5, string("Maggie"), "Simpson", 0);
+  BOOST_RDB_CHECK_SELECT_RESULTS(
+    db.execute(select(p.id, p.first_name, p.name, p.age).from(p)),
+    "((1 Homer Simpson 37)"
+    " (2 Marge Simpson 34)"
+    " (3 Bart Simpson 9)"
+    " (4 Lisa Simpson 7)"
+    " (5 Maggie Simpson 0))"    
+    );
+
 }

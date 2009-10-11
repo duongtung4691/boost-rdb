@@ -305,6 +305,7 @@ namespace boost { namespace rdb { namespace sql {
     typedef num_comparable_type comparable_type;
     typedef numeric_type kind;
     typedef long cpp_type;
+    typedef long c_type;
   };
 
   struct boolean
@@ -328,16 +329,50 @@ namespace boost { namespace rdb { namespace sql {
     static literal_type make_literal(const char* str) { return literal_type(str); }
     typedef char_comparable_type comparable_type;
     typedef char_type kind;
-    typedef varchar cpp_type;
+    typedef varchar c_type;
+    typedef std::string cpp_type;
     operator std::string() const { return std::string(chars_, chars_ + length()); }
     const char* chars() const { return chars_; }
     size_t length() const { return ulength_; }
-  private:
+
+    template<int Length>
+    varchar& operator =(const char (&str)[Length]) {
+      BOOST_STATIC_ASSERT(Length <= N);
+      const char* src = str;
+      char* dest = chars_;
+      while (*dest++ = *src++);
+      ulength_ = dest - chars_ - 1;
+      return *this;
+    }
+
+    varchar& operator =(const char* src) {
+      char* dest = chars_;
+      char* last = chars_ + N;
+      while (*src) {
+        if (dest == last)
+          throw std::range_error("overflow in varchar");
+        *dest++ = *src++;
+      }
+      *dest = 0;
+      ulength_ = dest - chars_;
+      return *this;
+    }
+
+    varchar& operator =(const std::string& src) {
+      if (src.length() > N)
+        throw std::range_error("overflow in varchar");
+      *std::copy(src.begin(), src.end(), chars_) = 0;
+      ulength_ = src.length();
+      return *this;
+    }
+
+//  private:
     union {
       long length_;
       unsigned long ulength_;
     };
     char chars_[N + 1];
+
     template<class SqlType, class Value, class Tag> friend struct sql_type_adapter;
   };
 
