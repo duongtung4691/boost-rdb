@@ -343,7 +343,7 @@ namespace boost { namespace rdb { namespace sql {
     template<class Self, class Key, class Value, class Placeholders>
     struct result<Self(fusion::pair<Key, Value>&, Placeholders&)> {
       typedef typename fusion::result_of::join<
-        typename Placeholders,
+        Placeholders,
         typename extract_placeholders_from_pair<Key, Value>::type
       >::type type;
     };
