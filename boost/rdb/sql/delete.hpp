@@ -26,6 +26,7 @@ namespace boost { namespace rdb { namespace sql {
   struct delete_statement : delete_placeholders<Predicate> {
 
     typedef delete_statement_tag tag;
+    typedef void result;
 
     delete_statement(const Predicate& where) : where_(where) { }
 
