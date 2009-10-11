@@ -10,8 +10,20 @@ namespace boost { namespace rdb { namespace sql {
 
   struct delete_statement_tag : statement_tag { };
 
+  template<class Predicate>
+  struct delete_placeholders {
+    typedef typename Predicate::placeholders placeholders;
+  };
+
+  template<>
+  struct delete_placeholders<detail::none> {
+    typedef fusion::vector<> placeholders;
+  };
+
+  // I should make this a FSM too someday...
+
   template<class Table, class Predicate>
-  struct delete_statement {
+  struct delete_statement : delete_placeholders<Predicate> {
 
     typedef delete_statement_tag tag;
 
