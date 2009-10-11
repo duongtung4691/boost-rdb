@@ -49,6 +49,7 @@
 #include <boost/fusion/include/deref.hpp>
 #include <boost/fusion/include/front.hpp>
 #include <boost/fusion/include/transform.hpp>
+#include <boost/fusion/include/zip_view.hpp>
 
 #include <boost/concept_check.hpp>
 #include <boost/concept/requires.hpp>
