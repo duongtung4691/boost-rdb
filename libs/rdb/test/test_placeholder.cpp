@@ -1,7 +1,6 @@
 #include "test.hpp"
 
 #include <boost/rdb/sql.hpp>
-#include <boost/mpl/identity.hpp>
 
 using namespace boost::rdb::sql;
 using namespace boost::rdb::sql::test::springfield;
@@ -115,6 +114,11 @@ BOOST_AUTO_TEST_CASE(test_placeholder) {
   BOOST_MPL_ASSERT((is_same<
     BOOST_TYPEOF(update(p).set(p.age = _).where(p.first_name == _))::placeholders,
     fusion::vector< integer, varchar<30> >
+    >));
+
+  BOOST_MPL_ASSERT((is_same<
+    BOOST_TYPEOF(delete_from(p).where(p.first_name == _))::placeholders,
+    fusion::vector< varchar<30> >
     >));
 }
 
