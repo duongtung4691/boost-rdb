@@ -285,8 +285,8 @@ namespace boost { namespace rdb { namespace odbc {
     prepared_select_statement(SQLHSTMT hstmt) : base(hstmt) { }
 
     result_set<select_list, container, false> execute() {
-      sql_check(SQL_HANDLE_STMT, hstmt_, SQLExecute(hstmt_));
-      return result_set<select_list, container, false>(hstmt_);
+      sql_check(SQL_HANDLE_STMT, this->hstmt_, SQLExecute(this->hstmt_));
+      return result_set<select_list, container, false>(this->hstmt_);
     }
 
     #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)

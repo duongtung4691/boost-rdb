@@ -49,8 +49,8 @@ namespace boost { namespace rdb { namespace sql {
       typedef typename mpl::if_<
         is_placeholder<Expr>,
         typename fusion::result_of::push_back<
-          typename Placeholders,
-          typename typename Col::sql_type
+          Placeholders,
+          typename Col::sql_type
         >::type,
         Placeholders
       >::type type;
