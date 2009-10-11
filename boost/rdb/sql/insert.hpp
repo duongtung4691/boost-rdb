@@ -39,9 +39,40 @@ namespace boost { namespace rdb { namespace sql {
   struct insert_impl {
   };
 
+  struct extract_insert_values_placeholders {
+
+    template<typename Sig>
+    struct result;
+
+    template<class Self, class Col, class Expr, class Placeholders>
+    struct result<Self(fusion::vector<Col&, Expr&>, Placeholders&)> {
+      typedef typename mpl::if_<
+        is_placeholder<Expr>,
+        typename fusion::result_of::push_back<
+          typename Placeholders,
+          typename typename Col::sql_type
+        >::type,
+        Placeholders
+      >::type type;
+    };
+  };
+
+  template<class ExprList>
+  struct insert_values_placeholders {
+    typedef typename fusion::result_of::as_vector<
+      typename fusion::result_of::accumulate<ExprList, fusion::vector<>, extract_insert_values_placeholders>::type
+    >::type type;
+  };
+
   template<class Data, class Subdialect>
   struct insert_impl<Data, mpl::true_, mpl::false_, Subdialect> {
     typedef insert_statement_tag tag;
+    typedef typename fusion::result_of::value_at_key<Data, typename Subdialect::cols>::type cols;
+    typedef typename fusion::result_of::value_at_key<Data, typename Subdialect::values>::type values;
+    typedef fusion::zip_view< fusion::vector<cols&, values&> > zip_view;
+    typedef typename fusion::result_of::as_vector<
+      typename fusion::result_of::accumulate<zip_view, fusion::vector<>, extract_insert_values_placeholders>::type
+    >::type placeholders;
   };
 
   template<class Data, class Subdialect>

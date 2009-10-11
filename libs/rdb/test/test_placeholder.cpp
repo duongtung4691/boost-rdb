@@ -97,10 +97,10 @@ BOOST_AUTO_TEST_CASE(test_placeholder) {
     fusion::vector<integer, integer>
     >));
 
-  //BOOST_MPL_ASSERT((is_same<
-  //  BOOST_TYPEOF(insert_into(p)(p.id, p.first_name, p.name, p.age).values(_, _, _, _))::placeholders,
-  //  fusion::vector<integer, varchar<30>, varchar<20>, integer>
-  //  >));
+  BOOST_MPL_ASSERT((is_same<
+    BOOST_TYPEOF(insert_into(p)(p.id, p.first_name, p.name, p.age).values(_, _, _, 66))::placeholders,
+    fusion::vector< integer, varchar<30>, varchar<20> >
+    >));
 
   {
     typedef BOOST_TYPEOF(insert_into(p)(p.id).select(p.id).from(p).where(p.age > _))::placeholders placeholders;
