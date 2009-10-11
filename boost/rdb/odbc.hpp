@@ -288,6 +288,10 @@ namespace boost { namespace rdb { namespace odbc {
       sql_check(SQL_HANDLE_STMT, hstmt_, SQLExecute(hstmt_));
       return result_set<select_list, container, false>(hstmt_);
     }
+
+    #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
+    #define BOOST_PP_FILENAME_1       <boost/rdb/odbc/detail/execute_select.hpp>
+    #include BOOST_PP_ITERATE()
   };
 
   template<class ExprList, class Container, bool Own>

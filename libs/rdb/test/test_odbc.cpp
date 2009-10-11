@@ -178,5 +178,11 @@ BOOST_FIXTURE_TEST_CASE(prepared_insert, springfield_fixture) {
     " (4 Lisa Simpson 7)"
     " (5 Maggie Simpson 0))"    
     );
+}
 
+BOOST_FIXTURE_TEST_CASE(prepared_select, springfield_fixture) {
+  person p;
+  BOOST_AUTO(st, db.prepare(select(p.first_name).from(p).where(p.id == _)));
+  BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(1), "((Homer))");
+  BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(2), "((Marge))");
 }
