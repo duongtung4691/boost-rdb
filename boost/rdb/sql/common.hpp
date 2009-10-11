@@ -328,11 +328,14 @@ namespace boost { namespace rdb { namespace sql {
     typedef char_comparable_type comparable_type;
     typedef char_type kind;
     typedef varchar cpp_type;
-    operator std::string() const { return std::string(chars_, chars_ + length_); }
+    operator std::string() const { return std::string(chars_, chars_ + length()); }
     const char* chars() const { return chars_; }
-    size_t length() const { return length_; }
+    size_t length() const { return ulength_; }
   private:
-    long length_;
+    union {
+      long length_;
+      unsigned long ulength_;
+    };
     char chars_[N + 1];
     template<class SqlType, class Value, class Tag> friend struct sql_type_adapter;
   };
