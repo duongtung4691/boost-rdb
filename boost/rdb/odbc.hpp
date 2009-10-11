@@ -320,11 +320,10 @@ namespace boost { namespace rdb {
   template<int N>
   struct sql_type_adapter<sql::varchar<N>, sql::varchar<N>, odbc::odbc_tag> {
     static bool get_data(SQLHSTMT hstmt, int col, sql::varchar<N>& value) {
-      SQLLEN n;
-      SQLGetData(hstmt, col, SQL_C_CHAR, value.chars_, sizeof value.chars_, &n);
-      if (n == SQL_NULL_DATA)
+      // TODO: post-fetch step to deal with signed/unsigned issue
+      SQLGetData(hstmt, col, SQL_C_CHAR, value.chars_, sizeof value.chars_, &value.length_);
+      if (value.length_ == SQL_NULL_DATA)
         return false;
-      value.length_ = n;
       return true;
     }
   };
