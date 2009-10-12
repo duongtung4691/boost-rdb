@@ -34,6 +34,13 @@ namespace boost { namespace rdb { namespace sql {
     typedef typename Expr::sql_type::comparable_type comparable_type;
   };
 
+  template<class Expr>
+  struct BooleanExpression : Expression<Expr> {
+    BOOST_CONCEPT_USAGE(BooleanExpression) {
+      BOOST_MPL_ASSERT((boost::is_same<typename Expr::sql_type, boolean>));
+    }
+  };
+
   template<class Expr, typename T>
   struct CompatibleLiteral
   {
@@ -277,13 +284,6 @@ namespace boost { namespace rdb { namespace sql {
   as_expression(const expression<Expr>& expr) {
     return expr.unwrap();
   }
-
-  template<class Expr>
-  struct BooleanExpression : Expression<Expr> {
-    BOOST_CONCEPT_USAGE(BooleanExpression) {
-      BOOST_MPL_ASSERT((boost::is_same<typename Expr::sql_type, boolean>));
-    }
-  };
   
   struct null_type {
     typedef null_type sql_type;
