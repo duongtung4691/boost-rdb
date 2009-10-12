@@ -133,7 +133,7 @@ namespace boost { namespace rdb { namespace sql {
   members_before_##NAME;  \
   enum { NAME##_index = boost::mpl::size<members_before_##NAME>::value }; \
   struct NAME##_base : any_column { static const char* name() { return #NAME; } }; \
-  typedef expression< column<this_table, sql_type, NAME##_base> > NAME##_type;  \
+  typedef expression< column<this_table, rdb_type<sql_type>, NAME##_base> > NAME##_type;  \
   NAME##_type NAME;  \
   struct NAME##_member {  \
     typedef std::string type;  \

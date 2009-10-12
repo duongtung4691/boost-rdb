@@ -298,10 +298,16 @@ namespace boost { namespace rdb { namespace sql {
   struct boolean_type;
   struct placeholder_type;
 
-  struct integer
+  template<class T>
+  struct rdb_type;
+
+  struct integer;
+
+  template<>
+  struct rdb_type<integer>
   {
     static void str(std::ostream& os) { os << "integer"; }
-    typedef literal<long, integer> literal_type;
+    typedef literal< long, rdb_type<integer> > literal_type;
     static literal_type make_literal(long val) { return literal_type(val); }
     typedef boost::mpl::true_::type is_numeric;
     typedef num_comparable_type comparable_type;
@@ -310,10 +316,13 @@ namespace boost { namespace rdb { namespace sql {
     typedef long c_type;
   };
 
-  struct boolean
+  struct boolean;
+  
+  template<>
+  struct rdb_type<boolean>
   {
     static void str(std::ostream& os) { os << "boolean"; }
-    typedef literal<bool, boolean> literal_type;
+    typedef literal<bool, rdb_type<boolean> > literal_type;
     static literal_type make_literal(bool val) { return literal_type(val); }
     typedef boolean_type kind;
     typedef bool cpp_type;
@@ -326,13 +335,6 @@ namespace boost { namespace rdb { namespace sql {
   {
   public:
     BOOST_STATIC_CONSTANT(size_t, size = N);
-    static void str(std::ostream& os) { os << "varchar(" << N << ")"; }
-    typedef literal< std::string, varchar<N> > literal_type;
-    static literal_type make_literal(const char* str) { return literal_type(str); }
-    typedef char_comparable_type comparable_type;
-    typedef char_type kind;
-    typedef varchar c_type;
-    typedef std::string cpp_type;
     operator std::string() const { return std::string(chars_, chars_ + length()); }
     const char* chars() const { return chars_; }
     size_t length() const { return ulength_; }
@@ -376,6 +378,17 @@ namespace boost { namespace rdb { namespace sql {
     char chars_[N + 1];
 
     template<class SqlType, class Value, class Tag> friend struct sql_type_adapter;
+  };
+
+  template<int N>
+  struct rdb_type< varchar<N> > {
+    static void str(std::ostream& os) { os << "varchar(" << N << ")"; }
+    typedef literal< std::string, rdb_type< varchar<N> > > literal_type;
+    static literal_type make_literal(const char* str) { return literal_type(str); }
+    typedef char_comparable_type comparable_type;
+    typedef char_type kind;
+    typedef varchar<N> c_type;
+    typedef std::string cpp_type;
   };
 
   template<size_t N>
