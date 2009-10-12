@@ -200,7 +200,7 @@ BOOST_AUTO_TEST_CASE(numerical_operators) {
 
   BOOST_RDB_CHECK_SQL(
     select(p.id).from(p).where(!(p.age > 18)),
-    "select p.id from person as p where not (p.age > 18)");
+    "select p.id from person as p where not p.age > 18");
 
   BOOST_RDB_CHECK_SQL(
     select(p.id).from(p).where(p.age > 18 && p.age < 65),
@@ -258,7 +258,7 @@ BOOST_AUTO_TEST_CASE(test_is_null) {
   
   BOOST_RDB_CHECK_SQL(
     select(p.id).from(p).where(!(p.age == null)),
-    "select id from person where not (age is null)");
+    "select id from person where not age is null");
   
   BOOST_RDB_CHECK_SQL(
     select(p.id).from(p).where(p.age != null),

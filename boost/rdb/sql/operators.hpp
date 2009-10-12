@@ -72,11 +72,13 @@ namespace boost { namespace rdb { namespace sql {
   #define BOOST_RDB_OPERATOR &&
   #define BOOST_RDB_OPERATOR_STRING " and "
   #define BOOST_RDB_OPERATOR_CLASS and_
+  #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::logical_and
   #include "boost/rdb/sql/detail/boolean_operator.hpp"
 
   #define BOOST_RDB_OPERATOR ||
   #define BOOST_RDB_OPERATOR_STRING " or "
   #define BOOST_RDB_OPERATOR_CLASS or_
+  #define BOOST_RDB_OPERATOR_PRECEDENCE precedence_level::logical_or
   #include "boost/rdb/sql/detail/boolean_operator.hpp"
 
   template<class Expr>

@@ -1,6 +1,6 @@
 
 template<class Expr1, class Expr2>
-struct BOOST_RDB_OPERATOR_CLASS : binary_operation<Expr1, Expr2, precedence_level::boolean> {
+struct BOOST_RDB_OPERATOR_CLASS : binary_operation<Expr1, Expr2, BOOST_RDB_OPERATOR_PRECEDENCE> {
 
   BOOST_RDB_OPERATOR_CLASS(const Expr1& expr1, const Expr2& expr2) : expr1_(expr1), expr2_(expr2) { }
 
@@ -26,3 +26,4 @@ operator BOOST_RDB_OPERATOR(const expression<Expr1>& expr1, const expression<Exp
 #undef BOOST_RDB_OPERATOR
 #undef BOOST_RDB_OPERATOR_STRING
 #undef BOOST_RDB_OPERATOR_CLASS
+#undef BOOST_RDB_OPERATOR_PRECEDENCE

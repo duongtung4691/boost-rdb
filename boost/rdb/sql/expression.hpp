@@ -14,6 +14,7 @@ namespace boost { namespace rdb { namespace sql {
     Expr expr;
     std::ostream& stream;
     typedef typename Expr::sql_type sql_type;
+    typedef typename Expr::placeholders placeholders;
     enum { precedence = Expr::precedence };
 
     BOOST_CONCEPT_USAGE(Expression) {

@@ -89,12 +89,14 @@ namespace boost { namespace rdb { namespace sql {
 
   namespace precedence_level {
     enum level {
-      boolean,
+      logical_or,
+      logical_and,
+      logical_not,
       compare,
       add,
       multiply,
-      logical_not,
-      highest
+      lowest = logical_or,
+      highest = multiply
     };
   }
 
