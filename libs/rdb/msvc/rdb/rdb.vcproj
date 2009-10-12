@@ -306,6 +306,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\..\..\boost\rdb\sql\dynamic_expression.hpp"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\..\boost\rdb\sql\expression.hpp"
 			>
 		</File>
