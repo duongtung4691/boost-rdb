@@ -390,6 +390,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\test\test_dynamic.cpp"
+			>
+		</File>
+		<File
 			RelativePath="..\..\test\test_insert.cpp"
 			>
 		</File>

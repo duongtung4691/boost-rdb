@@ -11,10 +11,10 @@
 
 #define BOOST_RDB_CHECK_SQL(expr, sql) BOOST_CHECK(str(expr) == sql)
 
-template<class Stat>
-std::string str(const Stat& statement) {
+template<class T>
+std::string str(const T& obj) {
   std::ostringstream os;
-  statement.str(os);
+  obj.str(os);
   return os.str();
 }
 
