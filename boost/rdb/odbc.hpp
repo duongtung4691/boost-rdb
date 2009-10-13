@@ -13,6 +13,11 @@
 
 namespace boost { namespace rdb { namespace odbc {
 
+  template<class T, class Tag>
+  struct cli_type;
+
+  struct odbc_tag { };
+
   struct error : std::exception {
     error(SQLSMALLINT handle_type, SQLHANDLE handle, long rc);
     virtual const char* what() const throw();
@@ -46,8 +51,6 @@ namespace boost { namespace rdb { namespace odbc {
 
   public:
   };
-
-  struct odbc_tag { };
 
   class database;
 
@@ -98,6 +101,21 @@ namespace boost { namespace rdb { namespace odbc {
     char chars_[N + 1];
 
     template<class SqlType, class Value, class Tag> friend struct sql_type_adapter;
+  };
+
+  template<int N>
+  struct cli_type<rdb::sql::type::varchar<N>, odbc_tag> {
+    typedef varchar<N> type;
+  };
+
+  template<>
+  struct cli_type<sql::type::integer, odbc_tag> {
+    typedef long type;
+  };
+
+  template<>
+  struct cli_type<sql::type::boolean, odbc_tag> {
+    typedef bool type;
   };
 
   template<size_t N>
@@ -247,6 +265,7 @@ namespace boost { namespace rdb { namespace odbc {
     SQLHSTMT hstmt_;
   };
 
+  template<class Tag>
   struct make_param_vector {
 
     template<typename Sig>
@@ -256,7 +275,7 @@ namespace boost { namespace rdb { namespace odbc {
     struct result<Self(SqlType&, Vector&)> {
       typedef typename fusion::result_of::push_back<
         Vector,
-        typename sql::type_traits<SqlType>::c_type
+        typename cli_type<SqlType, Tag>::type
       >::type type;
     };
   };
@@ -321,7 +340,7 @@ namespace boost { namespace rdb { namespace odbc {
       typename fusion::result_of::accumulate<
         placeholders, 
         fusion::vector<>, 
-        make_param_vector
+        make_param_vector<odbc_tag>
       >::type
     >::type param_vector;
 
