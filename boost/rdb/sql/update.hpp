@@ -68,10 +68,10 @@ namespace boost { namespace rdb { namespace sql {
     template<class Self, class Col, class Expr, class Placeholders>
     struct result<Self(set_clause<Col, Expr>&, Placeholders&)> {
       typedef typename mpl::if_<
-        is_placeholder<Expr>,
+        is_placeholder_mark<Expr>,
         typename fusion::result_of::push_back<
           Placeholders,
-          typename Col::sql_type
+          type::placeholder<typename Col::sql_type>
         >::type,
         Placeholders
       >::type type;

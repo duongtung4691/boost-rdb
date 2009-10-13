@@ -285,7 +285,7 @@ namespace boost { namespace rdb { namespace odbc {
     struct result;
 
     template<class Self, class SqlType, class Vector>
-    struct result<Self(SqlType&, Vector&)> {
+    struct result<Self(type::placeholder<SqlType>&, Vector&)> {
       typedef typename fusion::result_of::push_back<
         Vector,
         typename type::cli_type<SqlType, Tag>::type
@@ -298,7 +298,7 @@ namespace boost { namespace rdb { namespace odbc {
     SQLHSTMT hstmt_;
     mutable int i_;
 
-    void operator ()(fusion::vector<const type::integer&, long&>& zip) const {
+    void operator ()(fusion::vector<const type::placeholder<type::integer>&, long&>& zip) const {
       using namespace fusion;
       SQLINTEGER length = sizeof(&at_c<1>(zip));
       sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindParameter(hstmt_, i_, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0,
@@ -307,7 +307,7 @@ namespace boost { namespace rdb { namespace odbc {
     }
 
     template<size_t N>
-    void operator ()(fusion::vector<const type::varchar<N>&, varchar<N>&>& zip) const {
+    void operator ()(fusion::vector<const type::placeholder< type::varchar<N> >&, varchar<N>&>& zip) const {
       using namespace fusion;
       sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindParameter(hstmt_, i_, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
         at_c<1>(zip).chars_, 0, &at_c<1>(zip).length_));
