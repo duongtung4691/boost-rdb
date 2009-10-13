@@ -9,6 +9,9 @@
 namespace boost { namespace rdb { namespace sql {
 
   template<class Expr>
+  struct expression;
+
+  template<class Expr>
   struct Expression
   {
     Expr expr;
@@ -25,13 +28,13 @@ namespace boost { namespace rdb { namespace sql {
   template<class Expr>
   struct NumericExpression : Expression<Expr>
   {
-    typedef typename Expr::sql_type::is_numeric is_numeric;
+    //typedef typename type_traits<typename Expr::sql_type>::is_numeric is_numeric;
   };
 
   template<class Expr>
   struct ComparableExpression : Expression<Expr>
   {
-    typedef typename Expr::sql_type::comparable_type comparable_type;
+    typedef typename type_traits<typename Expr::sql_type>::comparable_type comparable_type;
   };
 
   template<class Expr>
@@ -46,24 +49,21 @@ namespace boost { namespace rdb { namespace sql {
   {
     const T& value;
     BOOST_CONCEPT_USAGE(CompatibleLiteral) {
-      Expr::sql_type::make_literal(value);
+      type_traits<typename Expr::sql_type>::make_literal(value);
     }
   };
 
   template<class Expr>
   struct is_placeholder : is_same<typename Expr::sql_type, placeholder_type> {
   };
-
-  template<class Expr>
-  struct expression;
     
   namespace result_of {
     template<class Expr, typename T>
     struct make_expression_ {
-      typedef typename Expr::sql_type::literal_type type;
+      typedef typename type_traits<typename Expr::sql_type>::literal_type type;
       // TODO improve compile error when T is not compatible
       static const type make(const T& value) {
-        return Expr::sql_type::make_literal(value);
+        return type_traits<typename Expr::sql_type>::make_literal(value);
       }
     };
   
@@ -225,7 +225,7 @@ namespace boost { namespace rdb { namespace sql {
     template<class Pattern>
     expression< sql::like<Expr, typename result_of::make_expression<Expr, Pattern>::type> >
     like(const Pattern& pattern) const {
-      BOOST_MPL_ASSERT((boost::is_same<typename Expr::sql_type::kind, char_type>));
+      BOOST_MPL_ASSERT((boost::is_same<typename type_traits<typename Expr::sql_type>::kind, char_type>));
       return sql::like<Expr, typename result_of::make_expression<Expr, Pattern>::type>(*this, make_expression(pattern));
     }
     
@@ -257,46 +257,25 @@ namespace boost { namespace rdb { namespace sql {
 
     using Expr::operator =; // for set col = value
   };
-
-  namespace result_of {
-    template<class Expr>
-    struct as_expression< const expression<Expr> > {
-      typedef Expr type;
-    };
-
-    template<class Expr>
-    struct as_expression< expression<Expr> > {
-      typedef Expr type;
-    };
-
-    // remove the expression<> decorator from a Column or an Expression
-    template<class Content>
-    struct unwrap {
-      typedef typename boost::remove_cv<Content>::type type;
-    };
-
-  }
-
-  template<class Expr>
-  BOOST_CONCEPT_REQUIRES(
-    ((Expression<Expr>)),
-  (const Expr&))
-  as_expression(const expression<Expr>& expr) {
-    return expr.unwrap();
-  }
   
-  struct null_type {
-    typedef null_type sql_type;
+  struct null_type { };
+
+  template<>
+  struct type_traits<null_type> {
     typedef null_type comparable_type;
     typedef universal kind;
-    enum { precedence = precedence_level::highest };
+  };
+  
+  struct null_expr {
+    typedef null_type sql_type;
     typedef fusion::vector<> placeholders;
+    enum { precedence = precedence_level::highest };
     void str(std::ostream& os) const {
       os << "null";
     }
   };
   
-  const expression<null_type> null = expression<null_type>();
+  const expression<null_expr> null = expression<null_expr>();
 
   template<int N>
   struct placeholder {

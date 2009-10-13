@@ -7,7 +7,7 @@
     typename transition<
       typename Subdialect::exprs,
       fusion::vector<
-        BOOST_PP_REPEAT(n, BOOST_RDB_PP_RESULT_OF_AS_EXPRESSION, Expr)
+        BOOST_PP_ENUM_PARAMS(n, Expr)
       >,
       typename result_of::add_key<
         Data,
@@ -19,7 +19,7 @@
       return typename transition<
         typename Subdialect::exprs,
         fusion::vector<
-          BOOST_PP_REPEAT(n, BOOST_RDB_PP_RESULT_OF_AS_EXPRESSION, Expr)
+          BOOST_PP_ENUM_PARAMS(n, Expr)
         >,
         typename result_of::add_key<
           Data,
@@ -29,6 +29,6 @@
       >::type(add_key<typename Subdialect::exprs>(
         add_key<typename Subdialect::all>(this->data_, 0),
         fusion::vector<
-          BOOST_PP_REPEAT(n, BOOST_RDB_PP_RESULT_OF_AS_EXPRESSION, Expr)
-        >(BOOST_PP_REPEAT(n, BOOST_RDB_PP_AS_EXPRESSION, expr))));
+          BOOST_PP_ENUM_PARAMS(n, Expr)
+        >(BOOST_PP_ENUM_PARAMS(n, expr))));
     }
