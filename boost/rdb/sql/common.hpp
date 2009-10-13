@@ -1,3 +1,6 @@
+//  Copyright Jean-Louis Leroy 2009.
+// Use, modification, and distribution are subject to the Boost Software License, Version 1.0.
+
 #ifndef BOOST_RDB_SQL_COMMON_HPP
 #define BOOST_RDB_SQL_COMMON_HPP
 
@@ -60,6 +63,8 @@
 #include <boost/preprocessor/arithmetic/sub.hpp>
 #include <boost/preprocessor/punctuation/comma_if.hpp>
 
+#include <boost/rdb/types.hpp>
+
 #define BOOST_RDB_MAX_SIZE FUSION_MAX_VECTOR_SIZE
 #define BOOST_RDB_MAX_ARG_COUNT 10
 #define BOOST_RDB_PP_WITH(z, n, t) ::template with<t##n>::type
@@ -69,13 +74,6 @@
 #define BOOST_RDB_MAKE_EXPRESSION(z, n, t) BOOST_PP_COMMA_IF(n) make_expression(t##n)
 #define BOOST_RDB_RESULT_OF_MAKE_EXPRESSION(z, n, t) \
   BOOST_PP_COMMA_IF(n) typename result_of::make_expression<this_type, t##n>::type
-
-namespace boost { namespace rdb {
-
-  template<class SqlType, class Value, class Tag>
-  struct sql_type_adapter;
-
-} }
 
 namespace boost { namespace rdb { namespace sql {
 
@@ -232,12 +230,6 @@ namespace boost { namespace rdb { namespace sql {
       st.str(stream);
     }
   };
-
-  namespace type {
-    struct integer { };
-    struct boolean { };
-    template<int N> struct varchar { };
-  }
   
   struct any_literal {
     enum { precedence = precedence_level::highest };
