@@ -4,19 +4,19 @@
 #ifndef BOOST_RDB_SQL_DYNAMIC_EXPRESSION_HPP
 #define BOOST_RDB_SQL_DYNAMIC_EXPRESSION_HPP
 
-#include <boost/any.hpp>
 #include <boost/rdb/sql/common.hpp>
 
 namespace boost { namespace rdb { namespace sql {
 
-  struct dynamic_type {
+  struct dynamic_placeholder { // make it a specialization of placeholder<> ? but what for ?
+    int type_;
+    int length_;
   };
 
   template<class SqlType>
   struct dynamic_expression_wrapper {
     typedef SqlType sql_type;
-    typedef any cpp_type;
-    typedef fusion::vector< type::placeholder<dynamic_type> > placeholders;
+    typedef fusion::vector< std::vector<dynamic_placeholder> > placeholders;
     enum { precedence = precedence_level::lowest };
     struct root {
       virtual void str(std::ostream& os) const = 0;
