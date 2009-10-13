@@ -86,7 +86,7 @@ namespace boost { namespace rdb { namespace sql {
 
     not_(const Expr& expr) : expr_(expr) { }
 
-    typedef boolean sql_type;
+    typedef type::boolean sql_type;
     
     typedef typename Expr::placeholders placeholders;
 
@@ -126,7 +126,7 @@ namespace boost { namespace rdb { namespace sql {
       
       const char* op_;
       
-      typedef boolean sql_type;
+      typedef type::boolean sql_type;
       
       void str(std::ostream& os) const {
         this->write(os, expr_, op_, null);
@@ -153,7 +153,7 @@ namespace boost { namespace rdb { namespace sql {
     
     op_exists(const Select& select) : select_(select) { }
 
-    typedef boolean sql_type;
+    typedef type::boolean sql_type;
 
     enum { precedence = precedence_level::logical_not };
 

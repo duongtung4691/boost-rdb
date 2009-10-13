@@ -40,7 +40,7 @@ namespace boost { namespace rdb { namespace sql {
   template<class Expr>
   struct BooleanExpression : Expression<Expr> {
     BOOST_CONCEPT_USAGE(BooleanExpression) {
-      BOOST_MPL_ASSERT((boost::is_same<typename Expr::sql_type, boolean>));
+      BOOST_MPL_ASSERT((boost::is_same<typename Expr::sql_type, type::boolean>));
     }
   };
 
@@ -88,7 +88,7 @@ namespace boost { namespace rdb { namespace sql {
     in_subquery(const Expr& expr, const Subquery& subquery) : expr_(expr), subquery_(subquery) { }
     const Expr& expr_;
     const Subquery& subquery_;
-    typedef boolean sql_type;
+    typedef type::boolean sql_type;
     enum { precedence = precedence_level::highest };
     typedef typename Subquery::placeholders placeholders;
     void str(std::ostream& os) const {
@@ -125,7 +125,7 @@ namespace boost { namespace rdb { namespace sql {
     in_values(const Expr& expr, const ExprList& alt) : expr_(expr), alt_(alt) { }
     Expr expr_;
     ExprList alt_;
-    typedef boolean sql_type;
+    typedef type::boolean sql_type;
     enum { precedence = precedence_level::highest };
 
     typedef typename fusion::result_of::as_vector<
@@ -200,7 +200,7 @@ namespace boost { namespace rdb { namespace sql {
     like(const Expr1& expr1, const Expr2& expr2_) : expr1_(expr1), expr2_(expr2_) { }
     Expr1 expr1_;
     Expr2 expr2_;
-    typedef boolean sql_type;
+    typedef type::boolean sql_type;
     void str(std::ostream& os) const {
       expr1_.str(os);
       os << " like ";

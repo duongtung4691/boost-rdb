@@ -51,6 +51,61 @@ namespace boost { namespace rdb { namespace odbc {
 
   class database;
 
+  template<size_t N>
+  class varchar {
+  public:
+    BOOST_STATIC_CONSTANT(size_t, size = N);
+    operator std::string() const { return std::string(chars_, chars_ + length()); }
+    const char* chars() const { return chars_; }
+    size_t length() const { return ulength_; }
+
+    template<int Length>
+    varchar& operator =(const char (&str)[Length]) {
+      BOOST_STATIC_ASSERT(Length <= N);
+      const char* src = str;
+      char* dest = chars_;
+      while (*dest++ = *src++);
+      ulength_ = dest - chars_ - 1;
+      return *this;
+    }
+
+    varchar& operator =(const char* src) {
+      char* dest = chars_;
+      char* last = chars_ + N;
+      while (*src) {
+        if (dest == last)
+          throw std::range_error("overflow in varchar");
+        *dest++ = *src++;
+      }
+      *dest = 0;
+      ulength_ = dest - chars_;
+      return *this;
+    }
+
+    varchar& operator =(const std::string& src) {
+      if (src.length() > N)
+        throw std::range_error("overflow in varchar");
+      *std::copy(src.begin(), src.end(), chars_) = 0;
+      ulength_ = src.length();
+      return *this;
+    }
+
+//  private:
+    union {
+      long length_;
+      unsigned long ulength_;
+    };
+    char chars_[N + 1];
+
+    template<class SqlType, class Value, class Tag> friend struct sql_type_adapter;
+  };
+
+  template<size_t N>
+  std::ostream& operator <<(std::ostream& os, const varchar<N>& str) {
+    os.write(str.chars(), str.length());
+    return os;
+  }
+
   template<class Row>
   struct read_row {
     read_row(SQLHSTMT hstmt, Row& row) : hstmt_(hstmt), row_(row), i_(0) { }
@@ -211,7 +266,7 @@ namespace boost { namespace rdb { namespace odbc {
     SQLHSTMT hstmt_;
     mutable int i_;
 
-    void operator ()(fusion::vector<const sql::integer&, long&>& zip) const {
+    void operator ()(fusion::vector<const sql::type::integer&, long&>& zip) const {
       using namespace fusion;
       SQLINTEGER length = sizeof(&at_c<1>(zip));
       sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindParameter(hstmt_, i_, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0,
@@ -220,7 +275,7 @@ namespace boost { namespace rdb { namespace odbc {
     }
 
     template<size_t N>
-    void operator ()(fusion::vector<const sql::varchar<N>&, sql::varchar<N>&>& zip) const {
+    void operator ()(fusion::vector<const sql::type::varchar<N>&, varchar<N>&>& zip) const {
       using namespace fusion;
       sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindParameter(hstmt_, i_, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
         at_c<1>(zip).chars_, 0, &at_c<1>(zip).length_));
@@ -382,7 +437,7 @@ namespace boost { namespace rdb { namespace odbc {
 namespace boost { namespace rdb {
 
   template<>
-  struct sql_type_adapter<sql::integer, long, odbc::odbc_tag> {
+  struct sql_type_adapter<sql::type::integer, long, odbc::odbc_tag> {
     static bool get_data(SQLHSTMT hstmt, int col, long& value) {    
       SQLLEN n;
       SQLGetData(hstmt, col, SQL_C_LONG, &value, 0, &n);
@@ -391,8 +446,8 @@ namespace boost { namespace rdb {
   };
 
   template<int N>
-  struct sql_type_adapter<sql::varchar<N>, sql::varchar<N>, odbc::odbc_tag> {
-    static bool get_data(SQLHSTMT hstmt, int col, sql::varchar<N>& value) {
+  struct sql_type_adapter<sql::type::varchar<N>, odbc::varchar<N>, odbc::odbc_tag> {
+    static bool get_data(SQLHSTMT hstmt, int col, odbc::varchar<N>& value) {
       // TODO: post-fetch step to deal with signed/unsigned issue
       SQLGetData(hstmt, col, SQL_C_CHAR, value.chars_, sizeof value.chars_, &value.length_);
       if (value.length_ == SQL_NULL_DATA)
@@ -402,7 +457,7 @@ namespace boost { namespace rdb {
   };
 
   template<int N>
-  struct sql_type_adapter<sql::varchar<N>, std::string, odbc::odbc_tag> {
+  struct sql_type_adapter<sql::type::varchar<N>, std::string, odbc::odbc_tag> {
     static bool get_data(SQLHSTMT hstmt, int col, std::string& value) {
       char buf[N];
       SQLLEN n;

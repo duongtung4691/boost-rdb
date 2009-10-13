@@ -47,8 +47,8 @@ namespace boost { namespace rdb { namespace sql {
 
   // alas no templatized typedefs yet
   // template<class Expr> typedef expression< dynamic_expression_wrapper<typename Expr::sql_type> > dynamic_expression<Expr>;
-  typedef expression< dynamic_expression_wrapper<integer> > dynamic_integer;
-  typedef expression< dynamic_expression_wrapper<boolean> > dynamic_boolean;
+  typedef expression< dynamic_expression_wrapper<type::integer> > dynamic_integer;
+  typedef expression< dynamic_expression_wrapper<type::boolean> > dynamic_boolean;
 
 
 } } }
