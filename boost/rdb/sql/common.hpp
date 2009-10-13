@@ -233,58 +233,12 @@ namespace boost { namespace rdb { namespace sql {
     }
   };
 
-  struct integer { };
-  struct boolean { };
-
-  template<size_t N>
-  class varchar {
-  public:
-    BOOST_STATIC_CONSTANT(size_t, size = N);
-    operator std::string() const { return std::string(chars_, chars_ + length()); }
-    const char* chars() const { return chars_; }
-    size_t length() const { return ulength_; }
-
-    template<int Length>
-    varchar& operator =(const char (&str)[Length]) {
-      BOOST_STATIC_ASSERT(Length <= N);
-      const char* src = str;
-      char* dest = chars_;
-      while (*dest++ = *src++);
-      ulength_ = dest - chars_ - 1;
-      return *this;
-    }
-
-    varchar& operator =(const char* src) {
-      char* dest = chars_;
-      char* last = chars_ + N;
-      while (*src) {
-        if (dest == last)
-          throw std::range_error("overflow in varchar");
-        *dest++ = *src++;
-      }
-      *dest = 0;
-      ulength_ = dest - chars_;
-      return *this;
-    }
-
-    varchar& operator =(const std::string& src) {
-      if (src.length() > N)
-        throw std::range_error("overflow in varchar");
-      *std::copy(src.begin(), src.end(), chars_) = 0;
-      ulength_ = src.length();
-      return *this;
-    }
-
-//  private:
-    union {
-      long length_;
-      unsigned long ulength_;
-    };
-    char chars_[N + 1];
-
-    template<class SqlType, class Value, class Tag> friend struct sql_type_adapter;
-  };
-
+  namespace type {
+    struct integer { };
+    struct boolean { };
+    template<int N> struct varchar { };
+  }
+  
   struct any_literal {
     enum { precedence = precedence_level::highest };
     typedef fusion::vector<> placeholders;
@@ -328,8 +282,8 @@ namespace boost { namespace rdb { namespace sql {
   //struct type_traits< literal<T, SqlType> > : type_traits<SqlType> { };
 
   template<>
-  struct literal<long, integer> : any_literal  {
-  typedef integer sql_type;
+  struct literal<long, type::integer> : any_literal  {
+  typedef type::integer sql_type;
     literal(long value) : value_(value) { }
     void str(std::ostream& os) const { os << value_; }
     int value_;
@@ -342,9 +296,9 @@ namespace boost { namespace rdb { namespace sql {
   struct placeholder_type;
 
   template<>
-  struct type_traits<integer> {
+  struct type_traits<type::integer> {
     static void str(std::ostream& os) { os << "integer"; }
-    typedef literal<long, integer> literal_type;
+    typedef literal<long, type::integer> literal_type;
     static literal_type make_literal(long val) { return literal_type(val); }
     typedef boost::mpl::true_::type is_numeric;
     typedef num_comparable_type comparable_type;
@@ -354,9 +308,9 @@ namespace boost { namespace rdb { namespace sql {
   };
 
   template<>
-  struct type_traits<boolean> {
+  struct type_traits<type::boolean> {
     static void str(std::ostream& os) { os << "boolean"; }
-    typedef literal<bool, boolean> literal_type;
+    typedef literal<bool, type::boolean> literal_type;
     static literal_type make_literal(bool val) { return literal_type(val); }
     typedef boolean_type kind;
     typedef bool cpp_type;
@@ -365,24 +319,18 @@ namespace boost { namespace rdb { namespace sql {
   struct char_comparable_type;
 
   template<int N>
-  struct type_traits< varchar<N> > {
+  struct type_traits< type::varchar<N> > {
     static void str(std::ostream& os) { os << "varchar(" << N << ")"; }
-    typedef literal< std::string, varchar<N> > literal_type;
+    typedef literal< std::string, type::varchar<N> > literal_type;
     static literal_type make_literal(const char* str) { return literal_type(str); }
     typedef char_comparable_type comparable_type;
     typedef char_type kind;
-    typedef varchar<N> c_type;
+    //typedef varchar<N> c_type;
     typedef std::string cpp_type;
   };
 
-  template<size_t N>
-  std::ostream& operator <<(std::ostream& os, const varchar<N>& str) {
-    os.write(str.chars(), str.length());
-    return os;
-  }
-
   struct comparison {
-    typedef boolean sql_type;
+    typedef type::boolean sql_type;
     enum { precedence = precedence_level::compare };
   };
 
