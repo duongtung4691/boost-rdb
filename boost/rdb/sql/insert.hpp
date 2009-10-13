@@ -65,13 +65,13 @@ namespace boost { namespace rdb { namespace sql {
     typedef fusion::zip_view< fusion::vector<cols&, values&> > zip_view;
     typedef typename fusion::result_of::as_vector<
       typename fusion::result_of::accumulate<zip_view, fusion::vector<>, extract_insert_values_placeholders>::type
-    >::type placeholders;
+    >::type placeholder_vector;
   };
 
   template<class Data, class Subdialect>
   struct insert_impl<Data, mpl::false_, mpl::true_, Subdialect> {
     typedef insert_statement_tag tag;
-    typedef typename placeholders_from_pair_list<Data>::type placeholders;
+    typedef typename placeholders_from_pair_list<Data>::type placeholder_vector;
   };
 
   template<class Dialect, class State, class Data, class Subdialect>

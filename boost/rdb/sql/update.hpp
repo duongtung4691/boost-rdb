@@ -16,7 +16,7 @@ namespace boost { namespace rdb { namespace sql {
     explicit update_statement(const Data& data) : data_(data) { }
 
     typedef void result;
-    typedef typename placeholders_from_pair_list<Data>::type placeholders;
+    typedef typename placeholders_from_pair_list<Data>::type placeholder_vector;
 
     Data data_;
 
