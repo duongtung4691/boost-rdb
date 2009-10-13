@@ -19,6 +19,12 @@ namespace boost { namespace rdb {
     // for a specific database
     template<class T, class Tag>
     struct cli_type;
+
+    template<class Type>
+    struct placeholder {
+      // Empty for statically typed placeholders, dynamic placeholders put info here
+      // to make it possible to build parameter objects at runtime
+    };
   }
 
 } }

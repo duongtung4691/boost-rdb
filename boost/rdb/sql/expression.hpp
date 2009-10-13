@@ -54,7 +54,7 @@ namespace boost { namespace rdb { namespace sql {
   };
 
   template<class Expr>
-  struct is_placeholder : is_same<typename Expr::sql_type, placeholder_type> {
+  struct is_placeholder_mark : is_same<typename Expr::sql_type, placeholder_type> {
   };
     
   namespace result_of {
@@ -113,8 +113,8 @@ namespace boost { namespace rdb { namespace sql {
     template<class Self, class Value, class Placeholders>
     struct result<Self(Value&, Placeholders&)> {
       typedef typename mpl::if_<
-        is_placeholder<Value>,
-        typename fusion::result_of::push_back<Placeholders, typename Expr::sql_type>::type,
+        is_placeholder_mark<Value>,
+        typename fusion::result_of::push_back<Placeholders, type::placeholder<typename Expr::sql_type> >::type,
         Placeholders
       >::type type;
     };
@@ -175,16 +175,16 @@ namespace boost { namespace rdb { namespace sql {
 
     typedef typename fusion::result_of::as_vector<
       typename mpl::if_<
-        is_placeholder<Expr1>,
+        is_placeholder_mark<Expr1>,
         typename fusion::result_of::push_front<
           typename Expr2::placeholders,
-          typename Expr2::sql_type
+          type::placeholder<typename Expr2::sql_type>
         >::type,
         typename mpl::if_<
-          is_placeholder<Expr2>,
+          is_placeholder_mark<Expr2>,
           typename fusion::result_of::push_back<
             typename Expr1::placeholders,
-            typename Expr1::sql_type
+            type::placeholder<typename Expr1::sql_type>
           >::type,
           typename fusion::result_of::join<
             typename Expr1::placeholders,
@@ -277,8 +277,12 @@ namespace boost { namespace rdb { namespace sql {
   
   const expression<null_expr> null = expression<null_expr>();
 
+  // This is /not/ the placeholder type. It's just the marks' type, i.e.
+  // the type of `_`, `_1`, etc. Placeholders are typed things, marks are not.
+  // The actual type of the placeholder is determined from the context in which
+  // it is used.
   template<int N>
-  struct placeholder {
+  struct placeholder_mark {
     typedef placeholder_type sql_type;
     typedef fusion::vector<> placeholders; // not really used; exists to please mpl::if_ which is not lazy
     enum { precedence = precedence_level::highest };
@@ -287,7 +291,7 @@ namespace boost { namespace rdb { namespace sql {
     }
   };
 
-  const expression< placeholder<0> > _;
+  const expression< placeholder_mark<0> > _;
 
   struct extract_placeholders_from_list {
 

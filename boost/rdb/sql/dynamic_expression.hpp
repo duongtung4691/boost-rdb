@@ -16,7 +16,7 @@ namespace boost { namespace rdb { namespace sql {
   struct dynamic_expression_wrapper {
     typedef SqlType sql_type;
     typedef any cpp_type;
-    typedef fusion::vector<dynamic_type> placeholders;
+    typedef fusion::vector< type::placeholder<dynamic_type> > placeholders;
     enum { precedence = precedence_level::lowest };
     struct root {
       virtual void str(std::ostream& os) const = 0;
