@@ -1,0 +1,26 @@
+[section xxx]
+
+[heading Description]
+
+[heading Synopsis]
+
+[heading Parameters]
+
+[table
+    [[Parameter]        [Requirement]                   [Description]]
+    [[`T`]				[Model of Table]				[The table type]]
+]
+
+[heading Expression Semantics]
+
+[*Return type]: A model of Statement
+
+[*Semantics]: Create an insert statement.
+
+[*Preconditions]:
+
+[heading Header]
+
+[heading Example]
+
+[endsect]
