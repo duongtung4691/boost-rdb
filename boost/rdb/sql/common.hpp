@@ -233,7 +233,7 @@ namespace boost { namespace rdb { namespace sql {
   
   struct any_literal {
     enum { precedence = precedence_level::highest };
-    typedef fusion::vector<> placeholders;
+    typedef fusion::vector<> placeholder_vector;
   };
 
   template<typename T, class SqlType>

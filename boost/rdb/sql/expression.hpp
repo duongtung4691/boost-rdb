@@ -17,7 +17,7 @@ namespace boost { namespace rdb { namespace sql {
     Expr expr;
     std::ostream& stream;
     typedef typename Expr::sql_type sql_type;
-    typedef typename Expr::placeholders placeholders;
+    typedef typename Expr::placeholder_vector placeholder_vector;
     enum { precedence = Expr::precedence };
 
     BOOST_CONCEPT_USAGE(Expression) {
@@ -90,7 +90,7 @@ namespace boost { namespace rdb { namespace sql {
     const Subquery& subquery_;
     typedef type::boolean sql_type;
     enum { precedence = precedence_level::highest };
-    typedef typename Subquery::placeholders placeholders;
+    typedef typename Subquery::placeholder_vector placeholder_vector;
     void str(std::ostream& os) const {
       if (Expr::precedence < precedence) {
         os << "(";
@@ -134,7 +134,7 @@ namespace boost { namespace rdb { namespace sql {
         fusion::vector<>,
         make_in_values_placeholders<Expr>
       >::type
-    >::type placeholders;
+    >::type placeholder_vector;
 
     void str(std::ostream& os) const {
       if (Expr::precedence < precedence) {
@@ -177,22 +177,22 @@ namespace boost { namespace rdb { namespace sql {
       typename mpl::if_<
         is_placeholder_mark<Expr1>,
         typename fusion::result_of::push_front<
-          typename Expr2::placeholders,
+          typename Expr2::placeholder_vector,
           type::placeholder<typename Expr2::sql_type>
         >::type,
         typename mpl::if_<
           is_placeholder_mark<Expr2>,
           typename fusion::result_of::push_back<
-            typename Expr1::placeholders,
+            typename Expr1::placeholder_vector,
             type::placeholder<typename Expr1::sql_type>
           >::type,
           typename fusion::result_of::join<
-            typename Expr1::placeholders,
-            typename Expr2::placeholders
+            typename Expr1::placeholder_vector,
+            typename Expr2::placeholder_vector
           >::type
         >::type
       >::type 
-    >::type placeholders;
+    >::type placeholder_vector;
   };
 
   template<class Expr1, class Expr2>
@@ -268,7 +268,7 @@ namespace boost { namespace rdb { namespace sql {
   
   struct null_expr {
     typedef null_type sql_type;
-    typedef fusion::vector<> placeholders;
+    typedef fusion::vector<> placeholder_vector;
     enum { precedence = precedence_level::highest };
     void str(std::ostream& os) const {
       os << "null";
@@ -284,7 +284,7 @@ namespace boost { namespace rdb { namespace sql {
   template<int N>
   struct placeholder_mark {
     typedef placeholder_type sql_type;
-    typedef fusion::vector<> placeholders; // not really used; exists to please mpl::if_ which is not lazy
+    typedef fusion::vector<> placeholder_vector; // not really used; exists to please mpl::if_ which is not lazy
     enum { precedence = precedence_level::highest };
     void str(std::ostream& os) const {
       os << "?";
@@ -302,7 +302,7 @@ namespace boost { namespace rdb { namespace sql {
     struct result<Self(Expr&, Placeholders&)> {
       typedef typename fusion::result_of::join<
         Placeholders,
-        typename Expr::placeholders
+        typename Expr::placeholder_vector
       >::type type;
     };
   };

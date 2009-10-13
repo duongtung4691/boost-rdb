@@ -15,7 +15,7 @@ BOOST_AUTO_TEST_CASE(test_dynamic_expression) {
   dynamic_boolean predicate = make_dynamic(p.age > 18);
   BOOST_RDB_CHECK_SQL(predicate, "p.age > 18");
 
-  typedef BOOST_TYPEOF(insert_into(p)(p.id, p.first_name, p.name, p.age).values(_, _, _, _))::placeholders placeholders;
+  typedef BOOST_TYPEOF(insert_into(p)(p.id, p.first_name, p.name, p.age).values(_, _, _, _))::placeholder_vector placeholder_vector;
 
   BOOST_RDB_CHECK_SQL(select(p.id).from(p).where(predicate), "select p.id from person as p where p.age > 18");
 }

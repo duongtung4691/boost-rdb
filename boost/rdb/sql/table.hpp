@@ -25,7 +25,7 @@ namespace boost { namespace rdb { namespace sql {
       table_ = table;
     }
 
-    typedef fusion::vector<> placeholders;
+    typedef fusion::vector<> placeholder_vector;
   };
 
   template<class Table, class SqlType, class Base>

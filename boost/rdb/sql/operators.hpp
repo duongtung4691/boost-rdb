@@ -88,7 +88,7 @@ namespace boost { namespace rdb { namespace sql {
 
     typedef type::boolean sql_type;
     
-    typedef typename Expr::placeholders placeholders;
+    typedef typename Expr::placeholder_vector placeholder_vector;
 
     enum { precedence = precedence_level::logical_not };
     
@@ -157,7 +157,7 @@ namespace boost { namespace rdb { namespace sql {
 
     enum { precedence = precedence_level::logical_not };
 
-    typedef typename Select::placeholders placeholders;
+    typedef typename Select::placeholder_vector placeholder_vector;
     
     void str(std::ostream& os) const {
       os << "exists (";

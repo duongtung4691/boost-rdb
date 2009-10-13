@@ -63,7 +63,7 @@ namespace boost { namespace rdb { namespace sql {
 
   template<class Predicate>
   struct extract_placeholders_from_pair<sql2003::where, Predicate> {
-    typedef typename Predicate::placeholders type;
+    typedef typename Predicate::placeholder_vector type;
   };
   
   template<class Dialect, class State, class Data, class Subdialect>
@@ -111,7 +111,7 @@ namespace boost { namespace rdb { namespace sql {
     
     #include "detail/select_where.hpp"
 
-    typedef typename placeholders_from_pair_list<Data>::type placeholders;
+    typedef typename placeholders_from_pair_list<Data>::type placeholder_vector;
   };
 
   template<class Dialect, class State, class Data, class Subdialect>
