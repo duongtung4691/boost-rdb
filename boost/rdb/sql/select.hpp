@@ -16,7 +16,7 @@ namespace boost { namespace rdb { namespace sql {
     template<typename Self, typename Expr>
     struct result<Self(Expr)>
     {
-      typedef typename boost::remove_reference<Expr>::type::cpp_type type;
+      typedef typename type_traits<typename boost::remove_reference<Expr>::type::sql_type>::cpp_type type;
     };
   };
 

@@ -65,8 +65,6 @@
 #define BOOST_RDB_PP_WITH(z, n, t) ::template with<t##n>::type
 #define BOOST_RDB_PP_CALL(z, n, t) (t##n)
 #define BOOST_RDB_PP_EXPRESSION(z, n, t) BOOST_PP_COMMA_IF(n) const expression<T##t##n>& t##n
-#define BOOST_RDB_PP_AS_EXPRESSION(z, n, t) BOOST_PP_COMMA_IF(n) as_expression(t##n)
-#define BOOST_RDB_PP_RESULT_OF_AS_EXPRESSION(z, n, t) BOOST_PP_COMMA_IF(n) typename result_of::as_expression<t##n>::type
 #define BOOST_RDB_PP_REFERENCE(z, n, t) BOOST_PP_COMMA_IF(n) t##n&
 #define BOOST_RDB_MAKE_EXPRESSION(z, n, t) BOOST_PP_COMMA_IF(n) make_expression(t##n)
 #define BOOST_RDB_RESULT_OF_MAKE_EXPRESSION(z, n, t) \
@@ -113,6 +111,9 @@ namespace boost { namespace rdb { namespace sql {
   struct tag_if<Condition, Tag, typename enable_if<Condition>::type> {
     typedef Tag tag;
   };
+
+  template<class T>
+  struct type_traits;
 
   struct sql2003 {
     struct select;
@@ -232,107 +233,11 @@ namespace boost { namespace rdb { namespace sql {
     }
   };
 
-  struct any_literal {
-    enum { precedence = precedence_level::highest };
-    typedef fusion::vector<> placeholders;
-  };
-
-  template<typename T, class SqlType /* temporary !!! */ = void>
-  struct literal : any_literal {
-    literal(const T& value) : value_(value) { }
-    void str(std::ostream& os) const { os << value_; }
-    typedef T cpp_type;
-    typedef SqlType sql_type;
-    T value_;
-  };
-
-  template<int N, class SqlType>
-  struct literal<const char[N], SqlType> : any_literal {
-    typedef SqlType sql_type;
-    literal(const char value[N]) : value_(value) { }
-    void str(std::ostream& os) const { quote_text(os, value_); }
-    const char* value_;
-  };
-
-  template<class SqlType>
-  struct literal<const char*, SqlType> : any_literal  {
-    typedef SqlType sql_type;
-    literal(const char* value) : value_(value) { }
-    void str(std::ostream& os) const { quote_text(os, value_); }
-    const char* value_;
-  };
-
-  template<class SqlType>
-  struct literal<std::string, SqlType> : any_literal  {
-    typedef SqlType sql_type;
-    literal(const char* value) : value_(value) { }
-    literal(const std::string& value) : value_(value) { }
-    void str(std::ostream& os) const { quote_text(os, value_.begin(), value_.end()); }
-    std::string value_;
-  };
-
-  template<>
-  struct literal<long> : any_literal  {
-    literal(long value) : value_(value) { }
-    void str(std::ostream& os) const { os << value_; }
-    int value_;
-  };
-
-  namespace result_of {
-    template<typename T>
-    struct as_expression {
-      typedef literal<T> type;
-    };
-    template<typename T> struct as_expression<T&> : as_expression<T> { };
-    template<typename T> struct as_expression<const T&> : as_expression<T> { };
-  }
-
-  template<typename T>
-  literal<T> as_expression(const T& value) {
-    return literal<T>(value);
-  }
-
-  struct num_comparable_type;
-  struct numeric_type;
-  struct char_type;
-  struct boolean_type;
-  struct placeholder_type;
-
-  template<class T>
-  struct rdb_type;
-
-  struct integer;
-
-  template<>
-  struct rdb_type<integer>
-  {
-    static void str(std::ostream& os) { os << "integer"; }
-    typedef literal< long, rdb_type<integer> > literal_type;
-    static literal_type make_literal(long val) { return literal_type(val); }
-    typedef boost::mpl::true_::type is_numeric;
-    typedef num_comparable_type comparable_type;
-    typedef numeric_type kind;
-    typedef long cpp_type;
-    typedef long c_type;
-  };
-
-  struct boolean;
-  
-  template<>
-  struct rdb_type<boolean>
-  {
-    static void str(std::ostream& os) { os << "boolean"; }
-    typedef literal<bool, rdb_type<boolean> > literal_type;
-    static literal_type make_literal(bool val) { return literal_type(val); }
-    typedef boolean_type kind;
-    typedef bool cpp_type;
-  };
-
-  struct char_comparable_type;
+  struct integer { };
+  struct boolean { };
 
   template<size_t N>
-  class varchar
-  {
+  class varchar {
   public:
     BOOST_STATIC_CONSTANT(size_t, size = N);
     operator std::string() const { return std::string(chars_, chars_ + length()); }
@@ -380,10 +285,89 @@ namespace boost { namespace rdb { namespace sql {
     template<class SqlType, class Value, class Tag> friend struct sql_type_adapter;
   };
 
+  struct any_literal {
+    enum { precedence = precedence_level::highest };
+    typedef fusion::vector<> placeholders;
+  };
+
+  template<typename T, class SqlType>
+  struct literal : any_literal {
+    literal(const T& value) : value_(value) { }
+    void str(std::ostream& os) const { os << value_; }
+    typedef T cpp_type;
+    typedef SqlType sql_type;
+    T value_;
+  };
+
+  template<int N, class SqlType>
+  struct literal<const char[N], SqlType> : any_literal {
+    typedef SqlType sql_type;
+    literal(const char value[N]) : value_(value) { }
+    void str(std::ostream& os) const { quote_text(os, value_); }
+    const char* value_;
+  };
+
+  template<class SqlType>
+  struct literal<const char*, SqlType> : any_literal  {
+    typedef SqlType sql_type;
+    literal(const char* value) : value_(value) { }
+    void str(std::ostream& os) const { quote_text(os, value_); }
+    const char* value_;
+  };
+
+  template<class SqlType>
+  struct literal<std::string, SqlType> : any_literal  {
+    typedef SqlType sql_type;
+    literal(const char* value) : value_(value) { }
+    literal(const std::string& value) : value_(value) { }
+    void str(std::ostream& os) const { quote_text(os, value_.begin(), value_.end()); }
+    std::string value_;
+  };
+  
+  //template<class T, class SqlType>
+  //struct type_traits< literal<T, SqlType> > : type_traits<SqlType> { };
+
+  template<>
+  struct literal<long, integer> : any_literal  {
+  typedef integer sql_type;
+    literal(long value) : value_(value) { }
+    void str(std::ostream& os) const { os << value_; }
+    int value_;
+  };
+
+  struct num_comparable_type;
+  struct numeric_type;
+  struct char_type;
+  struct boolean_type;
+  struct placeholder_type;
+
+  template<>
+  struct type_traits<integer> {
+    static void str(std::ostream& os) { os << "integer"; }
+    typedef literal<long, integer> literal_type;
+    static literal_type make_literal(long val) { return literal_type(val); }
+    typedef boost::mpl::true_::type is_numeric;
+    typedef num_comparable_type comparable_type;
+    typedef numeric_type kind;
+    typedef long cpp_type;
+    typedef long c_type;
+  };
+
+  template<>
+  struct type_traits<boolean> {
+    static void str(std::ostream& os) { os << "boolean"; }
+    typedef literal<bool, boolean> literal_type;
+    static literal_type make_literal(bool val) { return literal_type(val); }
+    typedef boolean_type kind;
+    typedef bool cpp_type;
+  };
+
+  struct char_comparable_type;
+
   template<int N>
-  struct rdb_type< varchar<N> > {
+  struct type_traits< varchar<N> > {
     static void str(std::ostream& os) { os << "varchar(" << N << ")"; }
-    typedef literal< std::string, rdb_type< varchar<N> > > literal_type;
+    typedef literal< std::string, varchar<N> > literal_type;
     static literal_type make_literal(const char* str) { return literal_type(str); }
     typedef char_comparable_type comparable_type;
     typedef char_type kind;
@@ -478,6 +462,10 @@ namespace boost { namespace rdb { namespace sql {
   struct universal;
 
   struct placeholder_type {
+  };
+  
+  template<>
+  struct type_traits<placeholder_type> {
     typedef boost::mpl::true_::type is_numeric;
     typedef placeholder_type comparable_type;
     typedef sql::universal kind;
@@ -486,11 +474,11 @@ namespace boost { namespace rdb { namespace sql {
   template<class Expr1, class Expr2>
   struct is_sql_compatible : mpl::or_<
     is_same<
-      typename remove_reference<Expr1>::type::sql_type::kind,
-      typename remove_reference<Expr2>::type::sql_type::kind
+      typename type_traits<typename remove_reference<Expr1>::type::sql_type>::kind,
+      typename type_traits<typename remove_reference<Expr2>::type::sql_type>::kind
     >,
-    is_same<typename remove_reference<Expr1>::type::sql_type::kind, universal>,
-    is_same<typename remove_reference<Expr2>::type::sql_type::kind, universal>
+    is_same<typename type_traits<typename remove_reference<Expr1>::type::sql_type>::kind, universal>,
+    is_same<typename type_traits<typename remove_reference<Expr2>::type::sql_type>::kind, universal>
   > {
   };
 
@@ -552,55 +540,55 @@ namespace boost { namespace rdb { namespace sql {
     typedef no_tag type;
   };
   
-template<class Seq>
-struct nullable {
-  Seq values_;
-  typedef std::bitset<fusion::result_of::size<Seq>::value> status_vector_type;
-  typedef Seq value_vector_type;
-  status_vector_type status_;
-  bool is_null(int pos) const { return !status_[pos]; }
-  template<int I> bool is_null() const { return !status_[I]; }
-  void set_null(int pos, bool to_null) { status_[pos] = !to_null; }
-  template<int I> typename fusion::result_of::at_c<const Seq, I>::type get() const {
-    return fusion::at_c<I>(values_);
-  }
-  template<int I> typename fusion::result_of::at_c<Seq, I>::type ref() {
-    return fusion::at_c<I>(values_);
-  }
-  const Seq& values() const { return values_; }
-  Seq& values() { return values_; }
-  const status_vector_type& status() const { return status_; }
-  status_vector_type& status() { return status_; }
-  nullable& operator =(const Seq& values) { values_ = values; return *this; }
-};
+  template<class Seq>
+  struct nullable {
+    Seq values_;
+    typedef std::bitset<fusion::result_of::size<Seq>::value> status_vector_type;
+    typedef Seq value_vector_type;
+    status_vector_type status_;
+    bool is_null(int pos) const { return !status_[pos]; }
+    template<int I> bool is_null() const { return !status_[I]; }
+    void set_null(int pos, bool to_null) { status_[pos] = !to_null; }
+    template<int I> typename fusion::result_of::at_c<const Seq, I>::type get() const {
+      return fusion::at_c<I>(values_);
+    }
+    template<int I> typename fusion::result_of::at_c<Seq, I>::type ref() {
+      return fusion::at_c<I>(values_);
+    }
+    const Seq& values() const { return values_; }
+    Seq& values() { return values_; }
+    const status_vector_type& status() const { return status_; }
+    status_vector_type& status() { return status_; }
+    nullable& operator =(const Seq& values) { values_ = values; return *this; }
+  };
 
-template<class Row>
-struct print_row_element {
+  template<class Row>
+  struct print_row_element {
 
-  print_row_element(std::ostream& os, const Row& r) : os_(os), r_(r), bit_(0) { }
-  
-  std::ostream& os_;
-  mutable int bit_;
-  const Row& r_;
-  
-  template<class T>
-  void operator ()(const T& value) const {
-    if (bit_)
-      os_ << " ";
-    if (r_.is_null(bit_++))
-      os_ << "null";
-    else
-      os_ << value;
+    print_row_element(std::ostream& os, const Row& r) : os_(os), r_(r), bit_(0) { }
+    
+    std::ostream& os_;
+    mutable int bit_;
+    const Row& r_;
+    
+    template<class T>
+    void operator ()(const T& value) const {
+      if (bit_)
+        os_ << " ";
+      if (r_.is_null(bit_++))
+        os_ << "null";
+      else
+        os_ << value;
+    }
+  };
+
+  template<class Seq>
+  std::ostream& operator <<(std::ostream& os, const nullable<Seq>& r) {
+    os << "(";
+    fusion::for_each(r.values(), print_row_element< nullable<Seq> >(os, r));
+    os << ")";
+    return os;
   }
-};
-
-template<class Seq>
-std::ostream& operator <<(std::ostream& os, const nullable<Seq>& r) {
-  os << "(";
-  fusion::for_each(r.values(), print_row_element< nullable<Seq> >(os, r));
-  os << ")";
-  return os;
-}
   
 } } }
 

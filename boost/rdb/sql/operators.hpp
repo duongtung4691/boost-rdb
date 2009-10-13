@@ -120,7 +120,7 @@ namespace boost { namespace rdb { namespace sql {
 
   namespace detail {
     template<class Expr>
-    struct test_null : binary_operation<Expr, null_type, precedence_level::compare> {
+    struct test_null : binary_operation<Expr, null_expr, precedence_level::compare> {
       
       test_null(const Expr& expr, const char* op) : expr_(expr), op_(op) { }
       
@@ -138,13 +138,13 @@ namespace boost { namespace rdb { namespace sql {
 
   template<class Expr>  
   expression< detail::test_null<Expr> >
-  operator ==(const expression<Expr>& expr, const expression<null_type>&) {
+  operator ==(const expression<Expr>& expr, const expression<null_expr>&) {
     return expression< detail::test_null<Expr> >(expr, " is ");
   }
 
   template<class Expr>  
   expression< detail::test_null<Expr> >
-  operator !=(const expression<Expr>& expr, const expression<null_type>&) {
+  operator !=(const expression<Expr>& expr, const expression<null_expr>&) {
     return expression< detail::test_null<Expr> >(expr, " is not ");
   }
 

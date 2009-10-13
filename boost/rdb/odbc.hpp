@@ -201,7 +201,7 @@ namespace boost { namespace rdb { namespace odbc {
     struct result<Self(SqlType&, Vector&)> {
       typedef typename fusion::result_of::push_back<
         Vector,
-        typename SqlType::c_type
+        typename sql::type_traits<SqlType>::c_type
       >::type type;
     };
   };

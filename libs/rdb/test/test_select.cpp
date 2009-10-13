@@ -16,10 +16,6 @@ BOOST_AUTO_TEST_CASE(test_select_temp) {
     "select id");
 
   BOOST_RDB_CHECK_SQL(
-    select(1),
-    "select 1");
-
-  BOOST_RDB_CHECK_SQL(
     select(p.id, p.name),
     "select id, name");
 
@@ -62,19 +58,6 @@ BOOST_AUTO_TEST_CASE(select_from) {
   BOOST_RDB_CHECK_SQL(
     select(person::_.id).from(person::_),
     "select id from person");
-}
-
-BOOST_AUTO_TEST_CASE(select_literals) {
-
-  person p;
-  
-  BOOST_RDB_CHECK_SQL(
-    select(p.id, 1).from(p),
-    "select id, 1 from person");
-  
-  BOOST_RDB_CHECK_SQL(
-    select(1, p.id).from(p),
-    "select 1, id from person");
 }
 
 BOOST_AUTO_TEST_CASE(simple_where_clause) {
