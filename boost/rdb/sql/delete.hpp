@@ -13,11 +13,13 @@ namespace boost { namespace rdb { namespace sql {
   template<class Predicate>
   struct delete_placeholders {
     typedef typename Predicate::placeholder_vector placeholder_vector;
+    placeholder_vector placeholders() const { return where_.placeholders(); }
   };
 
   template<>
   struct delete_placeholders<detail::none> {
     typedef fusion::vector<> placeholder_vector;
+    placeholder_vector placeholders() const { return fusion::make_vector(); }
   };
 
   // I should make this a FSM too someday...

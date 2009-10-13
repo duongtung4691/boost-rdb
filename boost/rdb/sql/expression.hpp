@@ -22,6 +22,7 @@ namespace boost { namespace rdb { namespace sql {
 
     BOOST_CONCEPT_USAGE(Expression) {
       expr.str(stream);
+      //expr.placeholders();
     }
   };
 
@@ -90,7 +91,16 @@ namespace boost { namespace rdb { namespace sql {
     const Subquery& subquery_;
     typedef type::boolean sql_type;
     enum { precedence = precedence_level::highest };
-    typedef typename Subquery::placeholder_vector placeholder_vector;
+    
+    typedef typename fusion::result_of::join<
+      typename Expr::placeholder_vector,
+      typename Subquery::placeholder_vector
+    >::type placeholder_vector;
+
+    placeholder_vector placeholders() const {
+      return fusion::join(expr_.placeholders(), subquery_.placeholders());
+    }
+
     void str(std::ostream& os) const {
       if (Expr::precedence < precedence) {
         os << "(";
@@ -128,13 +138,20 @@ namespace boost { namespace rdb { namespace sql {
     typedef type::boolean sql_type;
     enum { precedence = precedence_level::highest };
 
-    typedef typename fusion::result_of::as_vector<
+    typedef typename fusion::result_of::join<
+      typename Expr::placeholder_vector,
       typename fusion::result_of::accumulate<
         ExprList,
         fusion::vector<>,
         make_in_values_placeholders<Expr>
       >::type
     >::type placeholder_vector;
+
+    placeholder_vector placeholders() const {
+      return fusion::join(
+        expr_.placeholders(),
+        fusion::accumulate(alt_, fusion::make_vector(), make_in_values_placeholders<Expr>));
+    }
 
     void str(std::ostream& os) const {
       if (Expr::precedence < precedence) {
@@ -150,10 +167,54 @@ namespace boost { namespace rdb { namespace sql {
     }
   };
 
+  namespace detail {
+
+    template<class Expr1, class IsPlaceHolder1, class Expr2, class IsPlaceHolder2>
+    struct binary_operation_placeholders;
+
+    template<class Expr1, class Expr2>
+    struct binary_operation_placeholders<Expr1, false_type, Expr2, false_type> {
+      typedef typename fusion::result_of::join<
+        const typename Expr1::placeholder_vector,
+        const typename Expr2::placeholder_vector
+      >::type type;
+      static type make(const Expr1& expr1, const Expr2& expr2) {
+        return fusion::join(expr1.placeholders(), expr2.placeholders());
+      }
+    };
+
+    template<class Expr1, class Expr2>
+    struct binary_operation_placeholders<Expr1, false_type, Expr2, true_type> {
+      typedef typename fusion::result_of::push_back<
+        const typename Expr1::placeholder_vector,
+        type::placeholder<typename Expr1::sql_type>
+      >::type type;
+      static type make(const Expr1& expr1, const Expr2& expr2) {
+        return fusion::push_back(expr1.placeholders(), type::placeholder<typename Expr1::sql_type>());
+      }
+    };
+
+    template<class Expr1, class Expr2>
+    struct binary_operation_placeholders<Expr1, true_type, Expr2, false_type> {
+      typedef typename fusion::result_of::push_front<
+        typename Expr2::placeholder_vector,
+        type::placeholder<typename Expr2::sql_type>
+      >::type type;
+      static type make(const Expr1& expr1, const Expr2& expr2) {
+        return fusion::push_front(expr2.placeholders(), type::placeholder<typename Expr2::sql_type>());
+      }
+    };
+  }
+
   template<class Expr1, class Expr2, int Precedence>
   struct binary_operation {
 
     enum { precedence = Precedence };
+
+    binary_operation(const Expr1& expr1, const Expr2& expr2) : expr1_(expr1), expr2_(expr2) { }
+    
+    Expr1 expr1_;
+    Expr2 expr2_;
 
     static void write(std::ostream& os, const Expr1& expr1, const char* op, const Expr2& expr2) {
       write(os, expr1, boost::mpl::bool_<static_cast<int>(Expr1::precedence) < precedence>());
@@ -173,38 +234,44 @@ namespace boost { namespace rdb { namespace sql {
       expr.str(os);
     }
 
-    typedef typename fusion::result_of::as_vector<
-      typename mpl::if_<
-        is_placeholder_mark<Expr1>,
-        typename fusion::result_of::push_front<
-          typename Expr2::placeholder_vector,
-          type::placeholder<typename Expr2::sql_type>
-        >::type,
-        typename mpl::if_<
-          is_placeholder_mark<Expr2>,
-          typename fusion::result_of::push_back<
-            typename Expr1::placeholder_vector,
-            type::placeholder<typename Expr1::sql_type>
-          >::type,
-          typename fusion::result_of::join<
-            typename Expr1::placeholder_vector,
-            typename Expr2::placeholder_vector
-          >::type
-        >::type
-      >::type 
-    >::type placeholder_vector;
+    //typedef typename mpl::if_<
+    //  is_placeholder_mark<Expr1>,
+    //  typename fusion::result_of::push_front<
+    //    typename Expr2::placeholder_vector,
+    //    type::placeholder<typename Expr2::sql_type>
+    //  >::type,
+    //  typename mpl::if_<
+    //    is_placeholder_mark<Expr2>,
+    //    typename fusion::result_of::push_back<
+    //      typename Expr1::placeholder_vector,
+    //      type::placeholder<typename Expr1::sql_type>
+    //    >::type,
+    //    typename fusion::result_of::join<
+    //      typename Expr1::placeholder_vector,
+    //      typename Expr2::placeholder_vector
+    //    >::type
+    //  >::type
+    //>::type placeholder_vector;
+
+    typedef detail::binary_operation_placeholders<
+      Expr1, typename is_placeholder_mark<Expr1>::type,
+      Expr2, typename is_placeholder_mark<Expr2>::type
+    > placeholder_helper;
+
+    typedef typename placeholder_helper::type placeholder_vector;
+
+    placeholder_vector placeholders() const { return placeholder_helper::make(expr1_, expr2_); }
   };
 
   template<class Expr1, class Expr2>
   struct like : binary_operation<Expr1, Expr2, precedence_level::compare> {
-    like(const Expr1& expr1, const Expr2& expr2_) : expr1_(expr1), expr2_(expr2_) { }
-    Expr1 expr1_;
-    Expr2 expr2_;
+    like(const Expr1& expr1, const Expr2& expr2) :
+      binary_operation<Expr1, Expr2, precedence_level::compare>(expr1, expr2) { }
     typedef type::boolean sql_type;
     void str(std::ostream& os) const {
-      expr1_.str(os);
+      this->expr1_.str(os);
       os << " like ";
-      expr2_.str(os);
+      this->expr2_.str(os);
     }
   };
 
@@ -269,6 +336,7 @@ namespace boost { namespace rdb { namespace sql {
   struct null_expr {
     typedef null_type sql_type;
     typedef fusion::vector<> placeholder_vector;
+    placeholder_vector placeholders() const { return fusion::make_vector(); }
     enum { precedence = precedence_level::highest };
     void str(std::ostream& os) const {
       os << "null";
@@ -285,6 +353,7 @@ namespace boost { namespace rdb { namespace sql {
   struct placeholder_mark {
     typedef placeholder_type sql_type;
     typedef fusion::vector<> placeholder_vector; // not really used; exists to please mpl::if_ which is not lazy
+    placeholder_vector placeholders() const { return fusion::make_vector(); }
     enum { precedence = precedence_level::highest };
     void str(std::ostream& os) const {
       os << "?";

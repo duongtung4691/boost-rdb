@@ -122,17 +122,17 @@ namespace boost { namespace rdb { namespace sql {
     template<class Expr>
     struct test_null : binary_operation<Expr, null_expr, precedence_level::compare> {
       
-      test_null(const Expr& expr, const char* op) : expr_(expr), op_(op) { }
+      test_null(const Expr& expr, const char* op) :
+        binary_operation<Expr, null_expr, precedence_level::compare>(expr, null),
+        op_(op) { }
       
       const char* op_;
       
       typedef type::boolean sql_type;
       
       void str(std::ostream& os) const {
-        this->write(os, expr_, op_, null);
+        this->write(os, expr1_, op_, expr2_);
       }
-      
-      Expr expr_;
     };
   }
 

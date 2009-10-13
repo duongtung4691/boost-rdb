@@ -320,10 +320,10 @@ namespace boost { namespace rdb { namespace odbc {
   class prepared_statement {
   
   public:
-    prepared_statement(SQLHSTMT hstmt) : hstmt_(hstmt) {
+    prepared_statement(SQLHSTMT hstmt) : hstmt_(hstmt)/*, placeholders_(Statement::placeholders())*/ {
       typedef fusion::vector<const placeholder_vector&, param_vector&> zip;
 
-    fusion::for_each(fusion::zip_view<zip>(zip(*(const placeholder_vector*) 0, params_)),
+    fusion::for_each(fusion::zip_view<zip>(zip(placeholders_, params_)),
       bind_parameters(hstmt_));
     }
 
@@ -347,7 +347,8 @@ namespace boost { namespace rdb { namespace odbc {
   protected:
     SQLHSTMT hstmt_;
 
-    typedef typename Statement::placeholder_vector placeholder_vector;
+    typedef typename fusion::result_of::as_vector<typename Statement::placeholder_vector>::type placeholder_vector;
+    placeholder_vector placeholders_;
 
     typedef typename fusion::result_of::as_vector<
       typename fusion::result_of::accumulate<

@@ -37,6 +37,8 @@ namespace boost { namespace rdb { namespace sql {
 
   template<class Data, class HasValues, class HasSelect, class Subdialect>
   struct insert_impl {
+    insert_impl(const Data& data) : data_(data) { }
+    Data data_;
   };
 
   struct extract_insert_values_placeholders {
@@ -60,18 +62,38 @@ namespace boost { namespace rdb { namespace sql {
   template<class Data, class Subdialect>
   struct insert_impl<Data, mpl::true_, mpl::false_, Subdialect> {
     typedef insert_statement_tag tag;
-    typedef typename fusion::result_of::value_at_key<Data, typename Subdialect::cols>::type cols;
-    typedef typename fusion::result_of::value_at_key<Data, typename Subdialect::values>::type values;
-    typedef fusion::zip_view< fusion::vector<cols&, values&> > zip_view;
+    typedef typename fusion::result_of::value_at_key<Data, typename Subdialect::cols>::type cols_type;
+    typedef typename fusion::result_of::value_at_key<Data, typename Subdialect::values>::type values_type;
+
+    insert_impl(const Data& data) : data_(data) { }
+    typedef insert_impl inherited;
+
+    Data data_;
+
+    const cols_type& cols() const { return fusion::at_key<typename Subdialect::cols>(data_); }
+    const values_type& values() const { return fusion::at_key<typename Subdialect::values>(data_); }
+
+    typedef fusion::vector<cols_type&, values_type&> zip;
+    typedef fusion::zip_view<zip> zip_view;
+
     typedef typename fusion::result_of::as_vector<
       typename fusion::result_of::accumulate<zip_view, fusion::vector<>, extract_insert_values_placeholders>::type
     >::type placeholder_vector;
+
+    placeholder_vector placeholders(const Data& data) const {
+      using namespace fusion;
+      return accumulate(zip_view<zip>(zip(cols_type(), rows())), make_vector(), extract_insert_values_placeholders());
+    }
+
   };
 
   template<class Data, class Subdialect>
   struct insert_impl<Data, mpl::false_, mpl::true_, Subdialect> {
     typedef insert_statement_tag tag;
     typedef typename placeholders_from_pair_list<Data>::type placeholder_vector;
+    insert_impl(const Data& data) : data_(data) { }
+    Data data_;
+    typedef insert_impl inherited;
   };
 
   template<class Dialect, class State, class Data, class Subdialect>
@@ -81,11 +103,13 @@ namespace boost { namespace rdb { namespace sql {
     Subdialect
   > {
 
-    explicit insert_statement(const Data& data) : data_(data) { }
+    explicit insert_statement(const Data& data) : insert_impl<Data,
+      typename fusion::result_of::has_key<Data, typename Subdialect::values>::type,
+      typename fusion::result_of::has_key<Data, typename Subdialect::select>::type,
+      Subdialect
+    >(data) { }
 
     typedef void result;
-
-    Data data_;
 
     template<class K, class T, class D = Data>
     struct transition {
