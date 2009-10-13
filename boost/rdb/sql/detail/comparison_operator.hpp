@@ -2,16 +2,14 @@
 template<class Expr1, class Expr2>
 struct BOOST_RDB_OPERATOR_CLASS : binary_operation<Expr1, Expr2, BOOST_RDB_OPERATOR_PRECEDENCE> {
 
-  BOOST_RDB_OPERATOR_CLASS(const Expr1& expr1, const Expr2& expr2) : expr1_(expr1), expr2_(expr2) { }
+  BOOST_RDB_OPERATOR_CLASS(const Expr1& expr1, const Expr2& expr2) :
+    binary_operation<Expr1, Expr2, BOOST_RDB_OPERATOR_PRECEDENCE>(expr1, expr2) { }
 
   typedef type::boolean sql_type;
   
   void str(std::ostream& os) const {
-    this->write(os, expr1_, BOOST_RDB_OPERATOR_STRING, expr2_);
+    this->write(os, this->expr1_, BOOST_RDB_OPERATOR_STRING, this->expr2_);
   }
-  
-  Expr1 expr1_;
-  Expr2 expr2_;
 };
 
 template<class Expr, typename T>
