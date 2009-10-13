@@ -9,50 +9,18 @@
 #include <sql.h>
 #include <sqlext.h>
 
-#include <boost/rdb/sql/common.hpp>
+#include <boost/rdb/types.hpp>
+
+namespace boost { namespace rdb {
+
+  template<class SqlType, class Value, class Tag>
+  struct sql_type_adapter;
+
+} }
 
 namespace boost { namespace rdb { namespace odbc {
 
-  template<class T, class Tag>
-  struct cli_type;
-
   struct odbc_tag { };
-
-  struct error : std::exception {
-    error(SQLSMALLINT handle_type, SQLHANDLE handle, long rc);
-    virtual const char* what() const throw();
-    long rc;
-    SQLCHAR stat[10]; // Status SQL
-    SQLINTEGER err;
-    char msg[200];
-  };
-
-  inline bool sql_fail(long rc) {
-    return rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO;
-  }
-
-  inline void sql_check(SQLSMALLINT handle_type, SQLHANDLE handle, long rc) {
-    if (sql_fail(rc)) {
-      error ex(handle_type, handle, rc);
-      //TR << "ODBC Exception: " << ex.what() << endl;
-      throw ex;
-    }
-  }
-
-  struct on_type { };
-  const on_type on = on_type();
-
-  struct off_type { };
-  const off_type off = off_type();
-
-  template<class Specific>
-  class generic_database {
-    Specific& spec() { return static_cast<Specific&>(*this); }
-
-  public:
-  };
-
-  class database;
 
   template<size_t N>
   class varchar {
@@ -103,20 +71,65 @@ namespace boost { namespace rdb { namespace odbc {
     template<class SqlType, class Value, class Tag> friend struct sql_type_adapter;
   };
 
+} } }
+
+namespace boost { namespace rdb { namespace type {
+
   template<int N>
-  struct cli_type<rdb::sql::type::varchar<N>, odbc_tag> {
-    typedef varchar<N> type;
+  struct cli_type<type::varchar<N>, odbc::odbc_tag> {
+    typedef odbc::varchar<N> type;
   };
 
   template<>
-  struct cli_type<sql::type::integer, odbc_tag> {
+  struct cli_type<type::integer, odbc::odbc_tag> {
     typedef long type;
   };
 
   template<>
-  struct cli_type<sql::type::boolean, odbc_tag> {
+  struct cli_type<type::boolean, odbc::odbc_tag> {
     typedef bool type;
   };
+
+} } }
+
+namespace boost { namespace rdb { namespace odbc {
+
+  struct error : std::exception {
+    error(SQLSMALLINT handle_type, SQLHANDLE handle, long rc);
+    virtual const char* what() const throw();
+    long rc;
+    SQLCHAR stat[10]; // Status SQL
+    SQLINTEGER err;
+    char msg[200];
+  };
+
+  inline bool sql_fail(long rc) {
+    return rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO;
+  }
+
+  inline void sql_check(SQLSMALLINT handle_type, SQLHANDLE handle, long rc) {
+    if (sql_fail(rc)) {
+      error ex(handle_type, handle, rc);
+      //TR << "ODBC Exception: " << ex.what() << endl;
+      throw ex;
+    }
+  }
+
+  struct on_type { };
+  const on_type on = on_type();
+
+  struct off_type { };
+  const off_type off = off_type();
+
+  template<class Specific>
+  class generic_database {
+    Specific& spec() { return static_cast<Specific&>(*this); }
+
+  public:
+  };
+
+  class database;
+
 
   template<size_t N>
   std::ostream& operator <<(std::ostream& os, const varchar<N>& str) {
@@ -275,7 +288,7 @@ namespace boost { namespace rdb { namespace odbc {
     struct result<Self(SqlType&, Vector&)> {
       typedef typename fusion::result_of::push_back<
         Vector,
-        typename cli_type<SqlType, Tag>::type
+        typename type::cli_type<SqlType, Tag>::type
       >::type type;
     };
   };
@@ -285,7 +298,7 @@ namespace boost { namespace rdb { namespace odbc {
     SQLHSTMT hstmt_;
     mutable int i_;
 
-    void operator ()(fusion::vector<const sql::type::integer&, long&>& zip) const {
+    void operator ()(fusion::vector<const type::integer&, long&>& zip) const {
       using namespace fusion;
       SQLINTEGER length = sizeof(&at_c<1>(zip));
       sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindParameter(hstmt_, i_, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0,
@@ -294,7 +307,7 @@ namespace boost { namespace rdb { namespace odbc {
     }
 
     template<size_t N>
-    void operator ()(fusion::vector<const sql::type::varchar<N>&, varchar<N>&>& zip) const {
+    void operator ()(fusion::vector<const type::varchar<N>&, varchar<N>&>& zip) const {
       using namespace fusion;
       sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindParameter(hstmt_, i_, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
         at_c<1>(zip).chars_, 0, &at_c<1>(zip).length_));
@@ -456,7 +469,7 @@ namespace boost { namespace rdb { namespace odbc {
 namespace boost { namespace rdb {
 
   template<>
-  struct sql_type_adapter<sql::type::integer, long, odbc::odbc_tag> {
+  struct sql_type_adapter<type::integer, long, odbc::odbc_tag> {
     static bool get_data(SQLHSTMT hstmt, int col, long& value) {    
       SQLLEN n;
       SQLGetData(hstmt, col, SQL_C_LONG, &value, 0, &n);
@@ -465,7 +478,7 @@ namespace boost { namespace rdb {
   };
 
   template<int N>
-  struct sql_type_adapter<sql::type::varchar<N>, odbc::varchar<N>, odbc::odbc_tag> {
+  struct sql_type_adapter<type::varchar<N>, odbc::varchar<N>, odbc::odbc_tag> {
     static bool get_data(SQLHSTMT hstmt, int col, odbc::varchar<N>& value) {
       // TODO: post-fetch step to deal with signed/unsigned issue
       SQLGetData(hstmt, col, SQL_C_CHAR, value.chars_, sizeof value.chars_, &value.length_);
@@ -476,7 +489,7 @@ namespace boost { namespace rdb {
   };
 
   template<int N>
-  struct sql_type_adapter<sql::type::varchar<N>, std::string, odbc::odbc_tag> {
+  struct sql_type_adapter<type::varchar<N>, std::string, odbc::odbc_tag> {
     static bool get_data(SQLHSTMT hstmt, int col, std::string& value) {
       char buf[N];
       SQLLEN n;
