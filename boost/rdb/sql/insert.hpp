@@ -90,7 +90,7 @@ namespace boost { namespace rdb { namespace sql {
   template<class Data, class Subdialect>
   struct insert_impl<Data, mpl::false_, mpl::true_, Subdialect> {
     typedef insert_statement_tag tag;
-    typedef typename placeholders_from_pair_list<Data>::type placeholder_vector;
+    typedef typename result_of::placeholders_from_pair_list<Data>::type placeholder_vector;
     insert_impl(const Data& data) : data_(data) { }
     Data data_;
     typedef insert_impl inherited;

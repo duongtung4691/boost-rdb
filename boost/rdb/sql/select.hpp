@@ -56,16 +56,26 @@ namespace boost { namespace rdb { namespace sql {
     }
   };
 
-  template<class ExprList>
-  struct extract_placeholders_from_pair<sql2003::exprs, ExprList> {
-    typedef typename placeholders_from_list<ExprList>::type type;
-  };
-
-  template<class Predicate>
-  struct extract_placeholders_from_pair<sql2003::where, Predicate> {
-    typedef typename Predicate::placeholder_vector type;
-  };
+  namespace result_of {
+    template<class ExprList>
+    struct extract_placeholders_from_pair<sql2003::exprs, ExprList> {
+      typedef typename result_of::placeholders_from_list<ExprList>::type type;
+      static type make(const fusion::pair<sql2003::exprs, ExprList>& p) {
+        return sql::placeholders_from_list(p.second);
+      }
+    };
+  }
   
+  namespace result_of {
+    template<class Predicate>
+    struct extract_placeholders_from_pair<sql2003::where, Predicate> {
+      typedef typename Predicate::placeholder_vector type;
+      static type make(const fusion::pair<sql2003::where, Predicate>& p) {
+        return p.second.placeholders();
+      }
+    };
+  }
+    
   template<class Dialect, class State, class Data, class Subdialect>
   struct select_statement :
     select_result_if<Data, typename Subdialect::exprs>,
@@ -111,12 +121,17 @@ namespace boost { namespace rdb { namespace sql {
     
     #include "detail/select_where.hpp"
 
-    typedef typename placeholders_from_pair_list<Data>::type placeholder_vector;
+    typedef typename result_of::placeholders_from_pair_list<Data>::type placeholder_vector;
+    
+    placeholder_vector placeholders() const {
+      return placeholders_from_pair_list(data_);
+    }
   };
 
   template<class Dialect, class State, class Data, class Subdialect>
   struct tag_of< select_statement<Dialect, State, Data, Subdialect> > {
     typedef typename select_statement<Dialect, State, Data, Subdialect>::tag type;
+
   };
 
 } } }

@@ -16,7 +16,7 @@ namespace boost { namespace rdb { namespace sql {
     explicit update_statement(const Data& data) : data_(data) { }
 
     typedef void result;
-    typedef typename placeholders_from_pair_list<Data>::type placeholder_vector;
+    typedef typename result_of::placeholders_from_pair_list<Data>::type placeholder_vector;
 
     Data data_;
 
@@ -77,14 +77,19 @@ namespace boost { namespace rdb { namespace sql {
       >::type type;
     };
   };
-
-  template<class AssignList>
-  struct extract_placeholders_from_pair<sql2003::set, AssignList> {
-    typedef typename fusion::result_of::as_vector<
-      typename fusion::result_of::accumulate<AssignList, fusion::vector<>, extract_placeholders_from_assign>::type
-    >::type type;
-  };
-
+  
+  namespace result_of {
+    template<class AssignList>
+    struct extract_placeholders_from_pair<sql2003::set, AssignList> {
+      typedef typename fusion::result_of::as_vector<
+        typename fusion::result_of::accumulate<AssignList, fusion::vector<>, extract_placeholders_from_assign>::type
+      >::type type;
+      static type make(const fusion::pair<sql2003::set, AssignList>& p) {
+        return fusion::accumulate(p.second, fusion::vector<>, extract_placeholders_from_assign());
+      }
+    };
+  }
+  
   template<class Table>
   update_statement<
     sql2003,

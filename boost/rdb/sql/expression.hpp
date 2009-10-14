@@ -8,6 +8,43 @@
 
 namespace boost { namespace rdb { namespace sql {
 
+  struct extract_placeholders_from_list {
+
+    template<typename Sig>
+    struct result;
+
+    template<class Self, class Expr, class Placeholders>
+    struct result<Self(Expr&, Placeholders&)> {
+      typedef typename fusion::result_of::join<
+        const Placeholders,
+        const typename Expr::placeholder_vector
+      >::type type;
+    };
+
+    template<class Expr, class Placeholders>
+    typename result<extract_placeholders_from_list(Expr&, Placeholders&)>::type
+    operator ()(Expr& expr, Placeholders& placeholders) {
+      return fusion::join(placeholders, expr.placeholders());
+    }
+  };
+
+  namespace result_of {
+    template<class ExprList>
+    struct placeholders_from_list {
+      typedef typename fusion::result_of::accumulate<
+        ExprList,
+        fusion::vector<>,
+        extract_placeholders_from_list
+      >::type type;
+    };
+  }
+  
+  template<class ExprList>
+  typename result_of::placeholders_from_list<ExprList>::type
+  placeholders_from_list(const ExprList& exprs) {
+    return fusion::accumulate(exprs, fusion::make_vector(), extract_placeholders_from_list());
+  }
+  
   template<class Expr>
   struct expression;
 
@@ -22,7 +59,7 @@ namespace boost { namespace rdb { namespace sql {
 
     BOOST_CONCEPT_USAGE(Expression) {
       expr.str(stream);
-      //expr.placeholders();
+      expr.placeholders();
     }
   };
 
@@ -93,8 +130,8 @@ namespace boost { namespace rdb { namespace sql {
     enum { precedence = precedence_level::highest };
     
     typedef typename fusion::result_of::join<
-      typename Expr::placeholder_vector,
-      typename Subquery::placeholder_vector
+      const typename Expr::placeholder_vector,
+      const typename Subquery::placeholder_vector
     >::type placeholder_vector;
 
     placeholder_vector placeholders() const {
@@ -119,15 +156,40 @@ namespace boost { namespace rdb { namespace sql {
   struct make_in_values_placeholders {
     template<typename Sig>
     struct result;
+    
+    template<class Value, class IsPlaceholder, class Placeholders>
+    struct discriminate;
+    
+    template<class Value, class Placeholders>
+    struct discriminate<Value, true_type, Placeholders> {
+      typedef typename fusion::result_of::push_back<
+        Placeholders, type::placeholder<typename Expr::sql_type>
+      >::type type;
+      
+      static type make(Value& value, Placeholders& placeholders) {
+        return fusion::push_back(placeholders, value.placeholders());
+      }
+    };
+    
+    template<class Value, class Placeholders>
+    struct discriminate<Value, false_type, Placeholders> {
+      typedef Placeholders type;
+      
+      static type make(Value& value, Placeholders& placeholders) {
+        return placeholders;
+      }
+    };
 
     template<class Self, class Value, class Placeholders>
-    struct result<Self(Value&, Placeholders&)> {
-      typedef typename mpl::if_<
-        is_placeholder_mark<Value>,
-        typename fusion::result_of::push_back<Placeholders, type::placeholder<typename Expr::sql_type> >::type,
-        Placeholders
-      >::type type;
+    struct result<Self(Value&, const Placeholders&)> {
+      typedef typename discriminate<Value, typename is_placeholder_mark<Value>::type, Placeholders>::type type;
     };
+
+    template<class Value, class Placeholders>
+    typename discriminate<Value, typename is_placeholder_mark<Value>::type, Placeholders>::type
+    operator ()(Value& value, Placeholders& placeholders) {
+      return discriminate<Value, typename is_placeholder_mark<Value>::type, Placeholders>::make(value, placeholders);
+    }
   };
 
   template<class Expr, class ExprList>
@@ -139,18 +201,20 @@ namespace boost { namespace rdb { namespace sql {
     enum { precedence = precedence_level::highest };
 
     typedef typename fusion::result_of::join<
-      typename Expr::placeholder_vector,
-      typename fusion::result_of::accumulate<
+      const typename Expr::placeholder_vector,
+      const typename fusion::result_of::accumulate<
         ExprList,
         fusion::vector<>,
         make_in_values_placeholders<Expr>
       >::type
     >::type placeholder_vector;
 
-    placeholder_vector placeholders() const {
+    placeholder_vector
+    //fusion::joint_view< fusion::vector<>, fusion::vector<> >
+    placeholders() const {
       return fusion::join(
         expr_.placeholders(),
-        fusion::accumulate(alt_, fusion::make_vector(), make_in_values_placeholders<Expr>));
+        fusion::accumulate(alt_, fusion::make_vector(), make_in_values_placeholders<Expr>()));
     }
 
     void str(std::ostream& os) const {
@@ -190,7 +254,7 @@ namespace boost { namespace rdb { namespace sql {
         type::placeholder<typename Expr1::sql_type>
       >::type type;
       static type make(const Expr1& expr1, const Expr2& expr2) {
-        return fusion::push_back(expr1.placeholders(), type::placeholder<typename Expr1::sql_type>());
+        return fusion::push_back(expr1.placeholders(), rdb::type::placeholder<typename Expr1::sql_type>());
       }
     };
 
@@ -201,7 +265,7 @@ namespace boost { namespace rdb { namespace sql {
         type::placeholder<typename Expr2::sql_type>
       >::type type;
       static type make(const Expr1& expr1, const Expr2& expr2) {
-        return fusion::push_front(expr2.placeholders(), type::placeholder<typename Expr2::sql_type>());
+        return fusion::push_front(expr2.placeholders(), rdb::type::placeholder<typename Expr2::sql_type>());
       }
     };
   }
@@ -361,53 +425,59 @@ namespace boost { namespace rdb { namespace sql {
   };
 
   const expression< placeholder_mark<0> > _;
-
-  struct extract_placeholders_from_list {
-
-    template<typename Sig>
-    struct result;
-
-    template<class Self, class Expr, class Placeholders>
-    struct result<Self(Expr&, Placeholders&)> {
-      typedef typename fusion::result_of::join<
-        Placeholders,
-        typename Expr::placeholder_vector
-      >::type type;
-    };
-  };
-
-  template<class ExprList>
-  struct placeholders_from_list {
-    typedef typename fusion::result_of::as_vector<
-      typename fusion::result_of::accumulate<ExprList, fusion::vector<>, extract_placeholders_from_list>::type
-    >::type type;
-  };
-
-  template<class Key, class Value>
-  struct extract_placeholders_from_pair {
-    typedef fusion::vector<> type;
-  };
   
+  namespace result_of {
+    template<class Key, class Value>
+    struct extract_placeholders_from_pair {
+      typedef fusion::vector<> type;
+      static type make(const fusion::pair<Key, Value>&) { return type(); }
+    };
+  }
+  
+  template<class Key, class Value>
+  typename result_of::extract_placeholders_from_pair<Key, Value>::type
+  extract_placeholders_from_pair(const fusion::pair<Key, Value>& p) {
+    return result_of::extract_placeholders_from_pair<Key, Value>::make(p);
+  }
+    
   struct extract_placeholders_from_pair_list {
 
     template<typename Sig>
     struct result;
 
     template<class Self, class Key, class Value, class Placeholders>
-    struct result<Self(fusion::pair<Key, Value>&, Placeholders&)> {
+    struct result<Self(const fusion::pair<Key, Value>&, const Placeholders&)> {
       typedef typename fusion::result_of::join<
-        Placeholders,
-        typename extract_placeholders_from_pair<Key, Value>::type
+        const Placeholders,
+        const typename result_of::extract_placeholders_from_pair<Key, Value>::type
       >::type type;
     };
+    
+    template<class Key, class Value, class Placeholders>
+    typename result<extract_placeholders_from_pair_list(const fusion::pair<Key, Value>&, const Placeholders&)>::type
+    operator ()(const fusion::pair<Key, Value>& p, const Placeholders& placeholders) {
+      return fusion::join(placeholders, extract_placeholders_from_pair(p));
+    }
   };
 
-  template<class PairList>
-  struct placeholders_from_pair_list {
-    typedef typename fusion::result_of::as_vector<
-      typename fusion::result_of::accumulate<PairList, fusion::vector<>, extract_placeholders_from_pair_list>::type
-    >::type type;
-  };
+  namespace result_of {
+    template<class PairList>
+    struct placeholders_from_pair_list {
+      typedef typename fusion::result_of::as_vector<
+        typename fusion::result_of::accumulate<
+          const PairList,
+          fusion::vector<>,
+          extract_placeholders_from_pair_list
+        >::type
+      >::type type;
+    };
+  }
+  
+  template<class Map>
+  typename result_of::placeholders_from_pair_list<Map>::type
+  placeholders_from_pair_list(const Map& map) {
+    return fusion::accumulate(map, fusion::make_vector(), extract_placeholders_from_pair_list());
+  }
 
 } } }
 

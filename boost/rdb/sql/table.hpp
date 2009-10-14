@@ -15,6 +15,8 @@ namespace boost { namespace rdb { namespace sql {
     std::string alias_;
     const std::string& alias() const { return alias_; }
     bool has_alias() const { return !alias_.empty(); }
+    typedef fusion::vector<> placeholder_vector;
+    placeholder_vector placeholders() const { return fusion::make_vector(); }
   };
   
   struct any_column /*: boost::noncopyable*/ {
