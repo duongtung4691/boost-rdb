@@ -16,7 +16,10 @@ namespace boost { namespace rdb { namespace sql {
   template<class SqlType>
   struct dynamic_expression_wrapper {
     typedef SqlType sql_type;
+    
     typedef fusion::vector< std::vector<dynamic_placeholder> > placeholder_vector;
+    placeholder_vector placeholders() const { return fusion::make_vector(std::vector<dynamic_placeholder>()); }
+    
     enum { precedence = precedence_level::lowest };
     struct root {
       virtual void str(std::ostream& os) const = 0;

@@ -55,21 +55,6 @@ BOOST_AUTO_TEST_CASE(test_placeholder) {
     >));
 
   BOOST_MPL_ASSERT((same_placeholders<
-    placeholders_from_list< fusion::vector<BOOST_TYPEOF(p.age == _)> >::type,
-    fusion::vector< placeholder<integer> >
-    >));
-
-  BOOST_MPL_ASSERT((same_placeholders<
-    placeholders_from_list< fusion::vector<BOOST_TYPEOF(p.age == _), BOOST_TYPEOF(p.id < 20), BOOST_TYPEOF(p.name == _)> >::type,
-    fusion::vector< placeholder<integer>, placeholder< varchar<20> > >
-    >));
-
-  BOOST_MPL_ASSERT((same_placeholders<
-    placeholders_from_pair_list<BOOST_TYPEOF(select(p.id + _).from(p).where(p.name == _).data_)>::type,
-    fusion::vector< placeholder<integer>, placeholder< varchar<20> > >
-    >));
-
-  BOOST_MPL_ASSERT((same_placeholders<
     BOOST_TYPEOF(exists(select(p.id + _).from(p).where(p.name == _)))::placeholder_vector,
     fusion::vector< placeholder<integer>, placeholder< varchar<20> > >
     >));

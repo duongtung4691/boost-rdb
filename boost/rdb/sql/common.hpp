@@ -218,6 +218,7 @@ namespace boost { namespace rdb { namespace sql {
     BOOST_CONCEPT_USAGE(Statement) {
       statement_tag* p = static_cast<typename St::tag*>(0);
       st.str(stream);
+      st.placeholders();
     }
   };
 

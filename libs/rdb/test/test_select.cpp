@@ -170,6 +170,10 @@ BOOST_AUTO_TEST_CASE(numerical_operators) {
     "select 1 + p1.age from person as p1");
 
   BOOST_RDB_CHECK_SQL(
+    select(p1.age + p2.age).from(p1, p2),
+    "select p1.age + p2.age from person as p1, person as p2");
+
+  BOOST_RDB_CHECK_SQL(
     select(p1.age + p2.age / 2).from(p1, p2),
     "select p1.age + p2.age / 2 from person as p1, person as p2");
 
