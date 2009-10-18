@@ -23,7 +23,8 @@ namespace boost { namespace rdb {
     template<class Type>
     struct placeholder {
       // Empty for statically typed placeholders, but dynamic placeholders
-      // contain type and length information 
+      // contain type and length information
+      typedef Type rdb_type;
     };
   }
 

@@ -447,16 +447,18 @@ namespace boost { namespace rdb { namespace sql {
 
     template<class Self, class Key, class Value, class Placeholders>
     struct result<Self(const fusion::pair<Key, Value>&, const Placeholders&)> {
-      typedef typename fusion::result_of::join<
-        const Placeholders,
-        const typename result_of::extract_placeholders_from_pair<Key, Value>::type
+      typedef typename fusion::result_of::as_vector<
+        typename fusion::result_of::join<
+          const Placeholders,
+          const typename result_of::extract_placeholders_from_pair<Key, Value>::type
+        >::type
       >::type type;
     };
     
     template<class Key, class Value, class Placeholders>
     typename result<extract_placeholders_from_pair_list(const fusion::pair<Key, Value>&, const Placeholders&)>::type
     operator ()(const fusion::pair<Key, Value>& p, const Placeholders& placeholders) {
-      return fusion::join(placeholders, extract_placeholders_from_pair(p));
+      return fusion::as_vector(fusion::join(placeholders, extract_placeholders_from_pair(p)));
     }
   };
 
@@ -476,7 +478,7 @@ namespace boost { namespace rdb { namespace sql {
   template<class Map>
   typename result_of::placeholders_from_pair_list<Map>::type
   placeholders_from_pair_list(const Map& map) {
-    return fusion::accumulate(map, fusion::make_vector(), extract_placeholders_from_pair_list());
+    return fusion::as_vector(fusion::accumulate(map, fusion::make_vector(), extract_placeholders_from_pair_list()));
   }
 
 } } }
