@@ -187,7 +187,30 @@ BOOST_FIXTURE_TEST_CASE(prepared_select, springfield_fixture) {
   BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(2), "((Marge))");
 }
 
-BOOST_FIXTURE_TEST_CASE(prepared_update, springfield_fixture) {
+BOOST_FIXTURE_TEST_CASE(prepared_update_set, springfield_fixture) {
+  person p;
+  BOOST_AUTO(st, db.prepare(update(p).set(p.age = _).where(p.id == 1)));
+  st.execute(38);
+  BOOST_RDB_CHECK_SELECT_RESULTS(
+    db.execute(select(p.age).from(p)),
+    "((38) (34))");
+  st.execute(39);
+  BOOST_RDB_CHECK_SELECT_RESULTS(
+    db.execute(select(p.age).from(p)),
+    "((39) (34))");
+}
+
+BOOST_FIXTURE_TEST_CASE(prepared_update_where, springfield_fixture) {
+  person p;
+  BOOST_AUTO(st, db.prepare(update(p).set(p.age = 66).where(p.id == _)));
+  st.execute(1);
+  st.execute(2);
+  BOOST_RDB_CHECK_SELECT_RESULTS(
+    db.execute(select(p.age).from(p)),
+    "((66) (66))");
+}
+
+BOOST_FIXTURE_TEST_CASE(prepared_update_both, springfield_fixture) {
   person p;
   BOOST_AUTO(st, db.prepare(update(p).set(p.age = _).where(p.id == _)));
   st.execute(38, 1);
