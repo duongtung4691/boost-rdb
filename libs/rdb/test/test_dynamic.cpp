@@ -3,6 +3,7 @@
 #include <boost/rdb/sql.hpp>
 #include <boost/rdb/sql/dynamic_expression.hpp>
 
+using namespace boost;
 using namespace boost::rdb::sql;
 using namespace boost::rdb::sql::test::springfield;
 
@@ -15,9 +16,15 @@ BOOST_AUTO_TEST_CASE(test_dynamic_expression) {
   dynamic_boolean predicate = make_dynamic(p.age > 18);
   BOOST_RDB_CHECK_SQL(predicate, "p.age > 18");
 
-  typedef BOOST_TYPEOF(insert_into(p)(p.id, p.first_name, p.name, p.age).values(_, _, _, _))::placeholder_vector placeholder_vector;
-
   BOOST_RDB_CHECK_SQL(select(p.id).from(p).where(predicate), "select p.id from person as p where p.age > 18");
+}
+
+BOOST_AUTO_TEST_CASE(test_dynamic_placeholder) {
+  person p("p");
+  dynamic_boolean predicate = make_dynamic(p.age > _);
+  fusion::vector< std::vector<dynamic_placeholder> > placeholders = (select(p.id).from(p).where(predicate)).placeholders();
+  BOOST_CHECK(fusion::at_c<0>(placeholders)[0].type() == rdb::type::integer::id);
+  BOOST_CHECK(fusion::at_c<0>(placeholders)[0].length() == 1);
 }
 
 
