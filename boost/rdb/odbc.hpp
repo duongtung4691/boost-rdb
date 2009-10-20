@@ -26,6 +26,18 @@ namespace boost { namespace rdb { namespace odbc {
   class varchar {
   public:
     BOOST_STATIC_CONSTANT(size_t, size = N);
+
+    varchar() : ulength_(0) {
+    }
+
+    varchar(const char* str) : ulength_(0) {
+      *this = str;
+    }
+
+    varchar(const std::string& str) : ulength_(0) {
+      *this = str;
+    }
+
     operator std::string() const { return std::string(chars_, chars_ + length()); }
     const char* chars() const { return chars_; }
     size_t length() const { return ulength_; }
@@ -318,34 +330,6 @@ namespace boost { namespace rdb { namespace odbc {
 
   template<class Statement>
   class prepared_statement {
-  
-  public:
-    prepared_statement(SQLHSTMT hstmt) : hstmt_(hstmt)/*, placeholders_(Statement::placeholders())*/ {
-      typedef fusion::vector<const placeholder_vector&, param_vector&> zip;
-
-    fusion::for_each(fusion::zip_view<zip>(zip(placeholders_, params_)),
-      bind_parameters(hstmt_));
-    }
-
-    ~prepared_statement() {
-      SQLCloseCursor(hstmt_);
-      SQLFreeHandle(SQL_HANDLE_STMT, hstmt_);
-    }
-
-    template<class Vector>
-    void executev(const Vector& params) {
-      // if you have this on your error stack, it's likely that the types of the values don't agree with the types of the parameters
-      // TODO: assert on this
-      params_ = params;
-      sql_check(SQL_HANDLE_STMT, hstmt_, SQLExecute(hstmt_));
-    }
-
-    #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
-    #define BOOST_PP_FILENAME_1       <boost/rdb/odbc/detail/execute.hpp>
-    #include BOOST_PP_ITERATE()
-
-  protected:
-    SQLHSTMT hstmt_;
 
     typedef typename fusion::result_of::as_vector<typename Statement::placeholder_vector>::type placeholder_vector;
     placeholder_vector placeholders_;
@@ -357,9 +341,31 @@ namespace boost { namespace rdb { namespace odbc {
         make_param_vector<odbc_tag>
       >::type
     >::type param_vector;
+  
+  public:
+    prepared_statement(SQLHSTMT hstmt) : hstmt_(hstmt)/*, placeholders_(Statement::placeholders())*/ {
+    }
 
-    param_vector params_;
-    
+    ~prepared_statement() {
+      SQLCloseCursor(hstmt_);
+      SQLFreeHandle(SQL_HANDLE_STMT, hstmt_);
+    }
+
+    template<class Vector>
+    void executev(const Vector& vec) {
+      param_vector params = vec;
+      typedef fusion::vector<const placeholder_vector&, param_vector&> zip;
+      fusion::for_each(fusion::zip_view<zip>(zip(placeholders_, params)),
+        bind_parameters(hstmt_));
+      sql_check(SQL_HANDLE_STMT, hstmt_, SQLExecute(hstmt_));
+    }
+
+    #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
+    #define BOOST_PP_FILENAME_1       <boost/rdb/odbc/detail/execute.hpp>
+    #include BOOST_PP_ITERATE()
+
+  protected:
+    SQLHSTMT hstmt_;    
   };
 
   template<class Select>
