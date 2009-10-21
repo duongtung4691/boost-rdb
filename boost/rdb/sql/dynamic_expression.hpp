@@ -8,6 +8,22 @@
 
 namespace boost { namespace rdb { namespace sql {
 
+  struct dynamic_value {
+    dynamic_value(int type, int length, void* value) : type_(type), length_(length), value_(value) { }
+    int type() const { return type_; }
+    int length() const { return length_; }
+    int type_;
+    int length_;
+    void* value_;
+  };
+
+  template<class CliType>
+  dynamic_value
+  make_dynamic(CliType& lvalue) {
+    typedef typename CliType::rdb_type rdb_type;
+    return dynamic_value(rdb_type::id, rdb_type::length, &lvalue);
+  }
+  
   struct dynamic_placeholder { // make it a specialization of placeholder<> ? but what for ?
     dynamic_placeholder(int type, int length) : type_(type), length_(length) { }
     int type() const { return type_; }
