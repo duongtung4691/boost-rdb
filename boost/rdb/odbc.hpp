@@ -10,6 +10,7 @@
 #include <sqlext.h>
 
 #include <boost/rdb/types.hpp>
+#include <boost/rdb/sql/dynamic_expression.hpp>
 
 namespace boost { namespace rdb {
 
@@ -26,6 +27,8 @@ namespace boost { namespace rdb { namespace odbc {
   class varchar {
   public:
     BOOST_STATIC_CONSTANT(size_t, size = N);
+
+    typedef type::varchar<N> rdb_type;
 
     varchar() : ulength_(0) {
     }
@@ -96,6 +99,8 @@ namespace boost { namespace rdb { namespace odbc {
     
     void set_null() { length_ = SQL_NULL_DATA; }
     bool is_null() const { return length_ != SQL_NULL_DATA; }
+    
+    typedef type::integer rdb_type;
   
   //private:
     long value_;
@@ -316,10 +321,18 @@ namespace boost { namespace rdb { namespace odbc {
     struct result;
 
     template<class Self, class SqlType, class Vector>
-    struct result<Self(type::placeholder<SqlType>&, Vector&)> {
+    struct result<Self(type::placeholder<SqlType>&, const Vector&)> {
       typedef typename fusion::result_of::push_back<
         Vector,
         typename type::cli_type<SqlType, Tag>::type
+      >::type type;
+    };
+
+    template<class Self, class Vector>
+    struct result<Self(const std::vector<sql::dynamic_placeholder>&, const Vector&)> {
+      typedef typename fusion::result_of::push_back<
+        Vector,
+        std::vector<sql::dynamic_value>
       >::type type;
     };
   };
