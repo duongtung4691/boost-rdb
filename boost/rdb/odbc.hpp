@@ -82,6 +82,25 @@ namespace boost { namespace rdb { namespace odbc {
 
     template<class SqlType, class Value, class Tag> friend struct sql_type_adapter;
   };
+  
+  class integer {
+  public:
+    integer() : value_(0), length_(SQL_NULL_DATA) { }
+    integer(long value) : value_(value), length_(sizeof(value_)) { }
+
+    integer& operator =(long value) {
+      value_ = value;
+      length_ = sizeof(value_);
+      return *this;
+    }
+    
+    void set_null() { length_ = SQL_NULL_DATA; }
+    bool is_null() const { return length_ != SQL_NULL_DATA; }
+  
+  //private:
+    long value_;
+    SQLINTEGER length_;
+  };
 
 } } }
 
@@ -94,7 +113,7 @@ namespace boost { namespace rdb { namespace type {
 
   template<>
   struct cli_type<type::integer, odbc::odbc_tag> {
-    typedef long type;
+    typedef odbc::integer type;
   };
 
   template<>
@@ -305,16 +324,29 @@ namespace boost { namespace rdb { namespace odbc {
     };
   };
 
-  struct bind_parameters {
-    bind_parameters(SQLHSTMT hstmt) : hstmt_(hstmt), i_(1) { }
+  struct make_ref_vector {
+
+    template<typename Sig>
+    struct result;
+
+    template<class Self, class T, class Vector>
+    struct result<Self(T&, Vector&)> {
+      typedef typename fusion::result_of::push_back<
+        Vector,
+        T&
+      >::type type;
+    };
+  };
+
+  struct parameter_binder {
+    parameter_binder(SQLHSTMT hstmt) : hstmt_(hstmt), i_(1) { }
     SQLHSTMT hstmt_;
     mutable int i_;
 
-    void operator ()(fusion::vector<const type::placeholder<type::integer>&, long&>& zip) const {
+    void operator ()(fusion::vector<const type::placeholder<type::integer>&, integer&>& zip) const {
       using namespace fusion;
-      SQLINTEGER length = sizeof(&at_c<1>(zip));
       sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindParameter(hstmt_, i_, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0,
-        &at_c<1>(zip), 0, &length));
+        &at_c<1>(zip).value_, 0, &at_c<1>(zip).length_));
       ++i_;
     }
 
@@ -326,7 +358,6 @@ namespace boost { namespace rdb { namespace odbc {
       ++i_;
     }
   };
-
 
   template<class Statement>
   class prepared_statement {
@@ -341,6 +372,14 @@ namespace boost { namespace rdb { namespace odbc {
         make_param_vector<odbc_tag>
       >::type
     >::type param_vector;
+
+    typedef typename fusion::result_of::as_vector<
+      typename fusion::result_of::accumulate<
+        param_vector,
+        fusion::vector<>, 
+        make_ref_vector
+      >::type
+    >::type param_ref_vector;
   
   public:
     prepared_statement(SQLHSTMT hstmt) : hstmt_(hstmt)/*, placeholders_(Statement::placeholders())*/ {
@@ -356,7 +395,7 @@ namespace boost { namespace rdb { namespace odbc {
       param_vector params = vec;
       typedef fusion::vector<const placeholder_vector&, param_vector&> zip;
       fusion::for_each(fusion::zip_view<zip>(zip(placeholders_, params)),
-        bind_parameters(hstmt_));
+        parameter_binder(hstmt_));
       sql_check(SQL_HANDLE_STMT, hstmt_, SQLExecute(hstmt_));
     }
 
@@ -364,12 +403,23 @@ namespace boost { namespace rdb { namespace odbc {
     #define BOOST_PP_FILENAME_1       <boost/rdb/odbc/detail/execute.hpp>
     #include BOOST_PP_ITERATE()
 
+    void bindv(param_ref_vector& params) {
+      typedef fusion::vector<const placeholder_vector&, param_ref_vector&> zip;
+      fusion::for_each(fusion::zip_view<zip>(zip(placeholders_, params)),
+        parameter_binder(hstmt_));
+    }
+
+    #define BOOST_RDB_ADD_REF(z, n, type) type##n&
+    #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
+    #define BOOST_PP_FILENAME_1       <boost/rdb/odbc/detail/bind_parameters.hpp>
+    #include BOOST_PP_ITERATE()
+
   protected:
     SQLHSTMT hstmt_;    
   };
 
   template<class Select>
-  class prepared_select_statement : prepared_statement<Select> {
+  class prepared_select_statement : public prepared_statement<Select> {
   
   public:
     typedef typename Select::select_list select_list;

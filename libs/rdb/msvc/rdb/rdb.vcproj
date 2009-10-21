@@ -249,14 +249,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\..\boost\rdb\odbc\detail\execute.hpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\..\boost\rdb\odbc\detail\execute_select.hpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\..\boost\rdb\sql\detail\in_values.hpp"
 				>
 			</File>

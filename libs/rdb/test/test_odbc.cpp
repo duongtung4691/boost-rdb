@@ -232,3 +232,17 @@ BOOST_FIXTURE_TEST_CASE(prepared_delete, springfield_fixture) {
     db.execute(select(p.id).from(p)),
     "()");
 }
+
+BOOST_FIXTURE_TEST_CASE(prepared_select_bind_params, springfield_fixture) {
+  person p;
+  BOOST_AUTO(st, db.prepare(select(p.first_name).from(p).where(p.id == _)));
+  
+  integer id_param;
+  st.bind_parameters(id_param);
+  
+  id_param = 1;
+  BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((Homer))");
+  
+  id_param = 2;
+  BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((Marge))");
+}
