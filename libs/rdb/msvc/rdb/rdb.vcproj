@@ -349,6 +349,10 @@
 			RelativePath="..\..\..\..\boost\rdb\sql\update.hpp"
 			>
 		</File>
+		<File
+			RelativePath="..\..\..\..\boost\rdb\sql\verbatim.hpp"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>
