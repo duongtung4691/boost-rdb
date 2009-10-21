@@ -11,9 +11,20 @@ namespace boost { namespace rdb {
     // name `type` is already used in namespace `boost` but
     // namespace `rdb` is not meant to be imported as a whole
     // so it should do no harm
-    struct integer { BOOST_STATIC_CONSTANT(int, id = 1); };
-    struct boolean { BOOST_STATIC_CONSTANT(int, id = 2); };
-    template<int N> struct varchar { BOOST_STATIC_CONSTANT(int, id = 3); };
+    struct integer {
+      BOOST_STATIC_CONSTANT(int, id = 1);
+      BOOST_STATIC_CONSTANT(int, length = 1);
+    };
+    
+    struct boolean {
+      BOOST_STATIC_CONSTANT(int, id = 2);
+      BOOST_STATIC_CONSTANT(int, length = 1);
+    };
+    
+    template<int N> struct varchar {
+      BOOST_STATIC_CONSTANT(int, id = 3);
+      BOOST_STATIC_CONSTANT(int, length = N);
+    };
 
     // metafunction that returns a type for holding a value of a given (rdb) type
     // for a specific database

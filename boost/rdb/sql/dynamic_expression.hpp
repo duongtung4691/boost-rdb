@@ -8,6 +8,22 @@
 
 namespace boost { namespace rdb { namespace sql {
 
+  struct dynamic_value {
+    dynamic_value(int type, int length, void* value) : type_(type), length_(length), value_(value) { }
+    int type() const { return type_; }
+    int length() const { return length_; }
+    int type_;
+    int length_;
+    void* value_;
+  };
+
+  template<class CliType>
+  dynamic_value
+  make_dynamic(CliType& lvalue) {
+    typedef typename CliType::rdb_type rdb_type;
+    return dynamic_value(rdb_type::id, rdb_type::length, &lvalue);
+  }
+  
   struct dynamic_placeholder { // make it a specialization of placeholder<> ? but what for ?
     dynamic_placeholder(int type, int length) : type_(type), length_(length) { }
     int type() const { return type_; }
@@ -23,8 +39,6 @@ namespace boost { namespace rdb { namespace sql {
     typedef fusion::vector< const std::vector<dynamic_placeholder> > placeholder_vector;
     
     placeholder_vector placeholders() const {
-      std::vector<dynamic_placeholder> t1 = impl_->placeholders_;
-      fusion::vector< const std::vector<dynamic_placeholder> > t2 = fusion::make_vector(t1);
       return fusion::make_vector(impl_->placeholders_);
     }
     
@@ -59,7 +73,7 @@ namespace boost { namespace rdb { namespace sql {
       
       template<class Placeholder>
       void operator ()(const Placeholder& p) const {
-        placeholders_.push_back(dynamic_placeholder(Placeholder::rdb_type::id, 1));
+        placeholders_.push_back(dynamic_placeholder(Placeholder::rdb_type::id, Placeholder::rdb_type::length));
       }
     };
 
