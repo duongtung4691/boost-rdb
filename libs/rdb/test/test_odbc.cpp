@@ -233,7 +233,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_delete, springfield_fixture) {
     "()");
 }
 
-BOOST_FIXTURE_TEST_CASE(prepared_select_bind_params, springfield_fixture) {
+BOOST_FIXTURE_TEST_CASE(prepared_select_bind_integer_param, springfield_fixture) {
   person p;
   BOOST_AUTO(st, db.prepare(select(p.first_name).from(p).where(p.id == _)));
   
@@ -245,4 +245,18 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_params, springfield_fixture) {
   
   id_param = 2;
   BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((Marge))");
+}
+
+BOOST_FIXTURE_TEST_CASE(prepared_select_bind_varchar_param, springfield_fixture) {
+  person p;
+  BOOST_AUTO(st, db.prepare(select(p.id).from(p).where(p.first_name == _)));
+  
+  varchar<30> param;
+  st.bind_parameters(param);
+  
+  param = "Homer";
+  BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((1))");
+  
+  param = "Marge";
+  BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((2))");
 }
