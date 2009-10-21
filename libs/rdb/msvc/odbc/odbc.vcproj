@@ -205,6 +205,22 @@
 	<References>
 	</References>
 	<Files>
+		<Filter
+			Name="preprocessor"
+			>
+			<File
+				RelativePath="..\..\..\..\boost\rdb\odbc\detail\bind_parameters.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\boost\rdb\odbc\detail\execute.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\boost\rdb\odbc\detail\execute_select.hpp"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath="..\..\src\odbc.cpp"
 			>
