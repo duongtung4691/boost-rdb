@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sstream>
 #include <boost/rdb/sql.hpp>
+#include <boost/rdb/sql/dynamic_expression.hpp>
 #include <boost/rdb/odbc.hpp>
 #include <boost/fusion/include/io.hpp>
 
@@ -232,3 +233,53 @@ BOOST_FIXTURE_TEST_CASE(prepared_delete, springfield_fixture) {
     db.execute(select(p.id).from(p)),
     "()");
 }
+
+BOOST_FIXTURE_TEST_CASE(prepared_select_bind_integer_param, springfield_fixture) {
+  person p;
+  BOOST_AUTO(st, db.prepare(select(p.first_name).from(p).where(p.id == _)));
+  
+  integer id_param;
+  st.bind_parameters(id_param);
+  
+  id_param = 1;
+  BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((Homer))");
+  
+  id_param = 2;
+  BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((Marge))");
+}
+
+BOOST_FIXTURE_TEST_CASE(prepared_select_bind_varchar_param, springfield_fixture) {
+  person p;
+  BOOST_AUTO(st, db.prepare(select(p.id).from(p).where(p.first_name == _)));
+  
+  varchar<30> param;
+  st.bind_parameters(param);
+  
+  param = "Homer";
+  BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((1))");
+  
+  param = "Marge";
+  BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((2))");
+}
+
+#if 1
+BOOST_FIXTURE_TEST_CASE(prepared_select_bind_dynamic_integer_param, springfield_fixture) {
+
+  person p;
+
+  dynamic_boolean predicate = make_dynamic(p.id == _);
+  
+  BOOST_AUTO(st, db.prepare(select(p.first_name).from(p).where(predicate)));
+  
+  integer id_param;
+  std::vector<dynamic_value> params;
+  params.push_back(make_dynamic(id_param));
+  //st.bind_parameters(params);
+  
+  id_param = 1;
+  BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((Homer))");
+  
+  id_param = 2;
+  BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((Marge))");
+}
+#endif
