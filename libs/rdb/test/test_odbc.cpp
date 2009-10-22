@@ -281,3 +281,23 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_dynamic_integer_param, springfield_
   id_param = 2;
   BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((Marge))");
 }
+
+BOOST_FIXTURE_TEST_CASE(prepared_select_bind_dynamic_varchar_param, springfield_fixture) {
+
+  person p;
+
+  dynamic_boolean predicate = make_dynamic(p.first_name == _);
+  
+  BOOST_AUTO(st, db.prepare(select(p.id).from(p).where(predicate)));
+  
+  varchar<30> first_name_param;
+  dynamic_values params;
+  params.push_back(make_dynamic(first_name_param));
+  st.bind_parameters(params);
+  
+  first_name_param = "Homer";
+  BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((1))");
+  
+  first_name_param = "Marge";
+  BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((2))");
+}

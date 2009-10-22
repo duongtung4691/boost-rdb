@@ -151,7 +151,21 @@ namespace boost { namespace rdb { namespace odbc {
   private:
     integer& value_;
   };
-  
+
+  template<int N>
+  class dynamic_varchar_value : public dynamic_value {
+  public:
+
+    dynamic_varchar_value(int type, int length, varchar<N>& value) : dynamic_value(type, length), value_(value) { }
+    
+    virtual void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT i) {
+      sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
+        &value_.chars_, 0, &value_.length_));
+    }
+    
+  private:
+    varchar<N>& value_;
+  };
 
   typedef std::vector< intrusive_ptr<dynamic_value> > dynamic_values;
 
@@ -631,6 +645,11 @@ namespace boost { namespace rdb { namespace sql {
 
   inline intrusive_ptr<odbc::dynamic_value> make_dynamic(odbc::integer& lvalue) {
     return new odbc::dynamic_integer_value(type::integer::id, type::integer::length, lvalue);
+  }
+
+  template<int N>
+  inline intrusive_ptr<odbc::dynamic_value> make_dynamic(odbc::varchar<N>& lvalue) {
+    return new odbc::dynamic_varchar_value<N>(type::varchar<N>::id, type::varchar<N>::length, lvalue);
   }
 
 } } }
