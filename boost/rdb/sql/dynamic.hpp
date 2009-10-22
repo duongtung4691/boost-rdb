@@ -9,9 +9,9 @@
 
 namespace boost { namespace rdb { namespace sql {
 
-  struct dynamic_value {
-    dynamic_value(int type, int length) : type_(type), length_(length), ref_count_(0) { }
-    virtual ~dynamic_value() { }
+  struct abstract_dynamic_value {
+    abstract_dynamic_value(int type, int length) : type_(type), length_(length), ref_count_(0) { }
+    virtual ~abstract_dynamic_value() { }
     int type() const { return type_; }
     int length() const { return length_; }
     int type_;
@@ -19,16 +19,14 @@ namespace boost { namespace rdb { namespace sql {
     int ref_count_;
   };
 
-  inline void intrusive_ptr_add_ref(dynamic_value* p) {
+  inline void intrusive_ptr_add_ref(abstract_dynamic_value* p) {
     ++p->ref_count_;
   }
 
-  inline void intrusive_ptr_release(dynamic_value* p) {
+  inline void intrusive_ptr_release(abstract_dynamic_value* p) {
     if (--p->ref_count_ == 0)
       delete p;
   }
-
-  typedef std::vector< intrusive_ptr<dynamic_value> > dynamic_values;
   
   struct dynamic_placeholder { // make it a specialization of placeholder<> ? but what for ?
     dynamic_placeholder(int type, int length) : type_(type), length_(length) { }

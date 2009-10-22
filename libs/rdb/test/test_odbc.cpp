@@ -31,14 +31,14 @@ struct springfield_fixture {
 
     try {
       db.execute(create_table(person::_));
-    } catch (error) {
+    } catch (odbc_error) {
       db.execute(drop_table(person::_));
       db.execute(create_table(person::_));
     }
 
     try {
       db.execute(create_table(partner::_));
-    } catch (error) {
+    } catch (odbc_error) {
       db.execute(drop_table(partner::_));
       db.execute(create_table(partner::_));
     }
@@ -64,12 +64,12 @@ BOOST_AUTO_TEST_CASE(basic) {
 
   try {
     db.execute(drop_table(person::_));
-  } catch (error) {
+  } catch (odbc_error) {
   }
 
   try {
     db.execute(drop_table(partner::_));
-  } catch (error) {
+  } catch (odbc_error) {
   }
 
   db.execute(create_table(person::_));
@@ -262,7 +262,6 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_varchar_param, springfield_fixture)
   BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((2))");
 }
 
-#if 1
 BOOST_FIXTURE_TEST_CASE(prepared_select_bind_dynamic_integer_param, springfield_fixture) {
 
   person p;
@@ -282,4 +281,3 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_dynamic_integer_param, springfield_
   id_param = 2;
   BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((Marge))");
 }
-#endif

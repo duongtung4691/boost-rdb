@@ -15,9 +15,17 @@
 
 using namespace std;
 
+namespace boost { namespace rdb {
+
+const char* dynamic_value_mismatch::what() const throw() {
+  return "dynamic_value_mismatch";
+}
+
+} }
+
 namespace boost { namespace rdb { namespace odbc {
 
-error::error(SQLSMALLINT handle_type, SQLHANDLE handle, long rc) : rc(rc) {
+odbc_error::odbc_error(SQLSMALLINT handle_type, SQLHANDLE handle, long rc) : rc(rc) {
   sprintf(msg, "rc %ld", rc);
   SQLSMALLINT mlen;
   SQLGetDiagField(handle_type, handle, 1, SQL_DIAG_MESSAGE_TEXT, (SQLPOINTER) msg, sizeof msg, &mlen);
@@ -83,7 +91,7 @@ void database::prepare_str(HSTMT hstmt, const string& sql) {
   sql_check(SQL_HANDLE_STMT, hstmt, SQLPrepare(hstmt, (SQLCHAR*) sql.c_str(), SQL_NTS));
 }
 
-const char* error::what() const throw() {
+const char* odbc_error::what() const throw() {
   return msg;
 }
 

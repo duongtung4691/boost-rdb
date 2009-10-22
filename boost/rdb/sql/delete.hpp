@@ -11,13 +11,16 @@ namespace boost { namespace rdb { namespace sql {
   struct delete_statement_tag : statement_tag { };
 
   template<class Predicate>
-  struct delete_placeholders {
+  struct delete_impl {
+    delete_impl(const Predicate& where) : where_(where) { }
     typedef typename Predicate::placeholder_vector placeholder_vector;
     placeholder_vector placeholders() const { return where_.placeholders(); }
+    Predicate where_;
   };
 
   template<>
-  struct delete_placeholders<detail::none> {
+  struct delete_impl<detail::none> {
+    delete_impl(const detail::none&) { }
     typedef fusion::vector<> placeholder_vector;
     placeholder_vector placeholders() const { return fusion::make_vector(); }
   };
@@ -25,14 +28,12 @@ namespace boost { namespace rdb { namespace sql {
   // I should make this a FSM too someday...
 
   template<class Table, class Predicate>
-  struct delete_statement : delete_placeholders<Predicate> {
+  struct delete_statement : delete_impl<Predicate> {
 
     typedef delete_statement_tag tag;
     typedef void result;
 
-    delete_statement(const Predicate& where) : where_(where) { }
-
-    Predicate where_;
+    delete_statement(const Predicate& where) : delete_impl<Predicate>(where) { }
 
     void str(std::ostream& os) const { str(os, boost::is_same<Predicate, detail::none>()); }
     

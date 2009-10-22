@@ -9,6 +9,36 @@
 
 namespace boost { namespace rdb { namespace sql {
 
+  struct extract_placeholders_from_assign {
+
+    template<typename Sig>
+    struct result;
+
+    template<class Self, class Col, class Expr, class Placeholders>
+    struct result<Self(set_clause<Col, Expr>&, Placeholders&)> {
+      typedef typename mpl::if_<
+        is_placeholder_mark<Expr>,
+        typename fusion::result_of::push_back<
+          Placeholders,
+          type::placeholder<typename Col::sql_type>
+        >::type,
+        Placeholders
+      >::type type;
+    };
+  };
+  
+  namespace result_of {
+    template<class AssignList>
+    struct extract_placeholders_from_pair<sql2003::set, AssignList> {
+      typedef typename fusion::result_of::as_vector<
+        typename fusion::result_of::accumulate<AssignList, fusion::vector<>, extract_placeholders_from_assign>::type
+      >::type type;
+      static type make(const fusion::pair<sql2003::set, AssignList>& p) {
+        return fusion::accumulate(p.second, fusion::vector<>, extract_placeholders_from_assign());
+      }
+    };
+  }
+
   template<class Dialect, class State, class Data, class Subdialect>
   struct update_statement :
     tag_if<fusion::result_of::has_key<Data, typename Subdialect::set>, update_statement_tag> {
@@ -17,6 +47,13 @@ namespace boost { namespace rdb { namespace sql {
 
     typedef void result;
     typedef typename result_of::placeholders_from_pair_list<Data>::type placeholder_vector;
+
+    placeholder_vector placeholders() const {
+      using namespace fusion;
+      // TODO
+      return placeholder_vector();
+      //return accumulate(zip_view<zip>(zip(cols(), values())), make_vector(), extract_placeholders_from_assign());
+    }
 
     Data data_;
 
@@ -58,36 +95,6 @@ namespace boost { namespace rdb { namespace sql {
   inline void str(std::ostream& os, const fusion::pair<sql2003::set, AssignList>& p) {
     os << " set ";
     fusion::for_each(p.second, comma_output(os));
-  }
-
-  struct extract_placeholders_from_assign {
-
-    template<typename Sig>
-    struct result;
-
-    template<class Self, class Col, class Expr, class Placeholders>
-    struct result<Self(set_clause<Col, Expr>&, Placeholders&)> {
-      typedef typename mpl::if_<
-        is_placeholder_mark<Expr>,
-        typename fusion::result_of::push_back<
-          Placeholders,
-          type::placeholder<typename Col::sql_type>
-        >::type,
-        Placeholders
-      >::type type;
-    };
-  };
-  
-  namespace result_of {
-    template<class AssignList>
-    struct extract_placeholders_from_pair<sql2003::set, AssignList> {
-      typedef typename fusion::result_of::as_vector<
-        typename fusion::result_of::accumulate<AssignList, fusion::vector<>, extract_placeholders_from_assign>::type
-      >::type type;
-      static type make(const fusion::pair<sql2003::set, AssignList>& p) {
-        return fusion::accumulate(p.second, fusion::vector<>, extract_placeholders_from_assign());
-      }
-    };
   }
   
   template<class Table>
