@@ -82,7 +82,9 @@ namespace boost { namespace rdb { namespace sql {
 
     placeholder_vector placeholders() const {
       using namespace fusion;
-      return accumulate(zip_view<zip>(zip(cols_type(), rows())), make_vector(), extract_insert_values_placeholders());
+      // TODO
+      return placeholder_vector();
+      //return accumulate(zip_view<zip>(zip(cols(), values())), make_vector(), extract_insert_values_placeholders());
     }
 
   };

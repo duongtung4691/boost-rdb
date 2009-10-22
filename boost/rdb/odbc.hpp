@@ -16,12 +16,37 @@ namespace boost { namespace rdb {
 
   template<class SqlType, class Value, class Tag>
   struct sql_type_adapter;
+  
+  struct dynamic_value_mismatch : std::exception {
+    virtual const char* what() const throw();
+  };
 
 } }
 
 namespace boost { namespace rdb { namespace odbc {
 
   struct odbc_tag { };
+
+  struct odbc_error : std::exception {
+    odbc_error(SQLSMALLINT handle_type, SQLHANDLE handle, long rc);
+    virtual const char* what() const throw();
+    long rc;
+    SQLCHAR stat[10]; // Status SQL
+    SQLINTEGER err;
+    char msg[200];
+  };
+
+  inline bool sql_fail(long rc) {
+    return rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO;
+  }
+
+  inline void sql_check(SQLSMALLINT handle_type, SQLHANDLE handle, long rc) {
+    if (sql_fail(rc)) {
+      odbc_error ex(handle_type, handle, rc);
+      //TR << "ODBC Exception: " << ex.what() << endl;
+      throw ex;
+    }
+  }
 
   template<size_t N>
   class varchar {
@@ -107,6 +132,29 @@ namespace boost { namespace rdb { namespace odbc {
     SQLINTEGER length_;
   };
 
+  class dynamic_value : public sql::abstract_dynamic_value {
+  public:
+    dynamic_value(int type, int length) : sql::abstract_dynamic_value(type, length) { }
+    virtual void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT i) = 0;
+  };
+
+  class dynamic_integer_value : public dynamic_value {
+  public:
+
+    dynamic_integer_value(int type, int length, integer& value) : dynamic_value(type, length), value_(value) { }
+    
+    virtual void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT i) {
+      sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
+        &value_.value_, 0, &value_.length_));
+    }
+    
+  private:
+    integer& value_;
+  };
+  
+
+  typedef std::vector< intrusive_ptr<dynamic_value> > dynamic_values;
+
 } } }
 
 namespace boost { namespace rdb { namespace type {
@@ -129,27 +177,6 @@ namespace boost { namespace rdb { namespace type {
 } } }
 
 namespace boost { namespace rdb { namespace odbc {
-
-  struct error : std::exception {
-    error(SQLSMALLINT handle_type, SQLHANDLE handle, long rc);
-    virtual const char* what() const throw();
-    long rc;
-    SQLCHAR stat[10]; // Status SQL
-    SQLINTEGER err;
-    char msg[200];
-  };
-
-  inline bool sql_fail(long rc) {
-    return rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO;
-  }
-
-  inline void sql_check(SQLSMALLINT handle_type, SQLHANDLE handle, long rc) {
-    if (sql_fail(rc)) {
-      error ex(handle_type, handle, rc);
-      //TR << "ODBC Exception: " << ex.what() << endl;
-      throw ex;
-    }
-  }
 
   struct on_type { };
   const on_type on = on_type();
@@ -229,13 +256,12 @@ namespace boost { namespace rdb { namespace odbc {
         sql_check(SQL_HANDLE_DBC, db.hdbc_, SQLAllocStmt(db.hdbc_, &hstmt));
         try {
           db.prepare_str(hstmt, as_string(st));
-          return prepare_return_type(hstmt);
+          return prepare_return_type(st, hstmt);
         } catch (...) {
           SQLFreeHandle(SQL_HANDLE_STMT, &hstmt);
           throw;
         }
       }
-
     };
 
     template<class Select>
@@ -261,7 +287,7 @@ namespace boost { namespace rdb { namespace odbc {
         HSTMT hstmt;
         sql_check(SQL_HANDLE_DBC, db.hdbc_, SQLAllocStmt(db.hdbc_, &hstmt));
         db.prepare_str(hstmt, as_string(select));
-        return prepare_return_type(hstmt);
+        return prepare_return_type(select, hstmt);
       }
     };
     
@@ -332,7 +358,7 @@ namespace boost { namespace rdb { namespace odbc {
     struct result<Self(const std::vector<sql::dynamic_placeholder>&, const Vector&)> {
       typedef typename fusion::result_of::push_back<
         Vector,
-        sql::dynamic_values
+        dynamic_values
       >::type type;
     };
   };
@@ -354,11 +380,11 @@ namespace boost { namespace rdb { namespace odbc {
   struct parameter_binder {
     parameter_binder(SQLHSTMT hstmt) : hstmt_(hstmt), i_(1) { }
     SQLHSTMT hstmt_;
-    mutable int i_;
+    mutable SQLUSMALLINT i_;
 
     void operator ()(fusion::vector<const type::placeholder<type::integer>&, integer&>& zip) const {
       using namespace fusion;
-      sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindParameter(hstmt_, i_, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0,
+      sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindParameter(hstmt_, i_, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
         &at_c<1>(zip).value_, 0, &at_c<1>(zip).length_));
       ++i_;
     }
@@ -371,20 +397,31 @@ namespace boost { namespace rdb { namespace odbc {
       ++i_;
     }
 
-    void operator ()(fusion::vector<const sql::dynamic_placeholders&, sql::dynamic_values&>& zip) const {
+    void operator ()(fusion::vector<const sql::dynamic_placeholders&, dynamic_values&>& zip) const {
       using fusion::at_c;
-      BOOST_ASSERT(at_c<0>(zip).size() == at_c<1>(zip).size());
+
+      if (at_c<0>(zip).size() != at_c<1>(zip).size())
+        throw dynamic_value_mismatch();
+
       sql::dynamic_placeholders::const_iterator placeholder_iter = at_c<0>(zip).begin(), placeholder_last = at_c<0>(zip).end();
-      sql::dynamic_values::iterator value_iter = at_c<1>(zip).begin();
+      dynamic_values::iterator value_iter = at_c<1>(zip).begin();
+
       while (placeholder_iter != placeholder_last) {
-        BOOST_ASSERT(placeholder_iter->type() == (*value_iter)->type());
-        BOOST_ASSERT(placeholder_iter->length() == (*value_iter)->length());
+
+        if (placeholder_iter->type() != (*value_iter)->type())
+          throw dynamic_value_mismatch();
+        
+        if (placeholder_iter->length() != (*value_iter)->length())
+          throw dynamic_value_mismatch();
+          
+        (*value_iter)->bind_parameter(hstmt_, i_);
+
         ++placeholder_iter;
         ++value_iter;
+        ++i_;
       }
       //sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindParameter(hstmt_, i_, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
       //  at_c<1>(zip).chars_, 0, &at_c<1>(zip).length_));
-      ++i_;
     }
   };
 
@@ -411,7 +448,8 @@ namespace boost { namespace rdb { namespace odbc {
     >::type param_ref_vector;
   
   public:
-    prepared_statement(SQLHSTMT hstmt) : hstmt_(hstmt)/*, placeholders_(Statement::placeholders())*/ {
+    prepared_statement(const Statement& st, SQLHSTMT hstmt) :
+      placeholders_(st.placeholders()), hstmt_(hstmt) {
     }
 
     ~prepared_statement() {
@@ -455,7 +493,7 @@ namespace boost { namespace rdb { namespace odbc {
     typedef typename Select::result container;
     typedef prepared_statement<Select> base;
 
-    prepared_select_statement(SQLHSTMT hstmt) : base(hstmt) { }
+    prepared_select_statement(const Select& select, SQLHSTMT hstmt) : base(select, hstmt) { }
 
     result_set<select_list, container, false> execute() {
       sql_check(SQL_HANDLE_STMT, this->hstmt_, SQLExecute(this->hstmt_));
@@ -496,7 +534,7 @@ namespace boost { namespace rdb { namespace odbc {
       }
 
       if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO)
-        throw error(SQL_HANDLE_STMT, hstmt_, rc);
+        throw odbc_error(SQL_HANDLE_STMT, hstmt_, rc);
 
       typedef fusion::vector<const ExprList&, typename value_type::value_vector_type&> zip;
 
@@ -550,18 +588,6 @@ namespace boost { namespace rdb { namespace odbc {
     return os << ")";
   }
 
-  class dynamic_odbc_value : public sql::dynamic_value {
-  public:
-    dynamic_odbc_value(int type, int length) : dynamic_value(type, length) { }
-  };
-
-  class dynamic_integer_value : public dynamic_odbc_value {
-  public:
-    dynamic_integer_value(int type, int length, integer& value) : dynamic_odbc_value(type, length), value_(value) { }
-  private:
-    integer& value_;
-  };
-
 } } }
 
 namespace boost { namespace rdb {
@@ -603,7 +629,7 @@ namespace boost { namespace rdb {
 
 namespace boost { namespace rdb { namespace sql {
 
-  inline intrusive_ptr<dynamic_value> make_dynamic(odbc::integer& lvalue) {
+  inline intrusive_ptr<odbc::dynamic_value> make_dynamic(odbc::integer& lvalue) {
     return new odbc::dynamic_integer_value(type::integer::id, type::integer::length, lvalue);
   }
 

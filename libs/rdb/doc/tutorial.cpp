@@ -62,12 +62,12 @@ int main() {
 
   try {
     db.execute(drop_table(person::_));
-  } catch (error) {
+  } catch (odbc_error) {
   }
 
   try {
     db.execute(drop_table(partner::_));
-  } catch (error) {
+  } catch (odbc_error) {
   }
 
   try {
