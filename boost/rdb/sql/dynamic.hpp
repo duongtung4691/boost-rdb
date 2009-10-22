@@ -8,8 +8,26 @@
 
 namespace boost { namespace rdb { namespace sql {
 
+  struct dynamic_expression {
+
+    struct root {
+      root(int type, int length) : type_(type), length_(length) { }
+      virtual void str(std::ostream& os) const = 0;
+      std::vector<dynamic_placeholder> placeholders_;
+      int type_;
+      int length_;
+    };
+  
+    dynamic_expression(root* impl) : impl_(impl) { }
+    
+    int type() const { return impl_->type_; }
+    int length() const { return impl_->length_; }
+
+    shared_ptr<root> impl_;
+  };
+
   template<class SqlType>
-  struct dynamic_expression_wrapper {
+  struct dynamic_expression_wrapper : dynamic_expression {
     typedef SqlType sql_type;
     
     typedef fusion::vector< const std::vector<dynamic_placeholder> > placeholder_vector;
@@ -20,14 +38,7 @@ namespace boost { namespace rdb { namespace sql {
     
     enum { precedence = precedence_level::lowest };
 
-    struct root {
-      virtual void str(std::ostream& os) const = 0;
-      std::vector<dynamic_placeholder> placeholders_;
-    };
-
-    shared_ptr<root> impl_;
-
-    dynamic_expression_wrapper(root* p) : impl_(p) { }
+    dynamic_expression_wrapper(root* p) : dynamic_expression(p) { }
 
     void str(std::ostream& os) const {
       impl_->str(os);
@@ -35,10 +46,9 @@ namespace boost { namespace rdb { namespace sql {
   };
 
   template<class Expr>
-  struct dynamic_expression_impl : dynamic_expression_wrapper<typename Expr::sql_type>::root {
-    typedef typename dynamic_expression_wrapper<typename Expr::sql_type>::root root;
+  struct dynamic_expression_impl : dynamic_expression::root {
 
-    dynamic_expression_impl(const Expr& expr) : expr_(expr) {
+    dynamic_expression_impl(const Expr& expr) : dynamic_expression::root(Expr::sql_type::id, Expr::sql_type::length), expr_(expr) {
       fusion::for_each(expr.placeholders(), make_placeholder(this->placeholders_));
     }
 
@@ -71,6 +81,7 @@ namespace boost { namespace rdb { namespace sql {
   typedef expression< dynamic_expression_wrapper<type::integer> > dynamic_integer;
   typedef expression< dynamic_expression_wrapper<type::boolean> > dynamic_boolean;
 
+  typedef std::vector<dynamic_expression> dynamic_expressions;
 
 } } }
 
