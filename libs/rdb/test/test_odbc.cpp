@@ -301,3 +301,43 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_dynamic_varchar_param, springfield_
   first_name_param = "Marge";
   BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((2))");
 }
+
+#if 0
+
+BOOST_FIXTURE_TEST_CASE(prepared_insert_orm_style, springfield_fixture) {
+
+  person p;
+
+  dynamic_expressions exprs;
+  exprs.push_back(make_dynamic(p.id));
+  exprs.push_back(make_dynamic(p.first_name));
+  exprs.push_back(make_dynamic(p.name));
+  exprs.push_back(make_dynamic(p.age));
+  
+  dynamic_expressions values;
+  exprs.push_back(make_dynamic(p.id, _));
+  exprs.push_back(make_dynamic(p.first_name, _));
+  exprs.push_back(make_dynamic(p.name, _));
+  exprs.push_back(make_dynamic(p.age, _));
+  
+  BOOST_AUTO(st, db.prepare(insert_into(p)(exprs).values(values)));
+
+  dynamic_values params;
+
+  integer id_param;  
+  params.push_back(make_dynamic(id_param));
+
+  varchar<30> first_name_param;
+  params.push_back(make_dynamic(first_name_param));
+
+  varchar<20> name_param;
+  params.push_back(make_dynamic(name_param));
+
+  integer age_param;  
+  params.push_back(make_dynamic(age_param));
+  
+  st.bind_parameters(params);
+
+}
+
+#endif
