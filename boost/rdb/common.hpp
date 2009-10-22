@@ -75,6 +75,24 @@ namespace boost { namespace rdb {
 
   typedef std::vector<dynamic_placeholder> dynamic_placeholders;
 
+  struct dynamic_expression {
+
+    struct root {
+      root(int type, int length) : type_(type), length_(length) { }
+      virtual void str(std::ostream& os) const = 0;
+      dynamic_placeholders placeholders_;
+      int type_;
+      int length_;
+    };
+  
+    dynamic_expression(root* impl) : impl_(impl) { }
+    
+    int type() const { return impl_->type_; }
+    int length() const { return impl_->length_; }
+
+    shared_ptr<root> impl_;
+  };
+
 } }
 
 #endif

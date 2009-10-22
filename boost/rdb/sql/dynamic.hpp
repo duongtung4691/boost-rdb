@@ -8,24 +8,6 @@
 
 namespace boost { namespace rdb { namespace sql {
 
-  struct dynamic_expression {
-
-    struct root {
-      root(int type, int length) : type_(type), length_(length) { }
-      virtual void str(std::ostream& os) const = 0;
-      std::vector<dynamic_placeholder> placeholders_;
-      int type_;
-      int length_;
-    };
-  
-    dynamic_expression(root* impl) : impl_(impl) { }
-    
-    int type() const { return impl_->type_; }
-    int length() const { return impl_->length_; }
-
-    shared_ptr<root> impl_;
-  };
-
   template<class SqlType>
   struct dynamic_expression_wrapper : dynamic_expression {
     typedef SqlType sql_type;
@@ -35,7 +17,7 @@ namespace boost { namespace rdb { namespace sql {
     placeholder_vector placeholders() const {
       return fusion::make_vector(impl_->placeholders_);
     }
-    
+
     enum { precedence = precedence_level::lowest };
 
     dynamic_expression_wrapper(root* p) : dynamic_expression(p) { }
@@ -82,6 +64,23 @@ namespace boost { namespace rdb { namespace sql {
   typedef expression< dynamic_expression_wrapper<type::boolean> > dynamic_boolean;
 
   typedef std::vector<dynamic_expression> dynamic_expressions;
+
+  struct dynamic_placeholder_impl : dynamic_expression::root {
+
+    dynamic_placeholder_impl(int type, int length) : dynamic_expression::root(type, length) {
+    }
+
+    virtual void str(std::ostream& os) const {
+      os << "?";
+    }
+  };
+
+  template<class Expr>
+  dynamic_expression_wrapper<typename Expr::sql_type>
+  make_dynamic(const placeholder_mark<0>& mark, const expression<Expr>&) {
+    return dynamic_expression_wrapper<typename Expr::sql_type>(
+      new dynamic_placeholder_impl(Expr::sql_type::id, Expr::sql_type::length));
+  }
 
 } } }
 
