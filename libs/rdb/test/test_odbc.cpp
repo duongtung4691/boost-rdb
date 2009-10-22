@@ -1,14 +1,14 @@
 #include <iostream>
 #include <sstream>
+#include <boost/fusion/include/io.hpp>
 #include <boost/rdb/sql.hpp>
 #include <boost/rdb/sql/dynamic.hpp>
 #include <boost/rdb/odbc.hpp>
-#include <boost/fusion/include/io.hpp>
+
+#include "test_tables.hpp"
 
 #define BOOST_TEST_MODULE odbc_backend
 #include <boost/test/unit_test.hpp>
-
-#include "test_tables.hpp"
 
 using namespace std;
 using namespace boost;

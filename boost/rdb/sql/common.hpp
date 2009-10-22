@@ -63,7 +63,7 @@
 #include <boost/preprocessor/arithmetic/sub.hpp>
 #include <boost/preprocessor/punctuation/comma_if.hpp>
 
-#include <boost/rdb/types.hpp>
+#include <boost/rdb/common.hpp>
 
 #define BOOST_RDB_MAX_SIZE FUSION_MAX_VECTOR_SIZE
 #define BOOST_RDB_MAX_ARG_COUNT 10
@@ -95,11 +95,6 @@ namespace boost { namespace rdb { namespace sql {
       highest = multiply
     };
   }
-
-  struct statement_tag { };
-  struct insert_statement_tag : statement_tag { };
-  struct select_statement_tag : statement_tag { };
-  struct update_statement_tag : statement_tag { };
   
   template<class Condition, typename Tag, class Enable = void>
   struct tag_if {
