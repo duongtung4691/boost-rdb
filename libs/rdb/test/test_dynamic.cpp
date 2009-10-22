@@ -1,7 +1,7 @@
 #include "test.hpp"
 
 #include <boost/rdb/sql.hpp>
-#include <boost/rdb/sql/dynamic_expression.hpp>
+#include <boost/rdb/sql/dynamic.hpp>
 
 using namespace boost;
 using namespace boost::rdb::sql;
