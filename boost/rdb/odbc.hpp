@@ -10,7 +10,7 @@
 #include <sqlext.h>
 
 #include <boost/rdb/types.hpp>
-#include <boost/rdb/sql/dynamic_expression.hpp>
+#include <boost/rdb/sql/dynamic.hpp>
 
 namespace boost { namespace rdb {
 
@@ -332,7 +332,7 @@ namespace boost { namespace rdb { namespace odbc {
     struct result<Self(const std::vector<sql::dynamic_placeholder>&, const Vector&)> {
       typedef typename fusion::result_of::push_back<
         Vector,
-        std::vector<sql::dynamic_value>
+        sql::dynamic_values
       >::type type;
     };
   };
@@ -368,6 +368,22 @@ namespace boost { namespace rdb { namespace odbc {
       using namespace fusion;
       sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindParameter(hstmt_, i_, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
         at_c<1>(zip).chars_, 0, &at_c<1>(zip).length_));
+      ++i_;
+    }
+
+    void operator ()(fusion::vector<const sql::dynamic_placeholders&, sql::dynamic_values&>& zip) const {
+      using fusion::at_c;
+      BOOST_ASSERT(at_c<0>(zip).size() == at_c<1>(zip).size());
+      sql::dynamic_placeholders::const_iterator placeholder_iter = at_c<0>(zip).begin(), placeholder_last = at_c<0>(zip).end();
+      sql::dynamic_values::iterator value_iter = at_c<1>(zip).begin();
+      while (placeholder_iter != placeholder_last) {
+        BOOST_ASSERT(placeholder_iter->type() == (*value_iter)->type());
+        BOOST_ASSERT(placeholder_iter->length() == (*value_iter)->length());
+        ++placeholder_iter;
+        ++value_iter;
+      }
+      //sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindParameter(hstmt_, i_, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
+      //  at_c<1>(zip).chars_, 0, &at_c<1>(zip).length_));
       ++i_;
     }
   };
@@ -534,6 +550,18 @@ namespace boost { namespace rdb { namespace odbc {
     return os << ")";
   }
 
+  class dynamic_odbc_value : public sql::dynamic_value {
+  public:
+    dynamic_odbc_value(int type, int length) : dynamic_value(type, length) { }
+  };
+
+  class dynamic_integer_value : public dynamic_odbc_value {
+  public:
+    dynamic_integer_value(int type, int length, integer& value) : dynamic_odbc_value(type, length), value_(value) { }
+  private:
+    integer& value_;
+  };
+
 } } }
 
 namespace boost { namespace rdb {
@@ -572,5 +600,13 @@ namespace boost { namespace rdb {
   };
 
 } }
+
+namespace boost { namespace rdb { namespace sql {
+
+  inline intrusive_ptr<dynamic_value> make_dynamic(odbc::integer& lvalue) {
+    return new odbc::dynamic_integer_value(type::integer::id, type::integer::length, lvalue);
+  }
+
+} } }
 
 #endif // BOOST_ODBC_HPP

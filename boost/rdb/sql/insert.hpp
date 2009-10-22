@@ -80,7 +80,7 @@ namespace boost { namespace rdb { namespace sql {
       typename fusion::result_of::accumulate<zip_view, fusion::vector<>, extract_insert_values_placeholders>::type
     >::type placeholder_vector;
 
-    placeholder_vector placeholders(const Data& data) const {
+    placeholder_vector placeholders() const {
       using namespace fusion;
       return accumulate(zip_view<zip>(zip(cols_type(), rows())), make_vector(), extract_insert_values_placeholders());
     }

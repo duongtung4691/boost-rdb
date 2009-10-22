@@ -298,7 +298,7 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\..\..\boost\rdb\sql\dynamic_expression.hpp"
+			RelativePath="..\..\..\..\boost\rdb\sql\dynamic.hpp"
 			>
 		</File>
 		<File
