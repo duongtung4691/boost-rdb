@@ -9,8 +9,7 @@
 #include <sql.h>
 #include <sqlext.h>
 
-#include <boost/rdb/types.hpp>
-#include <boost/rdb/sql/dynamic.hpp>
+#include <boost/rdb/common.hpp>
 
 namespace boost { namespace rdb {
 
@@ -132,9 +131,9 @@ namespace boost { namespace rdb { namespace odbc {
     SQLINTEGER length_;
   };
 
-  class dynamic_value : public sql::abstract_dynamic_value {
+  class dynamic_value : public abstract_dynamic_value {
   public:
-    dynamic_value(int type, int length) : sql::abstract_dynamic_value(type, length) { }
+    dynamic_value(int type, int length) : abstract_dynamic_value(type, length) { }
     virtual void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT i) = 0;
   };
 
@@ -279,7 +278,7 @@ namespace boost { namespace rdb { namespace odbc {
     };
 
     template<class Select>
-    struct discriminate<sql::select_statement_tag, Select> {
+    struct discriminate<select_statement_tag, Select> {
 
       typedef result_set<typename Select::select_list, typename Select::result, false> execute_return_type;
 
@@ -369,7 +368,7 @@ namespace boost { namespace rdb { namespace odbc {
     };
 
     template<class Self, class Vector>
-    struct result<Self(const std::vector<sql::dynamic_placeholder>&, const Vector&)> {
+    struct result<Self(const std::vector<dynamic_placeholder>&, const Vector&)> {
       typedef typename fusion::result_of::push_back<
         Vector,
         dynamic_values
@@ -411,13 +410,13 @@ namespace boost { namespace rdb { namespace odbc {
       ++i_;
     }
 
-    void operator ()(fusion::vector<const sql::dynamic_placeholders&, dynamic_values&>& zip) const {
+    void operator ()(fusion::vector<const dynamic_placeholders&, dynamic_values&>& zip) const {
       using fusion::at_c;
 
       if (at_c<0>(zip).size() != at_c<1>(zip).size())
         throw dynamic_value_mismatch();
 
-      sql::dynamic_placeholders::const_iterator placeholder_iter = at_c<0>(zip).begin(), placeholder_last = at_c<0>(zip).end();
+      dynamic_placeholders::const_iterator placeholder_iter = at_c<0>(zip).begin(), placeholder_last = at_c<0>(zip).end();
       dynamic_values::iterator value_iter = at_c<1>(zip).begin();
 
       while (placeholder_iter != placeholder_last) {

@@ -5,38 +5,8 @@
 #define BOOST_RDB_SQL_DYNAMIC_EXPRESSION_HPP
 
 #include <boost/rdb/sql/common.hpp>
-#include <boost/intrusive_ptr.hpp>
 
 namespace boost { namespace rdb { namespace sql {
-
-  struct abstract_dynamic_value {
-    abstract_dynamic_value(int type, int length) : type_(type), length_(length), ref_count_(0) { }
-    virtual ~abstract_dynamic_value() { }
-    int type() const { return type_; }
-    int length() const { return length_; }
-    int type_;
-    int length_;
-    int ref_count_;
-  };
-
-  inline void intrusive_ptr_add_ref(abstract_dynamic_value* p) {
-    ++p->ref_count_;
-  }
-
-  inline void intrusive_ptr_release(abstract_dynamic_value* p) {
-    if (--p->ref_count_ == 0)
-      delete p;
-  }
-  
-  struct dynamic_placeholder { // make it a specialization of placeholder<> ? but what for ?
-    dynamic_placeholder(int type, int length) : type_(type), length_(length) { }
-    int type() const { return type_; }
-    int length() const { return length_; }
-    int type_;
-    int length_;
-  };
-
-  typedef std::vector<dynamic_placeholder> dynamic_placeholders;
 
   template<class SqlType>
   struct dynamic_expression_wrapper {

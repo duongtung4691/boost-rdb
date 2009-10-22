@@ -294,6 +294,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\..\..\boost\rdb\common.hpp"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\..\boost\rdb\sql\delete.hpp"
 			>
 		</File>
@@ -331,10 +335,6 @@
 		</File>
 		<File
 			RelativePath="..\..\..\..\boost\rdb\sql\table.hpp"
-			>
-		</File>
-		<File
-			RelativePath="..\..\..\..\boost\rdb\types.hpp"
 			>
 		</File>
 		<File
