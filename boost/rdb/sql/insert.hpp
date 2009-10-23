@@ -68,10 +68,18 @@ namespace boost { namespace rdb { namespace sql {
     template<class Self, class Col, class Expr, class Placeholders>
     struct result<Self(fusion::vector<Col&, Expr&>, Placeholders&)> {
       typedef typename fusion::result_of::join<
-        Placeholders,
-        typename detail::binary_operation_placeholders<Col, Expr>::type
+        const Placeholders,
+        const typename detail::binary_operation_placeholders<Col, Expr>::type
       >::type type;
     };
+
+    template<class Self, class Col, class Expr, class Placeholders>
+    typename result<Self(fusion::vector<Col&, Expr&>, Placeholders&)>::type
+    operator ()(fusion::vector<Col&, Expr&> zip, Placeholders& placeholders) const {
+      using namespace fusion;
+      return join(placeholders,
+        detail::binary_operation_placeholders<Col, Expr>::make(at_c<0>(zip), at_c<1>(zip)));
+    }
   };
 
   template<class Data, class Subdialect>
@@ -97,9 +105,10 @@ namespace boost { namespace rdb { namespace sql {
 
     placeholder_vector placeholders() const {
       using namespace fusion;
-      // TODO
       return placeholder_vector();
-      //return accumulate(zip_view<zip>(zip(cols(), values())), make_vector(), extract_insert_values_placeholders());
+      //return as_vector(
+      //  accumulate(zip_view(zip(cols(), values())),
+      //    make_vector(), extract_insert_values_placeholders()));
     }
 
   };

@@ -30,6 +30,7 @@ BOOST_AUTO_TEST_CASE(test_dynamic_integer_placeholder) {
   person p("p");
   dynamic_boolean predicate = make_dynamic(p.age > _);
   fusion::vector< std::vector<dynamic_placeholder> > placeholders = (select(p.id).from(p).where(predicate)).placeholders();
+  BOOST_REQUIRE(fusion::at_c<0>(placeholders).size() == 1);
   BOOST_CHECK(fusion::at_c<0>(placeholders)[0].type() == rdb::type::integer::id);
   BOOST_CHECK(fusion::at_c<0>(placeholders)[0].length() == 1);
 }
@@ -38,6 +39,7 @@ BOOST_AUTO_TEST_CASE(test_dynamic_varchar_placeholder) {
   person p("p");
   dynamic_boolean predicate = make_dynamic(p.name == _);
   fusion::vector< std::vector<dynamic_placeholder> > placeholders = (select(p.id).from(p).where(predicate)).placeholders();
+  BOOST_REQUIRE(fusion::at_c<0>(placeholders).size() == 1);
   BOOST_CHECK(fusion::at_c<0>(placeholders)[0].type() == rdb::type::varchar<20>::id);
   BOOST_CHECK(fusion::at_c<0>(placeholders)[0].length() == 20);
 }
@@ -52,4 +54,10 @@ BOOST_AUTO_TEST_CASE(test_dynamic_integer_placeholder_insert) {
   values.push_back(make_dynamic(_, p.id));
 
   BOOST_RDB_CHECK_SQL(insert_into(p)(exprs).values(values), "insert into person (id) values (?)");
+  
+  fusion::vector< std::vector<dynamic_placeholder> > placeholders = 
+    (insert_into(p)(exprs).values(values)).placeholders();
+    
+  BOOST_REQUIRE(fusion::at_c<0>(placeholders).size() == 1);
+  BOOST_CHECK(fusion::at_c<0>(placeholders)[0].type() == rdb::type::integer::id);
 }

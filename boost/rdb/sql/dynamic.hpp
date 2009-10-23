@@ -60,7 +60,8 @@ namespace boost { namespace rdb { namespace sql {
   typedef expression< dynamic_expression_wrapper<type::boolean> > dynamic_boolean;
 
   struct dynamic_expressions : std::vector<dynamic_expression> {
-    typedef fusion::vector<> placeholder_vector;
+  
+    typedef fusion::vector< const std::vector<dynamic_placeholder> > placeholder_vector;
     
     void str(std::ostream& os) const {
       std::for_each(begin(), end(), comma_output(os));
