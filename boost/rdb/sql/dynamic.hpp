@@ -21,10 +21,6 @@ namespace boost { namespace rdb { namespace sql {
     enum { precedence = precedence_level::lowest };
 
     dynamic_expression_wrapper(root* p) : dynamic_expression(p) { }
-
-    void str(std::ostream& os) const {
-      impl_->str(os);
-    }
   };
 
   template<class Expr>
@@ -63,7 +59,13 @@ namespace boost { namespace rdb { namespace sql {
   typedef expression< dynamic_expression_wrapper<type::integer> > dynamic_integer;
   typedef expression< dynamic_expression_wrapper<type::boolean> > dynamic_boolean;
 
-  typedef std::vector<dynamic_expression> dynamic_expressions;
+  struct dynamic_expressions : std::vector<dynamic_expression> {
+    typedef fusion::vector<> placeholder_vector;
+    
+    void str(std::ostream& os) const {
+      std::for_each(begin(), end(), comma_output(os));
+    }
+  };
 
   struct dynamic_placeholder_impl : dynamic_expression::root {
 
@@ -89,6 +91,10 @@ namespace boost { namespace rdb { namespace sql {
       static const dynamic_expressions& make(const dynamic_expressions& exprs) { return exprs; }
     };
   }
+
+  template<>
+  struct is_placeholder_mark<dynamic_expressions> : false_type {
+  };
   
 } } }
 

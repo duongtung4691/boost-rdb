@@ -91,6 +91,10 @@ namespace boost { namespace rdb {
     int length() const { return impl_->length_; }
 
     shared_ptr<root> impl_;
+
+    void str(std::ostream& os) const {
+      impl_->str(os);
+    }
   };
 
 } }

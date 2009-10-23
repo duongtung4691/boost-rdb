@@ -42,11 +42,14 @@ BOOST_AUTO_TEST_CASE(test_dynamic_varchar_placeholder) {
   BOOST_CHECK(fusion::at_c<0>(placeholders)[0].length() == 20);
 }
 
-//BOOST_AUTO_TEST_CASE(test_dynamic_integer_placeholder_insert) {
-//  person p("p");
-//  dynamic_placeholder param = make_dynamic(_);
-//  fusion::vector< std::vector<dynamic_placeholder> > placeholders =
-//    (insert_into(p)(p.id).values(param)).placeholders();
-//  BOOST_CHECK(fusion::at_c<0>(placeholders)[0].type() == rdb::type::integer::id);
-//  BOOST_CHECK(fusion::at_c<0>(placeholders)[0].length() == 1);
-//}
+BOOST_AUTO_TEST_CASE(test_dynamic_integer_placeholder_insert) {
+  person p;
+  
+  dynamic_expressions exprs;
+  exprs.push_back(make_dynamic(p.id));
+
+  dynamic_expressions values;
+  values.push_back(make_dynamic(_, p.id));
+
+  BOOST_RDB_CHECK_SQL(insert_into(p)(exprs).values(values), "insert into person (id) values (?)");
+}
