@@ -313,10 +313,10 @@ BOOST_FIXTURE_TEST_CASE(prepared_insert_orm_style, springfield_fixture) {
   exprs.push_back(make_dynamic(p.age));
   
   dynamic_expressions values;
-  exprs.push_back(make_dynamic(_, p.id));
-  exprs.push_back(make_dynamic(_, p.first_name));
-  exprs.push_back(make_dynamic(_, p.name));
-  exprs.push_back(make_dynamic(_, p.age));
+  values.push_back(make_dynamic(_, p.id));
+  values.push_back(make_dynamic(_, p.first_name));
+  values.push_back(make_dynamic(_, p.name));
+  values.push_back(make_dynamic(_, p.age));
 
   //BOOST_AUTO(st, db.prepare(insert_into(p)(exprs).values(values)));
 
