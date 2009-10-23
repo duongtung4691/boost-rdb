@@ -81,7 +81,15 @@ namespace boost { namespace rdb { namespace sql {
     return dynamic_expression_wrapper<typename Expr::sql_type>(
       new dynamic_placeholder_impl(Expr::sql_type::id, Expr::sql_type::length));
   }
-
+  
+  namespace result_of {
+    template<>
+    struct make_expression<dynamic_expressions, dynamic_expressions> {
+      typedef dynamic_expressions type;
+      static const dynamic_expressions& make(const dynamic_expressions& exprs) { return exprs; }
+    };
+  }
+  
 } } }
 
 

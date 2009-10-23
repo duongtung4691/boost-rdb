@@ -234,10 +234,17 @@ namespace boost { namespace rdb { namespace sql {
   namespace detail {
 
     template<class Expr1, class IsPlaceHolder1, class Expr2, class IsPlaceHolder2>
-    struct binary_operation_placeholders;
+    struct binary_operation_placeholders_impl;
 
     template<class Expr1, class Expr2>
-    struct binary_operation_placeholders<Expr1, false_type, Expr2, false_type> {
+    struct binary_operation_placeholders : binary_operation_placeholders_impl<
+      Expr1, typename is_placeholder_mark<Expr1>::type,
+      Expr2, typename is_placeholder_mark<Expr2>::type
+    > {
+    };
+
+    template<class Expr1, class Expr2>
+    struct binary_operation_placeholders_impl<Expr1, false_type, Expr2, false_type> {
       typedef typename fusion::result_of::join<
         const typename Expr1::placeholder_vector,
         const typename Expr2::placeholder_vector
@@ -248,7 +255,7 @@ namespace boost { namespace rdb { namespace sql {
     };
 
     template<class Expr1, class Expr2>
-    struct binary_operation_placeholders<Expr1, false_type, Expr2, true_type> {
+    struct binary_operation_placeholders_impl<Expr1, false_type, Expr2, true_type> {
       typedef typename fusion::result_of::push_back<
         const typename Expr1::placeholder_vector,
         type::placeholder<typename Expr1::sql_type>
@@ -259,7 +266,7 @@ namespace boost { namespace rdb { namespace sql {
     };
 
     template<class Expr1, class Expr2>
-    struct binary_operation_placeholders<Expr1, true_type, Expr2, false_type> {
+    struct binary_operation_placeholders_impl<Expr1, true_type, Expr2, false_type> {
       typedef typename fusion::result_of::push_front<
         typename Expr2::placeholder_vector,
         type::placeholder<typename Expr2::sql_type>
@@ -317,10 +324,7 @@ namespace boost { namespace rdb { namespace sql {
     //  >::type
     //>::type placeholder_vector;
 
-    typedef detail::binary_operation_placeholders<
-      Expr1, typename is_placeholder_mark<Expr1>::type,
-      Expr2, typename is_placeholder_mark<Expr2>::type
-    > placeholder_helper;
+    typedef detail::binary_operation_placeholders<Expr1, Expr2> placeholder_helper;
 
     typedef typename placeholder_helper::type placeholder_vector;
 

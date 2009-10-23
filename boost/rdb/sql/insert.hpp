@@ -40,6 +40,25 @@ namespace boost { namespace rdb { namespace sql {
     insert_impl(const Data& data) : data_(data) { }
     Data data_;
   };
+  
+  namespace result_of {
+
+    // T = expression or expression list
+    // U = something that may contain one or several placeholder marks
+    // returns a typed placeholder or a vector of dynamic placeholders
+    //template<class T, class U>
+    //struct make_placeholder_from_mark;
+
+    //template<class Expr, int N>
+    //struct make_placeholder_from_mark< expression<Expr>, expression< placeholder_mark<N> > > {
+    //  typedef typename fusion::result_of::vector< type::placeholder<typename Expr::sql_type> >::type type;
+    //};
+
+    //template<class Expr1, class Expr2>
+    //struct make_placeholder_from_mark< expression<Expr>, expression< placeholder_mark<N> > > {
+    //  typedef fusion::vector<> type;
+    //};
+  }
 
   struct extract_insert_values_placeholders {
 
@@ -48,13 +67,9 @@ namespace boost { namespace rdb { namespace sql {
 
     template<class Self, class Col, class Expr, class Placeholders>
     struct result<Self(fusion::vector<Col&, Expr&>, Placeholders&)> {
-      typedef typename mpl::if_<
-        is_placeholder_mark<Expr>,
-        typename fusion::result_of::push_back<
-          Placeholders,
-          type::placeholder<typename Col::sql_type>
-        >::type,
-        Placeholders
+      typedef typename fusion::result_of::join<
+        Placeholders,
+        typename detail::binary_operation_placeholders<Col, Expr>::type
       >::type type;
     };
   };
