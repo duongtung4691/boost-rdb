@@ -66,6 +66,7 @@ namespace boost { namespace rdb {
   }
   
   struct dynamic_placeholder { // make it a specialization of placeholder<> ? but what for ?
+    dynamic_placeholder() : type_(0), length_(0) { }
     dynamic_placeholder(int type, int length) : type_(type), length_(length) { }
     int type() const { return type_; }
     int length() const { return length_; }
@@ -89,6 +90,7 @@ namespace boost { namespace rdb {
     
     int type() const { return impl_->type_; }
     int length() const { return impl_->length_; }
+    const dynamic_placeholders& placeholders() const { return impl_->placeholders_; }
 
     shared_ptr<root> impl_;
 

@@ -401,6 +401,14 @@
 		<File
 			RelativePath="..\..\test\test_dynamic.cpp"
 			>
+			<FileConfiguration
+				Name="Fast Compilation|Win32"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					UsePrecompiledHeader="2"
+				/>
+			</FileConfiguration>
 		</File>
 		<File
 			RelativePath="..\..\test\test_insert.cpp"

@@ -245,12 +245,14 @@ namespace boost { namespace rdb { namespace sql {
 
     template<class Expr1, class Expr2>
     struct binary_operation_placeholders_impl<Expr1, false_type, Expr2, false_type> {
-      typedef typename fusion::result_of::join<
-        const typename Expr1::placeholder_vector,
-        const typename Expr2::placeholder_vector
+      typedef typename fusion::result_of::as_vector<
+        typename fusion::result_of::join<
+          const typename Expr1::placeholder_vector,
+          const typename Expr2::placeholder_vector
+        >::type
       >::type type;
       static type make(const Expr1& expr1, const Expr2& expr2) {
-        return fusion::join(expr1.placeholders(), expr2.placeholders());
+        return fusion::as_vector(fusion::join(expr1.placeholders(), expr2.placeholders()));
       }
     };
 

@@ -479,6 +479,10 @@ namespace boost { namespace rdb { namespace odbc {
       sql_check(SQL_HANDLE_STMT, hstmt_, SQLExecute(hstmt_));
     }
 
+    void execute() {
+      sql_check(SQL_HANDLE_STMT, hstmt_, SQLExecute(hstmt_));
+    }
+
     #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
     #define BOOST_PP_FILENAME_1       <boost/rdb/odbc/detail/execute.hpp>
     #include BOOST_PP_ITERATE()
@@ -489,7 +493,7 @@ namespace boost { namespace rdb { namespace odbc {
         parameter_binder(hstmt_));
     }
 
-    #define BOOST_RDB_ADD_REF(z, n, type) type##n&
+    #define BOOST_RDB_ADD_REF(z, n, type) BOOST_PP_COMMA_IF(n) type##n&
     #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
     #define BOOST_PP_FILENAME_1       <boost/rdb/odbc/detail/bind_parameters.hpp>
     #include BOOST_PP_ITERATE()
