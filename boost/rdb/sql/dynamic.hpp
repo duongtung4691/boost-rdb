@@ -5,6 +5,8 @@
 #define BOOST_RDB_SQL_DYNAMIC_EXPRESSION_HPP
 
 #include <boost/rdb/sql/common.hpp>
+#include <numeric>
+#include <functional>
 
 namespace boost { namespace rdb { namespace sql {
 
@@ -62,6 +64,29 @@ namespace boost { namespace rdb { namespace sql {
   struct dynamic_expressions : std::vector<dynamic_expression> {
   
     typedef fusion::vector< const std::vector<dynamic_placeholder> > placeholder_vector;
+
+    placeholder_vector placeholders() const {
+
+      int size = 0;
+      std::vector<dynamic_expression>::const_iterator in = begin();
+
+      while (in != end()) {
+        size += in++->placeholders().size();
+      }
+
+      std::vector<dynamic_placeholder> result(size);
+      std::vector<dynamic_placeholder>::iterator out = result.begin();
+      in = begin();
+
+      while (in != end()) {
+        out = std::copy(in->placeholders().begin(), in->placeholders().end(), out);
+        ++in;
+      }
+
+      return result;
+    }
+
+    typedef void sql_type;
     
     void str(std::ostream& os) const {
       std::for_each(begin(), end(), comma_output(os));
@@ -71,6 +96,7 @@ namespace boost { namespace rdb { namespace sql {
   struct dynamic_placeholder_impl : dynamic_expression::root {
 
     dynamic_placeholder_impl(int type, int length) : dynamic_expression::root(type, length) {
+      placeholders_.push_back(dynamic_placeholder(type, length));
     }
 
     virtual void str(std::ostream& os) const {

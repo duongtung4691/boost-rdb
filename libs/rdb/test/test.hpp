@@ -7,7 +7,7 @@
 #include "test_tables.hpp"
 
 // Visual Studio regex to make error output readable
-// (boost|std|fusion|rdb|sql|test|springfield|detail)\:\:
+// ((boost|std|fusion|rdb|sql|test|springfield|detail)\:\:)|(,void_)
 
 #define BOOST_RDB_CHECK_SQL(expr, sql) BOOST_CHECK(str(expr) == sql)
 

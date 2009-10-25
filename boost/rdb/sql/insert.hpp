@@ -66,19 +66,23 @@ namespace boost { namespace rdb { namespace sql {
     struct result;
 
     template<class Self, class Col, class Expr, class Placeholders>
-    struct result<Self(fusion::vector<Col&, Expr&>, Placeholders&)> {
-      typedef typename fusion::result_of::join<
-        const Placeholders,
-        const typename detail::binary_operation_placeholders<Col, Expr>::type
+    struct result<Self(fusion::vector<const Col&, const Expr&>, Placeholders&)> {
+      typedef typename fusion::result_of::as_vector<
+        typename fusion::result_of::join<
+          const Placeholders,
+          const typename detail::binary_operation_placeholders<Col, Expr>::type
+        >::type
       >::type type;
     };
 
-    template<class Self, class Col, class Expr, class Placeholders>
-    typename result<Self(fusion::vector<Col&, Expr&>, Placeholders&)>::type
-    operator ()(fusion::vector<Col&, Expr&> zip, Placeholders& placeholders) const {
+    template<class Col, class Expr, class Placeholders>
+    typename result<extract_insert_values_placeholders(fusion::vector<const Col&, const Expr&>, Placeholders&)>::type
+    operator ()(fusion::vector<const Col&, const Expr&> zip, Placeholders& placeholders) const {
       using namespace fusion;
-      return join(placeholders,
-        detail::binary_operation_placeholders<Col, Expr>::make(at_c<0>(zip), at_c<1>(zip)));
+      //BOOST_AUTO(result, as_vector(join(placeholders,
+      //  detail::binary_operation_placeholders<Col, Expr>::make(at_c<0>(zip), at_c<1>(zip)))));
+      return as_vector(join(placeholders,
+        detail::binary_operation_placeholders<Col, Expr>::make(at_c<0>(zip), at_c<1>(zip))));
     }
   };
 
@@ -96,7 +100,7 @@ namespace boost { namespace rdb { namespace sql {
     const cols_type& cols() const { return fusion::at_key<typename Subdialect::cols>(data_); }
     const values_type& values() const { return fusion::at_key<typename Subdialect::values>(data_); }
 
-    typedef fusion::vector<cols_type&, values_type&> zip;
+    typedef fusion::vector<const cols_type&, const values_type&> zip;
     typedef fusion::zip_view<zip> zip_view;
 
     typedef typename fusion::result_of::as_vector<
@@ -105,10 +109,11 @@ namespace boost { namespace rdb { namespace sql {
 
     placeholder_vector placeholders() const {
       using namespace fusion;
-      return placeholder_vector();
-      //return as_vector(
-      //  accumulate(zip_view(zip(cols(), values())),
-      //    make_vector(), extract_insert_values_placeholders()));
+      //BOOST_AUTO(result, as_vector(accumulate(zip_view(zip(cols(), values())),
+      //  make_vector(), extract_insert_values_placeholders())));
+      return as_vector(
+        accumulate(zip_view(zip(cols(), values())),
+          make_vector(), extract_insert_values_placeholders()));
     }
 
   };

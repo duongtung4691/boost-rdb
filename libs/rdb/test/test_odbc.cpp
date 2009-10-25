@@ -318,22 +318,43 @@ BOOST_FIXTURE_TEST_CASE(prepared_insert_orm_style, springfield_fixture) {
   values.push_back(make_dynamic(_, p.name));
   values.push_back(make_dynamic(_, p.age));
 
-  //BOOST_AUTO(st, db.prepare(insert_into(p)(exprs).values(values)));
+  BOOST_AUTO(st, db.prepare(insert_into(p)(exprs).values(values)));
 
-  //dynamic_values params;
+  dynamic_values params;
 
-  //integer id_param;  
-  //params.push_back(make_dynamic(id_param));
+  integer id_param;  
+  params.push_back(make_dynamic(id_param));
 
-  //varchar<30> first_name_param;
-  //params.push_back(make_dynamic(first_name_param));
+  varchar<30> first_name_param;
+  params.push_back(make_dynamic(first_name_param));
 
-  //varchar<20> name_param;
-  //params.push_back(make_dynamic(name_param));
+  varchar<20> name_param;
+  params.push_back(make_dynamic(name_param));
 
-  //integer age_param;  
-  //params.push_back(make_dynamic(age_param));
-  //
-  //st.bind_parameters(params);
+  integer age_param;  
+  params.push_back(make_dynamic(age_param));
+  
+  dynamic_values temp;
+  st.bind_parameters(temp, params);
+
+  id_param = 3;
+  first_name_param = "Bart";
+  name_param = "Simpson";
+  age_param = 9;
+  st.execute();
+
+  BOOST_RDB_CHECK_SELECT_RESULTS(
+    db.execute(select(p.first_name, p.age).from(p).where(p.id == 3)),
+    "((Bart 9))");
+
+  id_param = 4;
+  first_name_param = "Lisa";
+  name_param = "Simpson";
+  age_param = 7;
+  st.execute();
+
+  BOOST_RDB_CHECK_SELECT_RESULTS(
+    db.execute(select(p.first_name, p.age).from(p).where(p.id == 4)),
+    "((Lisa 7))");
 
 }
