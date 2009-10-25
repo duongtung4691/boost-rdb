@@ -356,5 +356,51 @@ BOOST_FIXTURE_TEST_CASE(prepared_insert_orm_style, springfield_fixture) {
   BOOST_RDB_CHECK_SELECT_RESULTS(
     db.execute(select(p.first_name, p.age).from(p).where(p.id == 4)),
     "((Lisa 7))");
-
 }
+
+BOOST_FIXTURE_TEST_CASE(prepared_insert_mixed, springfield_fixture) {
+
+  person p;
+
+  dynamic_expressions exprs;
+  exprs.push_back(make_dynamic(p.id));
+  exprs.push_back(make_dynamic(p.first_name));
+  
+  dynamic_expressions values;
+  values.push_back(make_dynamic(_, p.id));
+  values.push_back(make_dynamic(_, p.first_name));
+
+  BOOST_AUTO(st, db.prepare(insert_into(p)(exprs, p.name, p.age).values(values, "Simpson", _)));
+
+  dynamic_values params;
+
+  integer id_param;  
+  params.push_back(make_dynamic(id_param));
+
+  varchar<30> first_name_param;
+  params.push_back(make_dynamic(first_name_param));
+
+  integer age_param;  
+  
+  dynamic_values temp;
+  st.bind_parameters(temp, params, age_param);
+
+  id_param = 3;
+  first_name_param = "Bart";
+  age_param = 9;
+  st.execute();
+
+  BOOST_RDB_CHECK_SELECT_RESULTS(
+    db.execute(select(p.first_name, p.age).from(p).where(p.id == 3)),
+    "((Bart 9))");
+
+  id_param = 4;
+  first_name_param = "Lisa";
+  age_param = 7;
+  st.execute();
+
+  BOOST_RDB_CHECK_SELECT_RESULTS(
+    db.execute(select(p.first_name, p.age).from(p).where(p.id == 4)),
+    "((Lisa 7))");
+}
+
