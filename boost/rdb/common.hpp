@@ -99,6 +99,10 @@ namespace boost { namespace rdb {
     }
   };
 
+  struct dynamic_column : dynamic_expression {
+    dynamic_column(root* impl) : dynamic_expression(impl) { }
+  };
+
 } }
 
 #endif

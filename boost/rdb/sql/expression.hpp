@@ -486,6 +486,10 @@ namespace boost { namespace rdb { namespace sql {
   placeholders_from_pair_list(const Map& map) {
     return fusion::as_vector(fusion::accumulate(map, fusion::make_vector(), extract_placeholders_from_pair_list()));
   }
+  
+  template<class T>
+  struct is_column_container< expression<T> > : is_column_container<T> {
+  };
 
 } } }
 

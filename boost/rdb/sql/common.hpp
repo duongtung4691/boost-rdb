@@ -526,6 +526,10 @@ namespace boost { namespace rdb { namespace sql {
     return os;
   }
   
+  template<class T>
+  struct is_column_container : mpl::false_ {
+  };
+  
 } } }
 
 namespace boost { namespace rdb {

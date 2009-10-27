@@ -35,7 +35,6 @@ namespace boost { namespace rdb { namespace sql {
   struct column : Base {
     enum { precedence = precedence_level::highest };
     typedef SqlType sql_type;
-    typedef Table table_type;
     typedef typename type_traits<sql_type>::cpp_type cpp_type;
     static void str_type(std::ostream& os) { type_traits<SqlType>::str(os); }
     
@@ -53,15 +52,19 @@ namespace boost { namespace rdb { namespace sql {
         os << Base::name();
     }
   };
+  
+  template<class Table, class SqlType, class Base>
+  struct is_column_container< column<Table, SqlType, Base> > : mpl::true_ {
+  };
 
   template<class Col>
-  struct Column
+  struct ColumnContainer
   {
     Col col;
     std::ostream& os;
-    typedef typename Col::table_type table_type;
 
-    BOOST_CONCEPT_USAGE(Column) {
+    BOOST_CONCEPT_USAGE(ColumnContainer) {
+      BOOST_MPL_ASSERT((is_column_container<Col>));
       col.str(os);
     }
   };

@@ -110,8 +110,55 @@ namespace boost { namespace rdb { namespace sql {
     return dynamic_expression_wrapper<typename Expr::sql_type>(
       new dynamic_placeholder_impl(Expr::sql_type::id, Expr::sql_type::length));
   }
+
+  template<class SqlType>
+  struct dynamic_column_wrapper : dynamic_expression_wrapper<SqlType> {
+    dynamic_column_wrapper(root* p) : dynamic_expression_wrapper<SqlType>(p) { }
+  };
+
+  template<class Table, class SqlType, class Base>
+  dynamic_column_wrapper<SqlType>
+  make_dynamic(const expression< column<Table, SqlType, Base> >& col) {
+    return dynamic_column_wrapper<SqlType>(new dynamic_expression_impl< column<Table, SqlType, Base> >(col));
+  }
+  
+  class dynamic_columns {
+  
+  private:
+    std::vector<dynamic_expression> cols_;
+  
+  public:
+  
+    typedef fusion::vector<> placeholder_vector;
+
+    placeholder_vector placeholders() const {
+      return placeholder_vector();
+    }
+    
+    template<class SqlType>
+    void push_back(const dynamic_column_wrapper<SqlType>& col) {
+      cols_.push_back(col);
+    }
+
+    typedef void sql_type;
+    
+    void str(std::ostream& os) const {
+      std::for_each(cols_.begin(), cols_.end(), comma_output(os));
+    }
+  };
+
+  template<>
+  struct is_column_container<dynamic_columns> : mpl::true_ {
+  };
   
   namespace result_of {
+  
+    template<>
+    struct make_expression<dynamic_columns, dynamic_expressions> {
+      typedef dynamic_expressions type;
+      static const dynamic_expressions& make(const dynamic_expressions& exprs) { return exprs; }
+    };
+
     template<>
     struct make_expression<dynamic_expressions, dynamic_expressions> {
       typedef dynamic_expressions type;
