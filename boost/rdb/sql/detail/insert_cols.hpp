@@ -11,6 +11,7 @@ typename transition<
   >
 >::type
 operator ()(BOOST_PP_ENUM_BINARY_PARAMS(n, const Col, &col)) {
+  BOOST_PP_REPEAT(n, BOOST_PP_RDB_MPL_ASSERT, (is_column_container, Col))
   return typename transition<
     typename Subdialect::cols,
     fusion::vector<

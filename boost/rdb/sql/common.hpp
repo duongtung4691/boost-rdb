@@ -74,6 +74,10 @@
 #define BOOST_RDB_MAKE_EXPRESSION(z, n, t) BOOST_PP_COMMA_IF(n) make_expression(t##n)
 #define BOOST_RDB_RESULT_OF_MAKE_EXPRESSION(z, n, t) \
   BOOST_PP_COMMA_IF(n) typename result_of::make_expression<this_type, t##n>::type
+#define BOOST_PP_RDB_CONCEPT_ASSERT(z, n, t) \
+  BOOST_CONCEPT_ASSERT((BOOST_PP_TUPLE_ELEM(2, 0, t)<BOOST_PP_TUPLE_ELEM(2, 1, t) ## n>));
+#define BOOST_PP_RDB_MPL_ASSERT(z, n, t) \
+  BOOST_MPL_ASSERT((BOOST_PP_TUPLE_ELEM(2, 0, t)<BOOST_PP_TUPLE_ELEM(2, 1, t) ## n>));
 
 namespace boost { namespace rdb { namespace sql {
 

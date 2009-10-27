@@ -306,11 +306,11 @@ BOOST_FIXTURE_TEST_CASE(prepared_insert_orm_style, springfield_fixture) {
 
   person p;
 
-  dynamic_expressions exprs;
-  exprs.push_back(make_dynamic(p.id));
-  exprs.push_back(make_dynamic(p.first_name));
-  exprs.push_back(make_dynamic(p.name));
-  exprs.push_back(make_dynamic(p.age));
+  dynamic_columns cols;
+  cols.push_back(make_dynamic(p.id));
+  cols.push_back(make_dynamic(p.first_name));
+  cols.push_back(make_dynamic(p.name));
+  cols.push_back(make_dynamic(p.age));
   
   dynamic_expressions values;
   values.push_back(make_dynamic(_, p.id));
@@ -318,7 +318,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_insert_orm_style, springfield_fixture) {
   values.push_back(make_dynamic(_, p.name));
   values.push_back(make_dynamic(_, p.age));
 
-  BOOST_AUTO(st, db.prepare(insert_into(p)(exprs).values(values)));
+  BOOST_AUTO(st, db.prepare(insert_into(p)(cols).values(values)));
 
   dynamic_values params;
 
@@ -334,8 +334,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_insert_orm_style, springfield_fixture) {
   integer age_param;  
   params.push_back(make_dynamic(age_param));
   
-  dynamic_values temp;
-  st.bind_parameters(temp, params);
+  st.bind_parameters(params);
 
   id_param = 3;
   first_name_param = "Bart";
@@ -362,15 +361,15 @@ BOOST_FIXTURE_TEST_CASE(prepared_insert_mixed, springfield_fixture) {
 
   person p;
 
-  dynamic_expressions exprs;
-  exprs.push_back(make_dynamic(p.id));
-  exprs.push_back(make_dynamic(p.first_name));
+  dynamic_columns cols;
+  cols.push_back(make_dynamic(p.id));
+  cols.push_back(make_dynamic(p.first_name));
   
   dynamic_expressions values;
   values.push_back(make_dynamic(_, p.id));
   values.push_back(make_dynamic(_, p.first_name));
 
-  BOOST_AUTO(st, db.prepare(insert_into(p)(exprs, p.name, p.age).values(values, "Simpson", _)));
+  BOOST_AUTO(st, db.prepare(insert_into(p)(cols, p.name, p.age).values(values, "Simpson", _)));
 
   dynamic_values params;
 
@@ -382,8 +381,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_insert_mixed, springfield_fixture) {
 
   integer age_param;  
   
-  dynamic_values temp;
-  st.bind_parameters(temp, params, age_param);
+  st.bind_parameters(params, age_param);
 
   id_param = 3;
   first_name_param = "Bart";
