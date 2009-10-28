@@ -65,3 +65,37 @@ BOOST_AUTO_TEST_CASE(test_dynamic_update) {
   BOOST_RDB_CHECK_SQL(update(p).set(updates), "update person set age = 39");
   BOOST_RDB_CHECK_SQL(update(p).set(p.first_name = "Homer", updates), "update person set first_name = 'Homer', age = 39");
 }
+
+BOOST_AUTO_TEST_CASE(test_dynamic_update_placeholders) {
+  person p;
+
+  dynamic_updates updates;
+  updates.push_back(make_dynamic(p.age = _));
+
+  BOOST_RDB_CHECK_SQL(update(p).set(updates), "update person set age = ?");
+
+  fusion::vector< std::vector<dynamic_placeholder> > placeholders = 
+    (update(p).set(updates)).placeholders();
+
+  BOOST_REQUIRE(fusion::at_c<0>(placeholders).size() == 1);
+  BOOST_CHECK(fusion::at_c<0>(placeholders)[0].type() == rdb::type::integer::id);
+}
+
+BOOST_AUTO_TEST_CASE(test_dynamic_update__where_placeholders) {
+  person p;
+
+  dynamic_updates updates;
+  updates.push_back(make_dynamic(p.age = _));
+  
+  dynamic_boolean predicate = make_dynamic(p.first_name == _);
+
+  BOOST_RDB_CHECK_SQL(update(p).set(updates).where(predicate), "update person set age = ? where first_name = ?");
+
+  fusion::vector< std::vector<dynamic_placeholder>, std::vector<dynamic_placeholder> > placeholders = 
+    (update(p).set(updates).where(predicate)).placeholders();
+
+  BOOST_REQUIRE(fusion::at_c<0>(placeholders).size() == 2);
+  BOOST_CHECK(fusion::at_c<0>(placeholders)[0].type() == rdb::type::integer::id);
+  BOOST_REQUIRE(fusion::at_c<1>(placeholders).size() == 1);
+  BOOST_CHECK(fusion::at_c<1>(placeholders)[1].type() == rdb::type::varchar<20>::id);
+}
