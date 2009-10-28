@@ -124,7 +124,7 @@ namespace boost { namespace rdb { namespace sql {
     typedef typename result_of::placeholders_from_pair_list<Data>::type placeholder_vector;
     
     placeholder_vector placeholders() const {
-      return placeholders_from_pair_list(data_);
+      return placeholders_from_pair_list(this->data_);
     }
   };
 

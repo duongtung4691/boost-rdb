@@ -282,18 +282,18 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_dynamic_integer_param, springfield_
   BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((Marge))");
 }
 
-BOOST_FIXTURE_TEST_CASE(prepared_select_dynamic_exprs, springfield_fixture) {
-
-  person p;
-
-  dynamic_expressions exprs;
-  exprs.push_back(make_dynamic(p.first_name));
-  exprs.push_back(make_dynamic(p.age));
-  
-  BOOST_AUTO(st, db.prepare(select(p.id, exprs).from(p)));
-  
-  BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((1 Homer 37) (2 Marge 34))");
-}
+//BOOST_FIXTURE_TEST_CASE(prepared_select_dynamic_exprs, springfield_fixture) {
+//
+//  person p;
+//
+//  dynamic_expressions exprs;
+//  exprs.push_back(make_dynamic(p.first_name));
+//  exprs.push_back(make_dynamic(p.age));
+//  
+//  BOOST_AUTO(st, db.prepare(select(p.id, exprs).from(p)));
+//  
+//  BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((1 Homer 37) (2 Marge 34))");
+//}
 
 BOOST_FIXTURE_TEST_CASE(prepared_select_bind_dynamic_varchar_param, springfield_fixture) {
 
