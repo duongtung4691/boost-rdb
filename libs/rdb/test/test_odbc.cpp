@@ -134,6 +134,14 @@ BOOST_FIXTURE_TEST_CASE(tx, springfield_fixture) {
   BOOST_CHECK(db.execute(select(p.age).from(p).where(p.id == 1)).all()[0].get<0>() == 39);
 }
 
+BOOST_FIXTURE_TEST_CASE(expression_in_select_results, springfield_fixture) {
+
+  person p;
+  BOOST_RDB_CHECK_SELECT_RESULTS(
+    db.execute(select(p.age + 1).from(p).where(p.id == 1)),
+    "((38))");
+}
+
 template<class Results1, class Results2>
 vector< pair<string, string> > fetch_parallel(const Results1& results1, const Results2& results2) {
   vector< pair<string, string> > res;
@@ -260,6 +268,20 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_varchar_param, springfield_fixture)
   
   param = "Marge";
   BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((2))");
+}
+
+BOOST_FIXTURE_TEST_CASE(prepared_select_bind_integer_param_in_exprs, springfield_fixture) {
+  person p;
+  BOOST_AUTO(st, db.prepare(select(p.age + _).from(p).where(p.id == 1)));
+  
+  integer param;
+  st.bind_parameters(param);
+  
+  param = 1;
+  BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((38))");
+  
+  param = 2;
+  BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((39))");
 }
 
 BOOST_FIXTURE_TEST_CASE(prepared_select_bind_dynamic_integer_param, springfield_fixture) {
