@@ -135,7 +135,7 @@ namespace boost { namespace rdb { namespace sql {
       typedef type::boolean sql_type;
       
       void str(std::ostream& os) const {
-        this->write(os, expr1_, op_, expr2_);
+        this->write(os, this->expr1_, this->op_, this->expr2_);
       }
     };
   }
