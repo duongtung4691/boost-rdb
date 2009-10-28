@@ -66,7 +66,6 @@ namespace boost { namespace rdb { namespace sql {
     typedef fusion::vector< const std::vector<dynamic_placeholder> > placeholder_vector;
 
     placeholder_vector placeholders() const {
-
       int size = 0;
       std::vector<dynamic_expression>::const_iterator in = begin();
 

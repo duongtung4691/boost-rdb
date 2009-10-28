@@ -19,10 +19,10 @@ namespace boost { namespace rdb { namespace sql {
     
     dynamic_update(root* impl) : impl_(impl) { }
 
-    typedef fusion::vector< const std::vector<dynamic_placeholder> > placeholder_vector;
+    //typedef fusion::vector< const std::vector<dynamic_placeholder> > placeholder_vector;
     
-    placeholder_vector placeholders() const {
-      return fusion::make_vector(impl_->placeholders_);
+    const dynamic_placeholders& placeholders() const {
+      return impl_->placeholders_;
     }
     
     void str(std::ostream& os) const {
@@ -35,7 +35,7 @@ namespace boost { namespace rdb { namespace sql {
     struct wrapper : root {
 
       wrapper(const set_clause<Col, Expr>& update) : update_(update) {
-        fusion::for_each(update_.expr_.placeholders(), make_dynamic_placeholders(this->placeholders_));
+        fusion::for_each(update_.placeholders(), make_dynamic_placeholders(this->placeholders_));
       }
       
       set_clause<Col, Expr> update_;
@@ -61,7 +61,24 @@ namespace boost { namespace rdb { namespace sql {
     typedef fusion::vector< const std::vector<dynamic_placeholder> > placeholder_vector;
 
     placeholder_vector placeholders() const {
-      return placeholder_vector();
+      int size = 0;
+      std::vector<dynamic_update>::const_iterator in = updates_.begin();
+
+      while (in != updates_.end()) {
+        in->placeholders().size();
+        size += in++->placeholders().size();
+      }
+
+      std::vector<dynamic_placeholder> result(size);
+      std::vector<dynamic_placeholder>::iterator out = result.begin();
+      in = updates_.begin();
+
+      while (in != updates_.end()) {
+        out = std::copy(in->placeholders().begin(), in->placeholders().end(), out);
+        ++in;
+      }
+
+      return result;
     }
     
     void push_back(const dynamic_update& update) {
@@ -83,30 +100,52 @@ namespace boost { namespace rdb { namespace sql {
 
     template<typename Sig>
     struct result;
+    
+    typedef extract_placeholders_from_assign Self;
 
-    template<class Self, class Col, class Expr, class Placeholders>
+    template<class Col, class Expr, class Placeholders>
     struct result<Self(set_clause<Col, Expr>&, Placeholders&)> {
-      typedef typename mpl::if_<
-        is_placeholder_mark<Expr>,
-        typename fusion::result_of::as_vector<
-          typename fusion::result_of::push_back<
-            Placeholders,
-            type::placeholder<typename Col::sql_type>
-          >::type
-        >::type,
-        Placeholders
-      >::type type;
-    };
-
-    template<class Self, class Placeholders>
-    struct result<Self(dynamic_updates&, Placeholders&)> {
       typedef typename fusion::result_of::as_vector<
         typename fusion::result_of::join<
-          Placeholders,
-          dynamic_updates::placeholder_vector
+          const Placeholders,
+          const typename set_clause<Col, Expr>::placeholder_vector
         >::type
       >::type type;
+      
+      static type make(const set_clause<Col, Expr>& update, const Placeholders& placeholders) {
+        return fusion::join(placeholders, update.placeholders());
+      }
     };
+
+    template<class Col, class Expr, class Placeholders>
+    struct result<Self(const set_clause<Col, Expr>&, Placeholders&)> : result<Self(set_clause<Col, Expr>&, Placeholders&)> {
+    };
+
+    template<class Placeholders>
+    struct result<Self(dynamic_updates&, const Placeholders&)> {
+      typedef typename fusion::result_of::as_vector<
+        typename fusion::result_of::join<
+          const Placeholders,
+          const dynamic_updates::placeholder_vector
+        >::type
+      >::type type;
+      
+      static type make(const dynamic_updates& updates, const Placeholders& placeholders) {
+        return fusion::join(placeholders, updates.placeholders());
+      }
+    };
+
+    // why are both needed ?
+    template<class Placeholders>
+    struct result<Self(const dynamic_updates&, const Placeholders&)> : result<Self(dynamic_updates&, const Placeholders&)> {
+    };
+
+    template<class T, class Placeholders>
+    typename result<Self(T&, Placeholders&)>::type
+    operator ()(T& update, Placeholders& placeholders) {
+      using namespace fusion;
+      return result<Self(T&, Placeholders&)>::make(update, placeholders);
+    }
   };
   
   namespace result_of {
@@ -116,7 +155,7 @@ namespace boost { namespace rdb { namespace sql {
         typename fusion::result_of::accumulate<AssignList, fusion::vector<>, extract_placeholders_from_assign>::type
       >::type type;
       static type make(const fusion::pair<sql2003::set, AssignList>& p) {
-        return fusion::accumulate(p.second, fusion::vector<>, extract_placeholders_from_assign());
+        return fusion::accumulate(p.second, fusion::vector<>(), extract_placeholders_from_assign());
       }
     };
   }
@@ -132,9 +171,7 @@ namespace boost { namespace rdb { namespace sql {
 
     placeholder_vector placeholders() const {
       using namespace fusion;
-      // TODO
-      return placeholder_vector();
-      //return accumulate(zip_view<zip>(zip(cols(), values())), make_vector(), extract_placeholders_from_assign());
+      return placeholders_from_pair_list(data_);
     }
 
     Data data_;
