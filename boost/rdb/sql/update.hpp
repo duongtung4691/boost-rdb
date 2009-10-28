@@ -9,6 +9,76 @@
 
 namespace boost { namespace rdb { namespace sql {
 
+  
+  struct dynamic_update {
+
+    struct root : rdb::detail::ref_counted {
+      dynamic_placeholders placeholders_;
+      virtual void str(std::ostream& os) const = 0;
+    };
+    
+    dynamic_update(root* impl) : impl_(impl) { }
+
+    typedef fusion::vector< const std::vector<dynamic_placeholder> > placeholder_vector;
+    
+    placeholder_vector placeholders() const {
+      return fusion::make_vector(impl_->placeholders_);
+    }
+    
+    void str(std::ostream& os) const {
+      impl_->str(os);
+    }
+    
+    intrusive_ptr<root> impl_;
+    
+    template<class Col, class Expr>
+    struct wrapper : root {
+
+      wrapper(const set_clause<Col, Expr>& update) : update_(update) {
+        fusion::for_each(update_.expr_.placeholders(), make_dynamic_placeholders(this->placeholders_));
+      }
+      
+      set_clause<Col, Expr> update_;
+      
+      virtual void str(std::ostream& os) const {
+        update_.str(os);
+      }
+    };
+  };
+    
+  template<class Col, class Expr>
+  dynamic_update make_dynamic(const set_clause<Col, Expr>& update) {
+    return dynamic_update(new dynamic_update::wrapper<Col, Expr>(update));
+  }
+  
+  class dynamic_updates {
+  
+  private:
+    std::vector<dynamic_update> updates_;
+  
+  public:
+  
+    typedef fusion::vector< const std::vector<dynamic_placeholder> > placeholder_vector;
+
+    placeholder_vector placeholders() const {
+      return placeholder_vector();
+    }
+    
+    void push_back(const dynamic_update& update) {
+      updates_.push_back(update);
+    }
+
+    typedef void sql_type;
+    
+    void str(std::ostream& os) const {
+      std::for_each(updates_.begin(), updates_.end(), comma_output(os));
+    }
+  };
+
+  template<>  
+  struct is_update_container<dynamic_updates> : mpl::true_ {
+  };
+
   struct extract_placeholders_from_assign {
 
     template<typename Sig>
@@ -18,11 +88,23 @@ namespace boost { namespace rdb { namespace sql {
     struct result<Self(set_clause<Col, Expr>&, Placeholders&)> {
       typedef typename mpl::if_<
         is_placeholder_mark<Expr>,
-        typename fusion::result_of::push_back<
-          Placeholders,
-          type::placeholder<typename Col::sql_type>
+        typename fusion::result_of::as_vector<
+          typename fusion::result_of::push_back<
+            Placeholders,
+            type::placeholder<typename Col::sql_type>
+          >::type
         >::type,
         Placeholders
+      >::type type;
+    };
+
+    template<class Self, class Placeholders>
+    struct result<Self(dynamic_updates&, Placeholders&)> {
+      typedef typename fusion::result_of::as_vector<
+        typename fusion::result_of::join<
+          Placeholders,
+          dynamic_updates::placeholder_vector
+        >::type
       >::type type;
     };
   };
