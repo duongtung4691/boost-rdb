@@ -44,6 +44,13 @@ namespace boost { namespace rdb { namespace sql {
       return set_clause<column, typename result_of::make_expression<column, T>::type>(
         *this, expression<column>::make_expression(expr));
     }
+    
+    template<class T>
+    set_clause<column, typename result_of::make_expression<column, T>::type>
+    operator <<(const T& expr) const {
+      return set_clause<column, typename result_of::make_expression<column, T>::type>(
+        *this, expression<column>::make_expression(expr));
+    }
 
     void str(std::ostream& os) const {
       if (this->table_->has_alias())

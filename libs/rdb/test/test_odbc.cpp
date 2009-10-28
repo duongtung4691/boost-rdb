@@ -190,15 +190,15 @@ BOOST_FIXTURE_TEST_CASE(prepared_select, springfield_fixture) {
 
 BOOST_FIXTURE_TEST_CASE(prepared_update_set, springfield_fixture) {
   person p;
-  BOOST_AUTO(st, db.prepare(update(p).set(p.age = _).where(p.id == 1)));
-  st.execute(38);
+  BOOST_AUTO(st, db.prepare(update(p).set(p.age = _, p.first_name = _).where(p.id == 1)));
+  st.execute(9, "Bart");
   BOOST_RDB_CHECK_SELECT_RESULTS(
-    db.execute(select(p.age).from(p)),
-    "((38) (34))");
-  st.execute(39);
+    db.execute(select(p.first_name, p.age).from(p).where(p.id == 1)),
+    "((Bart 9))");
+  st.execute(7, "Lisa");
   BOOST_RDB_CHECK_SELECT_RESULTS(
-    db.execute(select(p.age).from(p)),
-    "((39) (34))");
+    db.execute(select(p.first_name, p.age).from(p).where(p.id == 1)),
+    "((Lisa 7))");
 }
 
 BOOST_FIXTURE_TEST_CASE(prepared_update_where, springfield_fixture) {
@@ -402,3 +402,47 @@ BOOST_FIXTURE_TEST_CASE(prepared_insert_mixed, springfield_fixture) {
     "((Lisa 7))");
 }
 
+BOOST_FIXTURE_TEST_CASE(prepared_update_dynamic, springfield_fixture) {
+
+  person p;
+
+  dynamic_updates updates;
+  updates.push_back(make_dynamic(p.first_name = _));
+  updates.push_back(make_dynamic(p.age = _));
+  
+  dynamic_boolean predicate = make_dynamic(p.id == _);
+  
+  BOOST_AUTO(st, db.prepare(update(p).set(p.name = _, updates).where(predicate)));
+  
+  integer id_param;
+  dynamic_values predicate_params;
+  predicate_params.push_back(make_dynamic(id_param));
+
+  dynamic_values update_params;
+  varchar<30> first_name_param;
+  update_params.push_back(make_dynamic(first_name_param));
+
+  integer age_param;  
+  update_params.push_back(make_dynamic(age_param));
+
+  varchar<20> name_param;
+  name_param = "Bouvier";
+
+  st.bind_parameters(name_param, update_params, predicate_params);
+  
+  id_param = 1;
+  first_name_param = "Patty";
+  age_param = 43;
+  st.execute();
+  
+  id_param = 2;
+  first_name_param = "Selma";
+  age_param = 43;
+  st.execute();
+  
+  BOOST_RDB_CHECK_SELECT_RESULTS(
+    db.execute(select(p.id, p.first_name, p.name, p.age).from(p)),
+    "((1 Patty Bouvier 43)"
+    " (2 Selma Bouvier 43))"    
+    );
+}
