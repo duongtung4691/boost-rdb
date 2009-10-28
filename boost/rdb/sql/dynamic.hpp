@@ -10,6 +10,17 @@
 
 namespace boost { namespace rdb { namespace sql {
 
+  struct make_dynamic_placeholders {
+    make_dynamic_placeholders(std::vector<dynamic_placeholder>& placeholders) : placeholders_(placeholders) { }
+    
+    mutable std::vector<dynamic_placeholder>& placeholders_;
+    
+    template<class Placeholder>
+    void operator ()(const Placeholder& p) const {
+      placeholders_.push_back(dynamic_placeholder(Placeholder::rdb_type::id, Placeholder::rdb_type::length));
+    }
+  };
+
   template<class SqlType>
   struct dynamic_expression_wrapper : dynamic_expression {
     typedef SqlType sql_type;
@@ -29,19 +40,8 @@ namespace boost { namespace rdb { namespace sql {
   struct dynamic_expression_impl : dynamic_expression::root {
 
     dynamic_expression_impl(const Expr& expr) : dynamic_expression::root(Expr::sql_type::id, Expr::sql_type::length), expr_(expr) {
-      fusion::for_each(expr.placeholders(), make_placeholder(this->placeholders_));
+      fusion::for_each(expr.placeholders(), make_dynamic_placeholders(this->placeholders_));
     }
-
-    struct make_placeholder {
-      make_placeholder(std::vector<dynamic_placeholder>& placeholders) : placeholders_(placeholders) { }
-      
-      mutable std::vector<dynamic_placeholder>& placeholders_;
-      
-      template<class Placeholder>
-      void operator ()(const Placeholder& p) const {
-        placeholders_.push_back(dynamic_placeholder(Placeholder::rdb_type::id, Placeholder::rdb_type::length));
-      }
-    };
 
     virtual void str(std::ostream& os) const {
       expr_.str(os);
@@ -169,6 +169,7 @@ namespace boost { namespace rdb { namespace sql {
   template<>
   struct is_placeholder_mark<dynamic_expressions> : false_type {
   };
+
   
 } } }
 

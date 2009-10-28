@@ -45,25 +45,36 @@ namespace boost { namespace rdb {
       typedef Type rdb_type;
     };
   }
+  
+  namespace detail {
 
-  struct abstract_dynamic_value {
-    abstract_dynamic_value(int type, int length) : type_(type), length_(length), ref_count_(0) { }
+    class ref_counted {
+
+    public:
+      ref_counted() : ref_count_(0) { }
+
+    private:
+      int ref_count_;
+
+      friend void intrusive_ptr_add_ref(ref_counted* p) {
+        ++p->ref_count_;
+      }
+
+      friend void intrusive_ptr_release(ref_counted* p) {
+        if (--p->ref_count_ == 0)
+          delete p;
+      }
+    };
+  }
+
+  struct abstract_dynamic_value : detail::ref_counted {
+    abstract_dynamic_value(int type, int length) : type_(type), length_(length) { }
     virtual ~abstract_dynamic_value() { }
     int type() const { return type_; }
     int length() const { return length_; }
     int type_;
     int length_;
-    int ref_count_;
   };
-
-  inline void intrusive_ptr_add_ref(abstract_dynamic_value* p) {
-    ++p->ref_count_;
-  }
-
-  inline void intrusive_ptr_release(abstract_dynamic_value* p) {
-    if (--p->ref_count_ == 0)
-      delete p;
-  }
   
   struct dynamic_placeholder { // make it a specialization of placeholder<> ? but what for ?
     dynamic_placeholder() : type_(0), length_(0) { }

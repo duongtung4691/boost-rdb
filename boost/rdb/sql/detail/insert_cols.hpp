@@ -11,6 +11,8 @@ typename transition<
   >
 >::type
 operator ()(BOOST_PP_ENUM_BINARY_PARAMS(n, const Col, &col)) {
+  // failure here probably indicates that you are trying to pass something else than
+  // columns or dynamic_columns here - note : expressions are not allowed
   BOOST_PP_REPEAT(n, BOOST_PP_RDB_MPL_ASSERT, (is_column_container, Col))
   return typename transition<
     typename Subdialect::cols,

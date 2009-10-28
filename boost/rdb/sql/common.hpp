@@ -466,11 +466,20 @@ namespace boost { namespace rdb { namespace sql {
     
     Col col_;
     Expr expr_;
+    
     void str(std::ostream& os) const {
       col_.str(os);
       os << " = ";
       expr_.str(os);
     }
+  };
+  
+  template<class T>
+  struct is_update_container : mpl::false_ {
+  };
+  
+  template<class Col, class Expr>
+  struct is_update_container< set_clause<Col, Expr> > : mpl::true_ {
   };
 
   struct no_tag;
