@@ -415,21 +415,6 @@ namespace boost { namespace rdb { namespace sql {
   
   const expression<null_expr> null = expression<null_expr>();
 
-  // This is /not/ the placeholder type. It's just the marks' type, i.e.
-  // the type of `_`, `_1`, etc. Placeholders are typed things, marks are not.
-  // The actual type of the placeholder is determined from the context in which
-  // it is used.
-  template<int N>
-  struct placeholder_mark {
-    typedef placeholder_type sql_type;
-    typedef fusion::vector<> placeholder_vector; // not really used; exists to please mpl::if_ which is not lazy
-    placeholder_vector placeholders() const { return fusion::make_vector(); }
-    enum { precedence = precedence_level::highest };
-    void str(std::ostream& os) const {
-      os << "?";
-    }
-  };
-
   const expression< placeholder_mark<0> > _;
   
   namespace result_of {

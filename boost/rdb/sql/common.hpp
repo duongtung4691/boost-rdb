@@ -457,6 +457,21 @@ namespace boost { namespace rdb { namespace sql {
     >::type
   > {
   };
+
+  // This is /not/ the placeholder type. It's just the marks' type, i.e.
+  // the type of `_`, `_1`, etc. Placeholders are typed things, marks are not.
+  // The actual type of the placeholder is determined from the context in which
+  // it is used.
+  template<int N>
+  struct placeholder_mark {
+    typedef placeholder_type sql_type;
+    typedef fusion::vector<> placeholder_vector; // not really used; exists to please mpl::if_ which is not lazy
+    placeholder_vector placeholders() const { return fusion::make_vector(); }
+    enum { precedence = precedence_level::highest };
+    void str(std::ostream& os) const {
+      os << "?";
+    }
+  };
   
   template<class Col, class Expr>
   struct set_clause {
@@ -471,6 +486,28 @@ namespace boost { namespace rdb { namespace sql {
       col_.str(os);
       os << " = ";
       expr_.str(os);
+    }
+    
+    template<class Expr>
+    struct placeholders_for {
+      typedef typename Expr::placeholder_vector placeholder_vector;
+      static placeholder_vector make(const set_clause& update) {
+        return update.expr_.placeholders();
+      }
+    };
+    
+    template<int N>
+    struct placeholders_for< placeholder_mark<N> > {
+      typedef fusion::vector< type::placeholder<typename Col::sql_type> > placeholder_vector;
+      static placeholder_vector make(const set_clause& update) {
+        return fusion::make_vector(type::placeholder<typename Col::sql_type>());
+      }
+    };
+    
+    typedef typename placeholders_for<Expr>::placeholder_vector placeholder_vector;
+    
+    placeholder_vector placeholders() const {
+      return placeholders_for<Expr>::make(*this);
     }
   };
   

@@ -81,7 +81,7 @@ BOOST_AUTO_TEST_CASE(test_dynamic_update_placeholders) {
   BOOST_CHECK(fusion::at_c<0>(placeholders)[0].type() == rdb::type::integer::id);
 }
 
-BOOST_AUTO_TEST_CASE(test_dynamic_update__where_placeholders) {
+BOOST_AUTO_TEST_CASE(test_dynamic_update_where_placeholders) {
   person p;
 
   dynamic_updates updates;
@@ -94,8 +94,8 @@ BOOST_AUTO_TEST_CASE(test_dynamic_update__where_placeholders) {
   fusion::vector< std::vector<dynamic_placeholder>, std::vector<dynamic_placeholder> > placeholders = 
     (update(p).set(updates).where(predicate)).placeholders();
 
-  BOOST_REQUIRE(fusion::at_c<0>(placeholders).size() == 2);
+  BOOST_REQUIRE(fusion::at_c<0>(placeholders).size() == 1);
   BOOST_CHECK(fusion::at_c<0>(placeholders)[0].type() == rdb::type::integer::id);
   BOOST_REQUIRE(fusion::at_c<1>(placeholders).size() == 1);
-  BOOST_CHECK(fusion::at_c<1>(placeholders)[1].type() == rdb::type::varchar<20>::id);
+  BOOST_CHECK(fusion::at_c<1>(placeholders)[0].type() == rdb::type::varchar<20>::id);
 }

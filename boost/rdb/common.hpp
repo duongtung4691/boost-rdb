@@ -52,6 +52,7 @@ namespace boost { namespace rdb {
 
     public:
       ref_counted() : ref_count_(0) { }
+      virtual ~ref_counted() { }
 
     private:
       int ref_count_;
