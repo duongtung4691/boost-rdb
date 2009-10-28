@@ -102,24 +102,33 @@ namespace boost { namespace rdb { namespace sql {
     struct result;
     
     typedef extract_placeholders_from_assign Self;
-
-    template<class Col, class Expr, class Placeholders>
-    struct result<Self(set_clause<Col, Expr>&, Placeholders&)> {
+    
+    template<class Update, class Placeholders>
+    struct result<Self(Update&, Placeholders&)> {
       typedef typename fusion::result_of::as_vector<
         typename fusion::result_of::join<
           const Placeholders,
-          const typename set_clause<Col, Expr>::placeholder_vector
+          const typename Update::placeholder_vector
         >::type
       >::type type;
       
-      static type make(const set_clause<Col, Expr>& update, const Placeholders& placeholders) {
+      static type make(const Update& update, const Placeholders& placeholders) {
         return fusion::join(placeholders, update.placeholders());
       }
     };
 
-    template<class Col, class Expr, class Placeholders>
-    struct result<Self(const set_clause<Col, Expr>&, Placeholders&)> : result<Self(set_clause<Col, Expr>&, Placeholders&)> {
+    // I think that the reason why we need both const and non-const version is
+    // inconsistencies in fusion's functions and result_of meta-functions
+    template<class Update, class Placeholders>
+    struct result<Self(const Update&, Placeholders&)> : result<Self(Update&, Placeholders&)> {
     };
+
+    template<class Update, class Placeholders>
+    typename result<Self(Update&, Placeholders&)>::type
+    operator ()(const Update& update, Placeholders& placeholders) {
+      using namespace fusion;
+      return result<Self(Update&, Placeholders&)>::make(update, placeholders);
+    }
 
     template<class Placeholders>
     struct result<Self(dynamic_updates&, const Placeholders&)> {
@@ -135,16 +144,15 @@ namespace boost { namespace rdb { namespace sql {
       }
     };
 
-    // why are both needed ?
     template<class Placeholders>
     struct result<Self(const dynamic_updates&, const Placeholders&)> : result<Self(dynamic_updates&, const Placeholders&)> {
     };
 
-    template<class T, class Placeholders>
-    typename result<Self(T&, Placeholders&)>::type
-    operator ()(T& update, Placeholders& placeholders) {
+    template<class Placeholders>
+    typename result<Self(const dynamic_updates&, Placeholders&)>::type
+    operator ()(const dynamic_updates& update, Placeholders& placeholders) {
       using namespace fusion;
-      return result<Self(T&, Placeholders&)>::make(update, placeholders);
+      return result<Self(const dynamic_updates&, Placeholders&)>::make(update, placeholders);
     }
   };
   
