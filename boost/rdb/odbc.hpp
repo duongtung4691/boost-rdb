@@ -437,7 +437,7 @@ namespace boost { namespace rdb { namespace odbc {
       //  at_c<1>(zip).chars_, 0, &at_c<1>(zip).length_));
     }
   };
-
+  
   template<class Statement>
   class prepared_statement {
 
@@ -487,7 +487,7 @@ namespace boost { namespace rdb { namespace odbc {
     #define BOOST_PP_FILENAME_1       <boost/rdb/odbc/detail/execute.hpp>
     #include BOOST_PP_ITERATE()
 
-    void bindv(param_ref_vector& params) {
+    void bind_parameters_(param_ref_vector& params) {
       typedef fusion::vector<const placeholder_vector&, param_ref_vector&> zip;
       fusion::for_each(fusion::zip_view<zip>(zip(placeholders_, params)),
         parameter_binder(hstmt_));
@@ -501,6 +501,80 @@ namespace boost { namespace rdb { namespace odbc {
   protected:
     SQLHSTMT hstmt_;    
   };
+  
+  struct result_binder {
+    result_binder(SQLHSTMT hstmt) : hstmt_(hstmt), i_(1) { }
+    SQLHSTMT hstmt_;
+    mutable SQLUSMALLINT i_;
+
+    template<class Expr, class CliType>
+    void operator ()(fusion::vector<const Expr&, CliType&>& zip) const {
+      BOOST_MPL_ASSERT((is_same<typename Expr::sql_type, typename CliType::rdb_type));
+      bind(fusion::at_c<1>(zip));
+      ++i_;
+    }
+    
+    void bind(integer& var) const {
+      sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindCol(hstmt_, i_, SQL_C_SLONG,
+        &var.value_, 0, &var.length_));
+    }
+
+    template<size_t N>
+    void bind(varchar<N>& var) const {
+      sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindCol(hstmt_, i_, SQL_C_CHAR,
+        var.chars_, N + 1, &var.length_));
+    }
+
+    void operator ()(fusion::vector<const dynamic_placeholders&, dynamic_values&>& zip) const {
+      using fusion::at_c;
+
+      if (at_c<0>(zip).size() != at_c<1>(zip).size())
+        throw dynamic_value_mismatch();
+
+      dynamic_placeholders::const_iterator placeholder_iter = at_c<0>(zip).begin(), placeholder_last = at_c<0>(zip).end();
+      dynamic_values::iterator value_iter = at_c<1>(zip).begin();
+
+      while (placeholder_iter != placeholder_last) {
+
+        if (placeholder_iter->type() != (*value_iter)->type())
+          throw dynamic_value_mismatch();
+        
+        if (placeholder_iter->length() != (*value_iter)->length())
+          throw dynamic_value_mismatch();
+          
+        (*value_iter)->bind_parameter(hstmt_, i_);
+
+        ++placeholder_iter;
+        ++value_iter;
+        ++i_;
+      }
+      //sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindParameter(hstmt_, i_, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
+      //  at_c<1>(zip).chars_, 0, &at_c<1>(zip).length_));
+    }
+  };
+
+  template<class Tag>
+  struct make_result_vector {
+
+    template<typename Sig>
+    struct result;
+
+    template<class Self, class Expr, class Vector>
+    struct result<Self(Expr&, const Vector&)> {
+      typedef typename fusion::result_of::push_back<
+        Vector,
+        typename type::cli_type<typename Expr::sql_type, Tag>::type
+      >::type type;
+    };
+
+    template<class Self, class Vector>
+    struct result<Self(const std::vector<dynamic_placeholder>&, const Vector&)> {
+      typedef typename fusion::result_of::push_back<
+        Vector,
+        dynamic_values
+      >::type type;
+    };
+  };
 
   template<class Select>
   class prepared_select_statement : public prepared_statement<Select> {
@@ -510,7 +584,26 @@ namespace boost { namespace rdb { namespace odbc {
     typedef typename Select::result container;
     typedef prepared_statement<Select> base;
 
-    prepared_select_statement(const Select& select, SQLHSTMT hstmt) : base(select, hstmt) { }
+    typedef typename fusion::result_of::as_vector<
+      typename fusion::result_of::accumulate<
+        select_list, 
+        fusion::vector<>, 
+        make_result_vector<odbc_tag>
+      >::type
+    >::type result_vector;
+
+    typedef typename fusion::result_of::as_vector<
+      typename fusion::result_of::accumulate<
+        result_vector,
+        fusion::vector<>, 
+        make_ref_vector
+      >::type
+    >::type result_ref_vector;
+
+    prepared_select_statement(const Select& select, SQLHSTMT hstmt) :
+      base(select, hstmt), exprs_(select.exprs()) { }
+      
+    select_list exprs_;
 
     result_set<select_list, container, false> execute() {
       sql_check(SQL_HANDLE_STMT, this->hstmt_, SQLExecute(this->hstmt_));
@@ -519,6 +612,17 @@ namespace boost { namespace rdb { namespace odbc {
 
     #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
     #define BOOST_PP_FILENAME_1       <boost/rdb/odbc/detail/execute_select.hpp>
+    #include BOOST_PP_ITERATE()
+
+    void bind_results_(result_ref_vector& results) {
+      typedef fusion::vector<const select_list&, result_ref_vector&> zip;
+      fusion::for_each(fusion::zip_view<zip>(zip(exprs_, results)),
+        results_binder(hstmt_));
+    }
+
+    #define BOOST_RDB_ADD_REF(z, n, type) BOOST_PP_COMMA_IF(n) type##n&
+    #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
+    #define BOOST_PP_FILENAME_1       <boost/rdb/odbc/detail/bind_results.hpp>
     #include BOOST_PP_ITERATE()
   };
 

@@ -79,8 +79,7 @@ namespace boost { namespace rdb { namespace sql {
   template<class Dialect, class State, class Data, class Subdialect>
   struct select_statement :
     select_result_if<Data, typename Subdialect::exprs>,
-    tag_if<fusion::result_of::has_key<Data, typename Subdialect::from>, select_statement_tag>
-    {
+    tag_if<fusion::result_of::has_key<Data, typename Subdialect::from>, select_statement_tag> {
 
     select_statement(const Data& data) : select_result_if<Data, typename Subdialect::exprs>(data) { }
 
