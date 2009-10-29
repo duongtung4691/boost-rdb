@@ -213,6 +213,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\boost\rdb\odbc\detail\bind_results.hpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\boost\rdb\odbc\detail\execute.hpp"
 				>
 			</File>

@@ -254,6 +254,41 @@ namespace boost { namespace rdb { namespace sql {
   struct is_update_container<dynamic_updates> : mpl::true_ {
   };
   
+  struct dynamic_table {
+
+    struct root : rdb::detail::ref_counted {
+      root() { }
+      virtual void str(std::ostream& os) const = 0;
+    };
+  
+    dynamic_table(root* impl) : impl_(impl) { }
+
+    intrusive_ptr<root> impl_;
+
+    void str(std::ostream& os) const {
+      impl_->str(os);
+    }
+    
+    template<class Table>
+    struct wrapper : root {
+
+      wrapper(const Table& table) : table_(table) {
+      }
+      
+      const Table& table_;
+      
+      virtual void str(std::ostream& os) const {
+        table_.str(os);
+      }
+    };
+  };
+    
+  template<class Table>
+  typename enable_if<is_table_container<Table>, dynamic_table>::type
+  make_dynamic(const Table& table) {
+    return dynamic_table(new dynamic_table::wrapper<Table>(table));
+  }
+  
 } } }
 
 
