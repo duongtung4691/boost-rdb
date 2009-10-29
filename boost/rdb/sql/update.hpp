@@ -9,93 +9,6 @@
 
 namespace boost { namespace rdb { namespace sql {
 
-  
-  struct dynamic_update {
-
-    struct root : rdb::detail::ref_counted {
-      dynamic_placeholders placeholders_;
-      virtual void str(std::ostream& os) const = 0;
-    };
-    
-    dynamic_update(root* impl) : impl_(impl) { }
-
-    //typedef fusion::vector< const std::vector<dynamic_placeholder> > placeholder_vector;
-    
-    const dynamic_placeholders& placeholders() const {
-      return impl_->placeholders_;
-    }
-    
-    void str(std::ostream& os) const {
-      impl_->str(os);
-    }
-    
-    intrusive_ptr<root> impl_;
-    
-    template<class Col, class Expr>
-    struct wrapper : root {
-
-      wrapper(const set_clause<Col, Expr>& update) : update_(update) {
-        fusion::for_each(update_.placeholders(), make_dynamic_placeholders(this->placeholders_));
-      }
-      
-      set_clause<Col, Expr> update_;
-      
-      virtual void str(std::ostream& os) const {
-        update_.str(os);
-      }
-    };
-  };
-    
-  template<class Col, class Expr>
-  dynamic_update make_dynamic(const set_clause<Col, Expr>& update) {
-    return dynamic_update(new dynamic_update::wrapper<Col, Expr>(update));
-  }
-  
-  class dynamic_updates {
-  
-  private:
-    std::vector<dynamic_update> updates_;
-  
-  public:
-  
-    typedef fusion::vector< const std::vector<dynamic_placeholder> > placeholder_vector;
-
-    placeholder_vector placeholders() const {
-      int size = 0;
-      std::vector<dynamic_update>::const_iterator in = updates_.begin();
-
-      while (in != updates_.end()) {
-        in->placeholders().size();
-        size += in++->placeholders().size();
-      }
-
-      std::vector<dynamic_placeholder> result(size);
-      std::vector<dynamic_placeholder>::iterator out = result.begin();
-      in = updates_.begin();
-
-      while (in != updates_.end()) {
-        out = std::copy(in->placeholders().begin(), in->placeholders().end(), out);
-        ++in;
-      }
-
-      return result;
-    }
-    
-    void push_back(const dynamic_update& update) {
-      updates_.push_back(update);
-    }
-
-    typedef void sql_type;
-    
-    void str(std::ostream& os) const {
-      std::for_each(updates_.begin(), updates_.end(), comma_output(os));
-    }
-  };
-
-  template<>  
-  struct is_update_container<dynamic_updates> : mpl::true_ {
-  };
-
   struct extract_placeholders_from_assign {
 
     template<typename Sig>
@@ -128,31 +41,6 @@ namespace boost { namespace rdb { namespace sql {
     operator ()(const Update& update, Placeholders& placeholders) {
       using namespace fusion;
       return result<Self(Update&, Placeholders&)>::make(update, placeholders);
-    }
-
-    template<class Placeholders>
-    struct result<Self(dynamic_updates&, const Placeholders&)> {
-      typedef typename fusion::result_of::as_vector<
-        typename fusion::result_of::join<
-          const Placeholders,
-          const dynamic_updates::placeholder_vector
-        >::type
-      >::type type;
-      
-      static type make(const dynamic_updates& updates, const Placeholders& placeholders) {
-        return fusion::join(placeholders, updates.placeholders());
-      }
-    };
-
-    template<class Placeholders>
-    struct result<Self(const dynamic_updates&, const Placeholders&)> : result<Self(dynamic_updates&, const Placeholders&)> {
-    };
-
-    template<class Placeholders>
-    typename result<Self(const dynamic_updates&, Placeholders&)>::type
-    operator ()(const dynamic_updates& update, Placeholders& placeholders) {
-      using namespace fusion;
-      return result<Self(const dynamic_updates&, Placeholders&)>::make(update, placeholders);
     }
   };
   
