@@ -17,6 +17,15 @@ namespace boost { namespace rdb { namespace sql {
     bool has_alias() const { return !alias_.empty(); }
     typedef fusion::vector<> placeholder_vector;
     placeholder_vector placeholders() const { return fusion::make_vector(); }
+    typedef void table_container_tag;
+  };
+
+  template<class T, class Enable = void>
+  struct is_table_container : mpl::false_ {
+  };
+
+  template<class T>
+  struct is_table_container<T, typename T::table_container_tag> : mpl::true_ {
   };
   
   struct any_column /*: boost::noncopyable*/ {
@@ -124,7 +133,7 @@ namespace boost { namespace rdb { namespace sql {
   
   #define BOOST_RDB_BEGIN_TABLE(NAME)  \
   struct NAME##_base { static const char* name() { return #NAME; } }; \
-  template<int Alias>  \
+  template<int Alias> \
   struct NAME##_ : table_<NAME##_base, Alias == -1>, singleton< NAME##_<Alias> > {  \
     typedef NAME##_<Alias> this_table;  \
     typedef NAME##_<1> _1; typedef NAME##_<2> _2; typedef NAME##_<3> _3;  \
