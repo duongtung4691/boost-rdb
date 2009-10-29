@@ -168,7 +168,6 @@ namespace boost { namespace rdb { namespace sql {
   template<>
   struct is_placeholder_mark<dynamic_expressions> : false_type {
   };
-
   
 } } }
 

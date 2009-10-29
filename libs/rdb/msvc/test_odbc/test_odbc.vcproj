@@ -253,6 +253,14 @@
 			RelativePath="..\..\test\test_odbc.cpp"
 			>
 		</File>
+		<File
+			RelativePath="..\..\test\test_odbc.hpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\test\test_odbc_dynamic.cpp"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

@@ -90,7 +90,7 @@ namespace boost { namespace rdb {
 
   struct dynamic_expression {
 
-    struct root {
+    struct root : detail::ref_counted {
       root(int type, int length) : type_(type), length_(length) { }
       virtual void str(std::ostream& os) const = 0;
       dynamic_placeholders placeholders_;
@@ -104,7 +104,7 @@ namespace boost { namespace rdb {
     int length() const { return impl_->length_; }
     const dynamic_placeholders& placeholders() const { return impl_->placeholders_; }
 
-    shared_ptr<root> impl_;
+    intrusive_ptr<root> impl_;
 
     void str(std::ostream& os) const {
       impl_->str(os);
