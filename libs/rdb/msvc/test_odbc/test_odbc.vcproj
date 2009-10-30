@@ -40,7 +40,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="-Zm117"
+				AdditionalOptions="-Zm132"
 				Optimization="0"
 				AdditionalIncludeDirectories="$(SolutionDir)..\..\.."
 				PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS"
@@ -117,7 +117,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="-Zm117"
+				AdditionalOptions="-Zm132"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="$(SolutionDir)..\..\.."
@@ -196,7 +196,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="-Zm117"
+				AdditionalOptions="-Zm132"
 				Optimization="0"
 				EnableIntrinsicFunctions="true"
 				WholeProgramOptimization="false"

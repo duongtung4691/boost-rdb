@@ -100,6 +100,9 @@ namespace boost { namespace rdb { namespace odbc {
       return *this;
     }
 
+    void set_null() { length_ = SQL_NULL_DATA; }
+    bool is_null() const { return length_ != SQL_NULL_DATA; }
+
 //  private:
     union {
       long length_;
@@ -123,6 +126,7 @@ namespace boost { namespace rdb { namespace odbc {
     
     void set_null() { length_ = SQL_NULL_DATA; }
     bool is_null() const { return length_ != SQL_NULL_DATA; }
+    long value() const { return value_; }
     
     typedef type::integer rdb_type;
   
@@ -502,14 +506,14 @@ namespace boost { namespace rdb { namespace odbc {
     SQLHSTMT hstmt_;    
   };
   
-  struct result_binder {
-    result_binder(SQLHSTMT hstmt) : hstmt_(hstmt), i_(1) { }
+  struct results_binder {
+    results_binder(SQLHSTMT hstmt) : hstmt_(hstmt), i_(1) { }
     SQLHSTMT hstmt_;
     mutable SQLUSMALLINT i_;
 
     template<class Expr, class CliType>
     void operator ()(fusion::vector<const Expr&, CliType&>& zip) const {
-      BOOST_MPL_ASSERT((is_same<typename Expr::sql_type, typename CliType::rdb_type));
+      BOOST_MPL_ASSERT((is_same<typename Expr::sql_type, typename CliType::rdb_type>));
       bind(fusion::at_c<1>(zip));
       ++i_;
     }
@@ -664,6 +668,19 @@ namespace boost { namespace rdb { namespace odbc {
       // What we'd need here is the ability to zip a mpl::vector with a fusion::vector.
       fusion::for_each(fusion::zip_view<zip>(zip(*(const ExprList*) 0, row.values())),
         read_row<value_type>(hstmt_, row));
+
+      return true;
+    }
+
+    bool next() const {
+      long rc = SQLFetch(hstmt_);
+
+      if (rc == SQL_NO_DATA) {
+        return false;
+      }
+
+      if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO)
+        throw odbc_error(SQL_HANDLE_STMT, hstmt_, rc);
 
       return true;
     }
