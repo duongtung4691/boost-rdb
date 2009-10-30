@@ -54,20 +54,20 @@ namespace boost { namespace rdb { namespace odbc {
 
     typedef type::varchar<N> rdb_type;
 
-    varchar() : ulength_(0) {
+    varchar() : length_(0) {
     }
 
-    varchar(const char* str) : ulength_(0) {
+    varchar(const char* str) : length_(0) {
       *this = str;
     }
 
-    varchar(const std::string& str) : ulength_(0) {
+    varchar(const std::string& str) : length_(0) {
       *this = str;
     }
 
     operator std::string() const { return std::string(chars_, chars_ + length()); }
     const char* chars() const { return chars_; }
-    size_t length() const { return ulength_; }
+    size_t length() const { return length_; }
 
     template<int Length>
     varchar& operator =(const char (&str)[Length]) {
@@ -75,20 +75,20 @@ namespace boost { namespace rdb { namespace odbc {
       const char* src = str;
       char* dest = chars_;
       while (*dest++ = *src++);
-      ulength_ = dest - chars_ - 1;
+      length_ = dest - chars_ - 1;
       return *this;
     }
 
     varchar& operator =(const char* src) {
-      char* dest = chars_;
-      char* last = chars_ + N;
+      SQLCHAR* dest = chars_;
+      SQLCHAR* last = chars_ + N;
       while (*src) {
         if (dest == last)
           throw std::range_error("overflow in varchar");
         *dest++ = *src++;
       }
       *dest = 0;
-      ulength_ = dest - chars_;
+      length_ = dest - chars_;
       return *this;
     }
 
@@ -96,19 +96,16 @@ namespace boost { namespace rdb { namespace odbc {
       if (src.length() > N)
         throw std::range_error("overflow in varchar");
       *std::copy(src.begin(), src.end(), chars_) = 0;
-      ulength_ = src.length();
+      length_ = src.length();
       return *this;
     }
 
     void set_null() { length_ = SQL_NULL_DATA; }
-    bool is_null() const { return length_ != SQL_NULL_DATA; }
+    bool is_null() const { return length_ == SQL_NULL_DATA; }
 
 //  private:
-    union {
-      long length_;
-      unsigned long ulength_;
-    };
-    char chars_[N + 1];
+    SQLLEN length_;
+    SQLCHAR chars_[N + 1];
 
     template<class SqlType, class Value, class Tag> friend struct sql_type_adapter;
   };
@@ -125,49 +122,60 @@ namespace boost { namespace rdb { namespace odbc {
     }
     
     void set_null() { length_ = SQL_NULL_DATA; }
-    bool is_null() const { return length_ != SQL_NULL_DATA; }
+    bool is_null() const { return length_ == SQL_NULL_DATA; }
     long value() const { return value_; }
     
     typedef type::integer rdb_type;
   
   //private:
-    long value_;
-    SQLINTEGER length_;
+    SQLINTEGER value_;
+    SQLLEN length_;
   };
 
   class dynamic_value : public abstract_dynamic_value {
   public:
     dynamic_value(int type, int length) : abstract_dynamic_value(type, length) { }
+    virtual void bind_result(SQLHSTMT hstmt, SQLUSMALLINT i) = 0;
     virtual void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT i) = 0;
   };
 
   class dynamic_integer_value : public dynamic_value {
   public:
 
-    dynamic_integer_value(int type, int length, integer& value) : dynamic_value(type, length), value_(value) { }
+    dynamic_integer_value(int type, int length, integer& var) : dynamic_value(type, length), var_(var) { }
+    
+    virtual void bind_result(SQLHSTMT hstmt, SQLUSMALLINT i) {
+      sql_check(SQL_HANDLE_STMT, hstmt, SQLBindCol(hstmt, i, SQL_C_SLONG,
+        &var_.value_, 0, &var_.length_));
+    }
     
     virtual void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT i) {
       sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
-        &value_.value_, 0, &value_.length_));
+        &var_.value_, 0, &var_.length_));
     }
     
   private:
-    integer& value_;
+    integer& var_;
   };
 
   template<int N>
   class dynamic_varchar_value : public dynamic_value {
   public:
 
-    dynamic_varchar_value(int type, int length, varchar<N>& value) : dynamic_value(type, length), value_(value) { }
+    dynamic_varchar_value(int type, int length, varchar<N>& var) : dynamic_value(type, length), var_(var) { }
+    
+    virtual void bind_result(SQLHSTMT hstmt, SQLUSMALLINT i) {
+      sql_check(SQL_HANDLE_STMT, hstmt, SQLBindCol(hstmt, i, SQL_C_CHAR,
+        var_.chars_, N + 1, &var_.length_));
+    }
     
     virtual void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT i) {
       sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
-        &value_.chars_, 0, &value_.length_));
+        &var_.chars_, 0, &var_.length_));
     }
     
   private:
-    varchar<N>& value_;
+    varchar<N>& var_;
   };
 
   typedef std::vector< intrusive_ptr<dynamic_value> > dynamic_values;
@@ -189,6 +197,11 @@ namespace boost { namespace rdb { namespace type {
   template<>
   struct cli_type<type::boolean, odbc::odbc_tag> {
     typedef bool type;
+  };
+
+  template<>
+  struct cli_type<type::dynamic_expressions, odbc::odbc_tag> {
+    typedef odbc::dynamic_values type;
   };
 
 } } }
@@ -359,6 +372,7 @@ namespace boost { namespace rdb { namespace odbc {
 
   template<class Tag>
   struct make_param_vector {
+    // todo : merge with make_result_vector below
 
     template<typename Sig>
     struct result;
@@ -529,26 +543,26 @@ namespace boost { namespace rdb { namespace odbc {
         var.chars_, N + 1, &var.length_));
     }
 
-    void operator ()(fusion::vector<const dynamic_placeholders&, dynamic_values&>& zip) const {
+    void operator ()(fusion::vector<const dynamic_expressions&, dynamic_values&>& zip) const {
       using fusion::at_c;
 
       if (at_c<0>(zip).size() != at_c<1>(zip).size())
         throw dynamic_value_mismatch();
 
-      dynamic_placeholders::const_iterator placeholder_iter = at_c<0>(zip).begin(), placeholder_last = at_c<0>(zip).end();
+      dynamic_expressions::const_iterator expression_iter = at_c<0>(zip).begin(), expression_last = at_c<0>(zip).end();
       dynamic_values::iterator value_iter = at_c<1>(zip).begin();
 
-      while (placeholder_iter != placeholder_last) {
+      while (expression_iter != expression_last) {
 
-        if (placeholder_iter->type() != (*value_iter)->type())
+        if (expression_iter->type() != (*value_iter)->type())
           throw dynamic_value_mismatch();
         
-        if (placeholder_iter->length() != (*value_iter)->length())
+        if (expression_iter->length() != (*value_iter)->length())
           throw dynamic_value_mismatch();
           
-        (*value_iter)->bind_parameter(hstmt_, i_);
+        (*value_iter)->bind_result(hstmt_, i_);
 
-        ++placeholder_iter;
+        ++expression_iter;
         ++value_iter;
         ++i_;
       }
@@ -562,20 +576,14 @@ namespace boost { namespace rdb { namespace odbc {
 
     template<typename Sig>
     struct result;
+    
+    typedef make_result_vector Self;
 
-    template<class Self, class Expr, class Vector>
+    template<class Expr, class Vector>
     struct result<Self(Expr&, const Vector&)> {
       typedef typename fusion::result_of::push_back<
         Vector,
-        typename type::cli_type<typename Expr::sql_type, Tag>::type
-      >::type type;
-    };
-
-    template<class Self, class Vector>
-    struct result<Self(const std::vector<dynamic_placeholder>&, const Vector&)> {
-      typedef typename fusion::result_of::push_back<
-        Vector,
-        dynamic_values
+        typedef typename type::cli_type<typename Expr::sql_type, Tag>::type
       >::type type;
     };
   };

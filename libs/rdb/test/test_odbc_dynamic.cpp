@@ -4,6 +4,7 @@
 
 using namespace std;
 using namespace boost;
+using namespace boost::rdb;
 using namespace boost::rdb::sql;
 using namespace boost::rdb::odbc;
 using namespace boost::rdb::sql::test::springfield;
@@ -204,4 +205,43 @@ BOOST_FIXTURE_TEST_CASE(prepared_update_dynamic, springfield_fixture) {
     "((1 Patty Bouvier 43)"
     " (2 Selma Bouvier 43))"    
     );
+}
+
+BOOST_FIXTURE_TEST_CASE(prepared_select_dynamic_bind_results, springfield_fixture) {
+  person p;
+  
+  dynamic_expressions exprs;
+  exprs.push_back(make_dynamic(p.id));
+  exprs.push_back(make_dynamic(p.first_name));
+  
+  BOOST_AUTO(st, db.prepare(select(exprs).from(p)));
+  
+  dynamic_values results;
+  integer id;
+  results.push_back(make_dynamic(id));
+  varchar<30> first_name;
+  results.push_back(make_dynamic(first_name));
+  st.bind_results(results);
+  
+  BOOST_AUTO(cursor, st.execute());
+
+  cursor.next();
+  BOOST_CHECK(!id.is_null());
+  BOOST_CHECK_EQUAL(id.value(), 1);
+  BOOST_CHECK(!first_name.is_null());
+  BOOST_CHECK_EQUAL(string(first_name), "Homer");
+
+  cursor.next();
+  BOOST_CHECK(!id.is_null());
+  BOOST_CHECK_EQUAL(id.value(), 2);
+  BOOST_CHECK(!first_name.is_null());
+  BOOST_CHECK_EQUAL(string(first_name), "Marge");
+}
+
+BOOST_FIXTURE_TEST_CASE(test_orm, object_model_fixture) {
+
+  person p;
+  natural_person np;
+  legal_person lp;
+
 }

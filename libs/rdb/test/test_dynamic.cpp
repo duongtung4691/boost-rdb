@@ -4,7 +4,7 @@
 #include <boost/rdb/sql/dynamic.hpp>
 
 using namespace boost;
-using boost::rdb::dynamic_placeholder;
+using namespace boost::rdb;
 using namespace boost::rdb::sql;
 using namespace boost::rdb::sql::test::springfield;
 
