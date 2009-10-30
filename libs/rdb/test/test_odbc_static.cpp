@@ -231,3 +231,17 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_integer_param_in_exprs, springfield
   param = 2;
   BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((39))");
 }
+
+BOOST_FIXTURE_TEST_CASE(prepared_select_bind_results, springfield_fixture) {
+  person p;
+  BOOST_AUTO(st, db.prepare(select(p.id, p.first_name).from(p)));
+  integer id;
+  varchar<30> first_name;
+  st.bind_results(id, first_name);
+  BOOST_AUTO(results, st.execute());
+  results.next();
+  BOOST_CHECK(!id.is_null());
+  BOOST_CHECK_EQUAL(id.value(), 1);
+  BOOST_CHECK(!first_name.is_null());
+  BOOST_CHECK_EQUAL(string(first_name), "Homer");
+}
