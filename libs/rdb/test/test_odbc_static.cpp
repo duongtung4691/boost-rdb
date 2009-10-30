@@ -239,9 +239,16 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_results, springfield_fixture) {
   varchar<30> first_name;
   st.bind_results(id, first_name);
   BOOST_AUTO(results, st.execute());
+
   results.next();
   BOOST_CHECK(!id.is_null());
   BOOST_CHECK_EQUAL(id.value(), 1);
   BOOST_CHECK(!first_name.is_null());
   BOOST_CHECK_EQUAL(string(first_name), "Homer");
+
+  results.next();
+  BOOST_CHECK(!id.is_null());
+  BOOST_CHECK_EQUAL(id.value(), 2);
+  BOOST_CHECK(!first_name.is_null());
+  BOOST_CHECK_EQUAL(string(first_name), "Marge");
 }

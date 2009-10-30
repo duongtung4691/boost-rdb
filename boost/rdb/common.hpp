@@ -32,6 +32,8 @@ namespace boost { namespace rdb {
       BOOST_STATIC_CONSTANT(int, id = 3);
       BOOST_STATIC_CONSTANT(int, length = N);
     };
+    
+    struct dynamic_expressions;
 
     // metafunction that returns a type for holding a value of a given (rdb) type
     // for a specific database
@@ -109,6 +111,35 @@ namespace boost { namespace rdb {
     void str(std::ostream& os) const {
       impl_->str(os);
     }
+  };
+  
+  struct dynamic_expressions : std::vector<dynamic_expression> {
+  
+    typedef fusion::vector< const std::vector<dynamic_placeholder> > placeholder_vector;
+
+    placeholder_vector placeholders() const {
+      int size = 0;
+      std::vector<dynamic_expression>::const_iterator in = begin();
+
+      while (in != end()) {
+        size += in++->placeholders().size();
+      }
+
+      std::vector<dynamic_placeholder> result(size);
+      std::vector<dynamic_placeholder>::iterator out = result.begin();
+      in = begin();
+
+      while (in != end()) {
+        out = std::copy(in->placeholders().begin(), in->placeholders().end(), out);
+        ++in;
+      }
+
+      return result;
+    }
+
+    typedef type::dynamic_expressions sql_type;
+    
+    void str(std::ostream& os) const;
   };
 
   struct dynamic_column : dynamic_expression {

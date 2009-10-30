@@ -5,8 +5,18 @@
 #define BOOST_RDB_SQL_DYNAMIC_EXPRESSION_HPP
 
 #include <boost/rdb/sql/common.hpp>
+
+#include <boost/any.hpp>
+
 #include <numeric>
 #include <functional>
+
+namespace boost { namespace rdb {
+
+  inline void dynamic_expressions::str(std::ostream& os) const {
+    std::for_each(begin(), end(), sql::comma_output(os));
+  }
+} }
 
 namespace boost { namespace rdb { namespace sql {
 
@@ -61,35 +71,9 @@ namespace boost { namespace rdb { namespace sql {
   typedef expression< dynamic_expression_wrapper<type::integer> > dynamic_integer;
   typedef expression< dynamic_expression_wrapper<type::boolean> > dynamic_boolean;
 
-  struct dynamic_expressions : std::vector<dynamic_expression> {
-  
-    typedef fusion::vector< const std::vector<dynamic_placeholder> > placeholder_vector;
-
-    placeholder_vector placeholders() const {
-      int size = 0;
-      std::vector<dynamic_expression>::const_iterator in = begin();
-
-      while (in != end()) {
-        size += in++->placeholders().size();
-      }
-
-      std::vector<dynamic_placeholder> result(size);
-      std::vector<dynamic_placeholder>::iterator out = result.begin();
-      in = begin();
-
-      while (in != end()) {
-        out = std::copy(in->placeholders().begin(), in->placeholders().end(), out);
-        ++in;
-      }
-
-      return result;
-    }
-
-    typedef void sql_type;
-    
-    void str(std::ostream& os) const {
-      std::for_each(begin(), end(), comma_output(os));
-    }
+  template<>
+  struct type_traits<type::dynamic_expressions> {
+    typedef std::vector<any> cpp_type;
   };
 
   struct dynamic_placeholder_impl : dynamic_expression::root {

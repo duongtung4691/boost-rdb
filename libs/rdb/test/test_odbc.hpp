@@ -53,6 +53,45 @@ struct springfield_fixture {
   }
 };
 
+struct object_model_fixture {
+
+  boost::rdb::odbc::database db;
+
+  object_model_fixture() : db("boost", "boost", "boost") {
+
+    using namespace boost::rdb::odbc;
+    using namespace boost::rdb::sql::test::object_model;
+
+    try {
+      db.execute(create_table(person::_));
+    } catch (odbc_error) {
+      db.execute(drop_table(person::_));
+      db.execute(create_table(person::_));
+    }
+
+    try {
+      db.execute(create_table(natural_person::_));
+    } catch (odbc_error) {
+      db.execute(drop_table(natural_person::_));
+      db.execute(create_table(natural_person::_));
+    }
+
+    try {
+      db.execute(create_table(legal_person::_));
+    } catch (odbc_error) {
+      db.execute(drop_table(legal_person::_));
+      db.execute(create_table(legal_person::_));
+    }
+  }
+
+  ~object_model_fixture() {
+    using namespace boost::rdb::sql::test::object_model;
+    db.execute(drop_table(person::_));
+    db.execute(drop_table(natural_person::_));
+    db.execute(drop_table(legal_person::_));
+  }
+};
+
 #define BOOST_RDB_CHECK_SELECT_RESULTS(expr, expected) BOOST_CHECK(str(expr) == expected)
 
 #endif
