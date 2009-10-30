@@ -273,6 +273,30 @@ namespace boost { namespace rdb { namespace sql {
     return dynamic_table(new dynamic_table::wrapper<Table>(table));
   }
   
+  class dynamic_tables {
+  
+  private:
+    std::vector<dynamic_table> tables_;
+  
+  public:
+  
+    typedef void table_container_tag;
+  
+    typedef fusion::vector<> placeholder_vector;
+
+    placeholder_vector placeholders() const {
+      return placeholder_vector();
+    }
+    
+    void push_back(const dynamic_table& table) {
+      tables_.push_back(table);
+    }
+    
+    void str(std::ostream& os) const {
+      std::for_each(tables_.begin(), tables_.end(), comma_output(os));
+    }
+  };
+  
 } } }
 
 
