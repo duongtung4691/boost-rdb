@@ -238,10 +238,39 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_dynamic_bind_results, springfield_fixtur
   BOOST_CHECK_EQUAL(string(first_name), "Marge");
 }
 
-BOOST_FIXTURE_TEST_CASE(test_orm, object_model_fixture) {
+#include <iostream>
+ostream* init = boost::rdb::trace_stream = &std::cout;
 
-  person p;
-  natural_person np;
-  legal_person lp;
+BOOST_FIXTURE_TEST_CASE(prepared_select_dynamic_tables, springfield_fixture) {
 
+  person p("husband");
+  person spouse("wife");
+  partner::qualified link;
+  
+  dynamic_expressions exprs;
+  exprs.push_back(make_dynamic(spouse.first_name));
+  
+  dynamic_tables tables;
+  tables.push_back(make_dynamic(spouse));
+  tables.push_back(make_dynamic(link));
+  
+  dynamic_boolean predicate = make_dynamic(p.id == link.husband && link.wife == spouse.id);
+  
+  BOOST_AUTO(st, db.prepare(select(p.first_name, exprs).from(p, tables).where(predicate)));
+  
+  varchar<30> him;
+
+  dynamic_values results;
+  varchar<30> her;
+  results.push_back(make_dynamic(her));
+
+  st.bind_results(him, results);
+  
+  BOOST_AUTO(cursor, st.execute());
+
+  cursor.next();
+  BOOST_CHECK(!him.is_null());
+  BOOST_CHECK_EQUAL(string(him), "Homer");
+  BOOST_CHECK(!her.is_null());
+  BOOST_CHECK_EQUAL(string(her), "Marge");
 }
