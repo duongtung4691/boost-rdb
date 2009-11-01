@@ -29,19 +29,6 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_dynamic_integer_param, springfield_
   BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((Marge))");
 }
 
-//BOOST_FIXTURE_TEST_CASE(prepared_select_dynamic_exprs, springfield_fixture) {
-//
-//  person p;
-//
-//  dynamic_expressions exprs;
-//  exprs.push_back(make_dynamic(p.first_name));
-//  exprs.push_back(make_dynamic(p.age));
-//  
-//  BOOST_AUTO(st, db.prepare(select(p.id, exprs).from(p)));
-//  
-//  BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((1 Homer 37) (2 Marge 34))");
-//}
-
 BOOST_FIXTURE_TEST_CASE(prepared_select_bind_dynamic_varchar_param, springfield_fixture) {
 
   person p;
@@ -238,8 +225,8 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_dynamic_bind_results, springfield_fixtur
   BOOST_CHECK_EQUAL(string(first_name), "Marge");
 }
 
-#include <iostream>
-ostream* init = boost::rdb::trace_stream = &std::cout;
+//#include <iostream>
+//ostream* init = boost::rdb::trace_stream = &std::cout;
 
 BOOST_FIXTURE_TEST_CASE(prepared_select_dynamic_tables, springfield_fixture) {
 
@@ -256,6 +243,11 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_dynamic_tables, springfield_fixture) {
   
   dynamic_boolean predicate = make_dynamic(p.id == link.husband && link.wife == spouse.id);
   
+  BOOST_TEST_CHECKPOINT("prepare");
+  //BOOST_AUTO(expr, select(p.first_name, exprs).from(p, spouse, link).exprs());
+  //BOOST_AUTO(st, db.prepare(select(p.first_name, exprs).from(p, spouse, link)));
+
+  //BOOST_AUTO(st, db.prepare(select(p.first_name, exprs).from(p, spouse, link).where(predicate)));
   BOOST_AUTO(st, db.prepare(select(p.first_name, exprs).from(p, tables).where(predicate)));
   
   varchar<30> him;
@@ -264,13 +256,18 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_dynamic_tables, springfield_fixture) {
   varchar<30> her;
   results.push_back(make_dynamic(her));
 
+  BOOST_TEST_CHECKPOINT("bind results");
   st.bind_results(him, results);
   
   BOOST_AUTO(cursor, st.execute());
+
+  BOOST_TEST_CHECKPOINT("before next");
 
   cursor.next();
   BOOST_CHECK(!him.is_null());
   BOOST_CHECK_EQUAL(string(him), "Homer");
   BOOST_CHECK(!her.is_null());
   BOOST_CHECK_EQUAL(string(her), "Marge");
+
+  BOOST_TEST_CHECKPOINT("return from test");
 }
