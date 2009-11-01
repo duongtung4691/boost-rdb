@@ -15,16 +15,18 @@ namespace boost { namespace rdb { namespace sql {
 
     template<class Self, class Expr, class Placeholders>
     struct result<Self(Expr&, Placeholders&)> {
-      typedef typename fusion::result_of::join<
-        const Placeholders,
-        const typename Expr::placeholder_vector
+      typedef typename fusion::result_of::as_vector<
+        typename fusion::result_of::join<
+          const Placeholders,
+          const typename Expr::placeholder_vector
+        >::type
       >::type type;
     };
 
     template<class Expr, class Placeholders>
     typename result<extract_placeholders_from_list(Expr&, Placeholders&)>::type
     operator ()(Expr& expr, Placeholders& placeholders) {
-      return fusion::join(placeholders, expr.placeholders());
+      return fusion::as_vector(fusion::join(placeholders, expr.placeholders()));
     }
   };
 

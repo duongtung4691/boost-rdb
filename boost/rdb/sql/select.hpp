@@ -51,7 +51,7 @@ namespace boost { namespace rdb { namespace sql {
     select_result_if(const Data& data) : data_(data) { }
     Data data_;
 
-    const select_list& exprs() const {
+    select_list exprs() const {
       return fusion::at_key<Key>(data_);
     }
   };
