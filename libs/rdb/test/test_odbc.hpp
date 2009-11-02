@@ -11,7 +11,7 @@
 #include "test_tables.hpp"
 
 template<typename ResultSet>
-std::string str(const ResultSet& results) {
+std::string str(ResultSet& results) {
   std::ostringstream os;
   os << results;
   return os.str();
