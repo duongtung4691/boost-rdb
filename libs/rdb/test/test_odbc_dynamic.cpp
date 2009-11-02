@@ -212,13 +212,13 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_dynamic_bind_results, springfield_fixtur
   
   BOOST_AUTO(cursor, st.execute());
 
-  cursor.next();
+  cursor.fetch();
   BOOST_CHECK(!id.is_null());
   BOOST_CHECK_EQUAL(id.value(), 1);
   BOOST_CHECK(!first_name.is_null());
   BOOST_CHECK_EQUAL(string(first_name), "Homer");
 
-  cursor.next();
+  cursor.fetch();
   BOOST_CHECK(!id.is_null());
   BOOST_CHECK_EQUAL(id.value(), 2);
   BOOST_CHECK(!first_name.is_null());
@@ -244,10 +244,6 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_dynamic_tables, springfield_fixture) {
   dynamic_boolean predicate = make_dynamic(p.id == link.husband && link.wife == spouse.id);
   
   BOOST_TEST_CHECKPOINT("prepare");
-  //BOOST_AUTO(expr, select(p.first_name, exprs).from(p, spouse, link).exprs());
-  //BOOST_AUTO(st, db.prepare(select(p.first_name, exprs).from(p, spouse, link)));
-
-  //BOOST_AUTO(st, db.prepare(select(p.first_name, exprs).from(p, spouse, link).where(predicate)));
   BOOST_AUTO(st, db.prepare(select(p.first_name, exprs).from(p, tables).where(predicate)));
   
   varchar<30> him;
@@ -261,9 +257,9 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_dynamic_tables, springfield_fixture) {
   
   BOOST_AUTO(cursor, st.execute());
 
-  BOOST_TEST_CHECKPOINT("before next");
+  BOOST_TEST_CHECKPOINT("before fetch");
 
-  cursor.next();
+  cursor.fetch();
   BOOST_CHECK(!him.is_null());
   BOOST_CHECK_EQUAL(string(him), "Homer");
   BOOST_CHECK(!her.is_null());

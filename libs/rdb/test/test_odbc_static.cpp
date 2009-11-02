@@ -91,10 +91,15 @@ BOOST_FIXTURE_TEST_CASE(expression_in_select_results, springfield_fixture) {
 }
 
 template<class Results1, class Results2>
-vector< pair<string, string> > fetch_parallel(const Results1& results1, const Results2& results2) {
+vector< pair<string, string> > fetch_parallel(Results1& results1, Results2& results2) {
+  nullable< fusion::vector<string> > row1, row2;
   vector< pair<string, string> > res;
-  res.push_back(make_pair(results1.fetch().get<0>(), results2.fetch().get<0>()));
-  res.push_back(make_pair(results1.fetch().get<0>(), results2.fetch().get<0>()));
+  BOOST_CHECK(results1.fetch(row1));
+  BOOST_CHECK(results2.fetch(row2));
+  res.push_back(make_pair(row1.get<0>(), row2.get<0>()));
+  BOOST_CHECK(results1.fetch(row1));
+  BOOST_CHECK(results2.fetch(row2));
+  res.push_back(make_pair(row1.get<0>(), row2.get<0>()));
   return res;
 }
 
@@ -240,13 +245,13 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_results, springfield_fixture) {
   st.bind_results(id, first_name);
   BOOST_AUTO(results, st.execute());
 
-  results.next();
+  results.fetch();
   BOOST_CHECK(!id.is_null());
   BOOST_CHECK_EQUAL(id.value(), 1);
   BOOST_CHECK(!first_name.is_null());
   BOOST_CHECK_EQUAL(string(first_name), "Homer");
 
-  results.next();
+  results.fetch();
   BOOST_CHECK(!id.is_null());
   BOOST_CHECK_EQUAL(id.value(), 2);
   BOOST_CHECK(!first_name.is_null());

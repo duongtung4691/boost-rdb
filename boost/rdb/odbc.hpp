@@ -659,7 +659,7 @@ namespace boost { namespace rdb { namespace odbc {
 
     typedef typename Container::value_type value_type;
 
-    bool fetch(value_type& row) const {
+    bool fetch(value_type& row) {
       long rc = SQLFetch(hstmt_);
 
       if (rc == SQL_NO_DATA) {
@@ -680,7 +680,7 @@ namespace boost { namespace rdb { namespace odbc {
       return true;
     }
 
-    bool next() const {
+    bool fetch() {
       long rc = SQLFetch(hstmt_);
 
       if (rc == SQL_NO_DATA) {
@@ -693,13 +693,7 @@ namespace boost { namespace rdb { namespace odbc {
       return true;
     }
 
-    value_type fetch() const {
-      value_type row;
-      fetch(row);
-      return row;
-    }
-
-    Container all() const {
+    Container all() {
       Container results;
       value_type row;
 
@@ -711,7 +705,7 @@ namespace boost { namespace rdb { namespace odbc {
     }
 
     template<class OtherContainer>
-    void all(OtherContainer& results) const {
+    void all(OtherContainer& results) {
       value_type row;
 
       while (fetch(row)) {
