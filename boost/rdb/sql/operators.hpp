@@ -94,7 +94,7 @@ namespace boost { namespace rdb { namespace sql {
       return expr_.placeholders();
     }
 
-    enum { precedence = precedence_level::logical_not };
+    BOOST_STATIC_CONSTANT(int, precedence = precedence_level::logical_not);
     
     void str(std::ostream& os) const {
       this->write(os, boost::mpl::bool_<static_cast<int>(Expr::precedence) < static_cast<int>(precedence)>());
@@ -159,7 +159,7 @@ namespace boost { namespace rdb { namespace sql {
 
     typedef type::boolean sql_type;
 
-    enum { precedence = precedence_level::logical_not };
+    BOOST_STATIC_CONSTANT(int, precedence = precedence_level::logical_not);
 
     typedef typename Select::placeholder_vector placeholder_vector;
 

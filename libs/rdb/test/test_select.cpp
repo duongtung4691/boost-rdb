@@ -6,10 +6,10 @@ using namespace boost::rdb::sql;
 using namespace boost::rdb::sql::test::springfield;
 
 BOOST_AUTO_TEST_CASE(test_select_temp) {
-  using namespace boost::rdb::sql;
+
+  using boost::rdb::sql::select;
   
   person p;
-  using namespace boost;
 
   BOOST_RDB_CHECK_SQL(
     select(p.id),
@@ -34,6 +34,8 @@ BOOST_AUTO_TEST_CASE(test_select_temp) {
 
 BOOST_AUTO_TEST_CASE(select_simple) {
 
+  using boost::rdb::sql::select;
+
   person p;
   
   BOOST_RDB_CHECK_SQL(
@@ -43,7 +45,7 @@ BOOST_AUTO_TEST_CASE(select_simple) {
 
 BOOST_AUTO_TEST_CASE(select_from) {
 
-  using namespace boost::rdb::sql;
+  using boost::rdb::sql::select;
   
   person p;
 
@@ -61,6 +63,9 @@ BOOST_AUTO_TEST_CASE(select_from) {
 }
 
 BOOST_AUTO_TEST_CASE(simple_where_clause) {
+
+
+  using boost::rdb::sql::select;
 
   person p;
   partner l;
@@ -112,6 +117,8 @@ BOOST_AUTO_TEST_CASE(simple_where_clause) {
 
 BOOST_AUTO_TEST_CASE(alias) {
 
+  using boost::rdb::sql::select;
+
   person husband;
   person_<1> wife("wife");
   
@@ -133,6 +140,8 @@ BOOST_AUTO_TEST_CASE(alias) {
 
 BOOST_AUTO_TEST_CASE(test_qualified) {
 
+  using boost::rdb::sql::select;
+
   person::qualified p;
   partner::qualified l;
   
@@ -143,6 +152,8 @@ BOOST_AUTO_TEST_CASE(test_qualified) {
 
 BOOST_AUTO_TEST_CASE(test_typed_alias) {
 
+  using boost::rdb::sql::select;
+
   person::_1 p("p");
   partner::_1 l("l");
   
@@ -152,6 +163,8 @@ BOOST_AUTO_TEST_CASE(test_typed_alias) {
 }
 
 BOOST_AUTO_TEST_CASE(numerical_operators) {
+
+  using boost::rdb::sql::select;
 
   person p("p");
   person_<1> p1("p1");
@@ -196,6 +209,8 @@ BOOST_AUTO_TEST_CASE(numerical_operators) {
 
 BOOST_AUTO_TEST_CASE(char_operators) {
 
+  using boost::rdb::sql::select;
+
   person p;
 
   BOOST_RDB_CHECK_SQL(
@@ -212,6 +227,8 @@ BOOST_AUTO_TEST_CASE(char_operators) {
 
 BOOST_AUTO_TEST_CASE(select_variadic) {
 
+  using boost::rdb::sql::select;
+
   person p;
   
   BOOST_RDB_CHECK_SQL(
@@ -225,6 +242,8 @@ BOOST_AUTO_TEST_CASE(select_variadic) {
 
 BOOST_AUTO_TEST_CASE(select_exists) {
 
+  using boost::rdb::sql::select;
+
   person m("m");
   partner p;
   
@@ -236,6 +255,8 @@ BOOST_AUTO_TEST_CASE(select_exists) {
 }
 
 BOOST_AUTO_TEST_CASE(test_is_null) {
+
+  using boost::rdb::sql::select;
 
   person p;
   
@@ -253,6 +274,8 @@ BOOST_AUTO_TEST_CASE(test_is_null) {
 }
 
 BOOST_AUTO_TEST_CASE(locals) {
+
+  using boost::rdb::sql::select;
 
   person_<1> p1("p1");
   person_<2> p2("p2");

@@ -259,7 +259,7 @@ namespace boost { namespace rdb { namespace sql {
     #include "detail/select_where.hpp"
 
     void str(std::ostream& os) const {
-      fusion::for_each(data_, str_clause(os));
+      fusion::for_each(this->data_, str_clause(os));
     }
 
   };

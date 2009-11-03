@@ -30,7 +30,7 @@ namespace boost { namespace rdb { namespace sql {
   
   struct any_column /*: boost::noncopyable*/ {
     const any_table* table_;
-    enum { precedence = precedence_level::highest };
+    BOOST_STATIC_CONSTANT(int, precedence = precedence_level::highest);
 
     void initialize(const any_table* table) {
       table_ = table;
@@ -52,6 +52,12 @@ namespace boost { namespace rdb { namespace sql {
     operator =(const T& expr) const {
       return set_clause<column, typename result_of::make_expression<column, T>::type>(
         *this, expression<column>::make_expression(expr));
+    }
+    
+    template<class Expr>
+    set_clause<column, Expr>
+    operator =(const expression<Expr>& expr) const {
+      return set_clause<column, Expr>(*this, expr.unwrap());
     }
     
     template<class T>

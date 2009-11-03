@@ -44,7 +44,7 @@ namespace boost { namespace rdb { namespace sql {
     void str(std::ostream& os, boost::false_type) const {
       os << "delete from " << Table::table();
       os << " where ";
-      where_.str(os);
+      this->where_.str(os);
     }
 
     template<class Where>

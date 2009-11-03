@@ -1,4 +1,4 @@
-# Boost rdb Library test Jamfile
+  # Boost rdb Library test Jamfile
 
 #  (C) Copyright Jean-Louis Leroy 2009.
 #  Use, modification, and distribution are subject to the 
@@ -28,7 +28,7 @@ project
     ;
 {
    test-suite "rdb"
-        : [ run test.cpp  /boost/test//boost_test_exec_monitor ]
+        : [ run test.cpp test_insert.cpp test_select.cpp test_placeholder.cpp test_update.cpp test_utils.cpp test_dynamic.cpp  /boost/test//boost_test_exec_monitor ]
         :
 		;
 

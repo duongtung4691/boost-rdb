@@ -8,6 +8,7 @@
 #include <boost/rdb/sql/select.hpp>
 #include <boost/rdb/sql/verbatim.hpp>
 
+namespace sql = boost::rdb::sql;
 using namespace boost::rdb::sql;
 using namespace boost::rdb::sql::test::springfield;
 
@@ -36,6 +37,6 @@ BOOST_AUTO_TEST_CASE(test_verbatim) {
   person p;
   using namespace boost::rdb::type;
   BOOST_RDB_CHECK_SQL(
-    select(verbatim<integer>("count(*)")).from(p),
+    sql::select(verbatim<integer>("count(*)")).from(p),
     "select count(*) from person");
 }

@@ -4,7 +4,7 @@
 #ifndef BOOST_RDB_SQL_COMMON_HPP
 #define BOOST_RDB_SQL_COMMON_HPP
 
-#include <iostream>
+#include <ostream>
 #include <sstream>
 #include <string>
 #include <deque>
@@ -76,8 +76,14 @@
   BOOST_PP_COMMA_IF(n) typename result_of::make_expression<this_type, t##n>::type
 #define BOOST_PP_RDB_CONCEPT_ASSERT(z, n, t) \
   BOOST_CONCEPT_ASSERT((BOOST_PP_TUPLE_ELEM(2, 0, t)<BOOST_PP_TUPLE_ELEM(2, 1, t) ## n>));
+#ifdef _MSC_VER
+#pragma message("find a solution for g++")
 #define BOOST_PP_RDB_MPL_ASSERT(z, n, t) \
-  BOOST_MPL_ASSERT((BOOST_PP_TUPLE_ELEM(2, 0, t)<BOOST_PP_TUPLE_ELEM(2, 1, t) ## n>));
+  BOOST_MPL_ASSERT((BOOST_PP_TUPLE_ELEM(2, 0, t)<BOOST_PP_CAT(BOOST_PP_TUPLE_ELEM(2, 1, t), n)>));
+#else
+#define BOOST_PP_RDB_MPL_ASSERT(z, n, t) \
+  ;
+#endif
 
 namespace boost { namespace rdb { namespace sql {
 
@@ -215,7 +221,6 @@ namespace boost { namespace rdb { namespace sql {
     std::ostream& stream;
 
     BOOST_CONCEPT_USAGE(Statement) {
-      statement_tag* p = static_cast<typename St::tag*>(0);
       st.str(stream);
       st.placeholders();
     }
@@ -223,15 +228,12 @@ namespace boost { namespace rdb { namespace sql {
 
   template<class St>
   struct SelectStatement : Statement<St> {
-    St& st;
-    std::ostream& stream;
     BOOST_CONCEPT_USAGE(SelectStatement) {
-      select_statement_tag* p = static_cast<typename St::tag*>(0);
     }
   };
   
   struct any_literal {
-    enum { precedence = precedence_level::highest };
+    BOOST_STATIC_CONSTANT(int, precedence = precedence_level::highest);
     typedef fusion::vector<> placeholder_vector;
     placeholder_vector placeholders() const { return fusion::make_vector(); }
   };
@@ -323,7 +325,7 @@ namespace boost { namespace rdb { namespace sql {
 
   struct comparison {
     typedef type::boolean sql_type;
-    enum { precedence = precedence_level::compare };
+    BOOST_STATIC_CONSTANT(int, precedence = precedence_level::compare);
   };
 
   template<class Statement>
@@ -467,7 +469,7 @@ namespace boost { namespace rdb { namespace sql {
     typedef placeholder_type sql_type;
     typedef fusion::vector<> placeholder_vector; // not really used; exists to please mpl::if_ which is not lazy
     placeholder_vector placeholders() const { return fusion::make_vector(); }
-    enum { precedence = precedence_level::highest };
+    BOOST_STATIC_CONSTANT(int, precedence = precedence_level::highest);
     void str(std::ostream& os) const {
       os << "?";
     }
@@ -488,9 +490,9 @@ namespace boost { namespace rdb { namespace sql {
       expr_.str(os);
     }
     
-    template<class Expr>
+    template<class Expr2>
     struct placeholders_for {
-      typedef typename Expr::placeholder_vector placeholder_vector;
+      typedef typename Expr2::placeholder_vector placeholder_vector;
       static placeholder_vector make(const set_clause& update) {
         return update.expr_.placeholders();
       }

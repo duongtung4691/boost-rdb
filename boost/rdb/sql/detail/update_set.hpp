@@ -19,5 +19,5 @@ set(BOOST_PP_ENUM_BINARY_PARAMS(n, const Update, &update)) {
     fusion::vector<
       BOOST_PP_ENUM_PARAMS(n, Update)
     >
-  >::type(add_key<Subdialect::set>(data_, fusion::make_vector(BOOST_PP_ENUM_PARAMS(n, update))));
+  >::type(add_key<typename Subdialect::set>(data_, fusion::make_vector(BOOST_PP_ENUM_PARAMS(n, update))));
 }
