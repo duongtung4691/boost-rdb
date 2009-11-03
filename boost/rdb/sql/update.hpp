@@ -33,14 +33,14 @@ namespace boost { namespace rdb { namespace sql {
     // I think that the reason why we need both const and non-const version is
     // inconsistencies in fusion's functions and result_of meta-functions
     template<class Update, class Placeholders>
-    struct result<Self(const Update&, Placeholders&)> : result<Self(Update&, Placeholders&)> {
+    struct result<Self(const Update&, const Placeholders&)> : result<Self(Update&, Placeholders&)> {
     };
 
     template<class Update, class Placeholders>
     typename result<Self(Update&, Placeholders&)>::type
-    operator ()(const Update& update, Placeholders& placeholders) {
+    operator ()(const Update& update, const Placeholders& placeholders) {
       using namespace fusion;
-      return result<Self(Update&, Placeholders&)>::make(update, placeholders);
+      return result<Self(const Update&, const Placeholders&)>::make(update, placeholders);
     }
   };
   

@@ -41,7 +41,7 @@ namespace boost { namespace rdb { namespace sql {
       return fusion::make_vector(impl_->placeholders_);
     }
 
-    enum { precedence = precedence_level::lowest };
+    BOOST_STATIC_CONSTANT(int, precedence = precedence_level::lowest);
 
     dynamic_expression_wrapper(root* p) : dynamic_expression(p) { }
   };
@@ -61,9 +61,9 @@ namespace boost { namespace rdb { namespace sql {
   };
 
   template<class Expr>
-  dynamic_expression_wrapper<typename Expr::sql_type>
+  expression< dynamic_expression_wrapper<typename Expr::sql_type> >
   make_dynamic(const expression<Expr>& expr) {
-    return dynamic_expression_wrapper<typename Expr::sql_type>(new dynamic_expression_impl<Expr>(expr));
+    return expression< dynamic_expression_wrapper<typename Expr::sql_type> >(new dynamic_expression_impl<Expr>(expr));
   }
 
   // alas no templatized typedefs yet
@@ -96,7 +96,7 @@ namespace boost { namespace rdb { namespace sql {
 
   template<class SqlType>
   struct dynamic_column_wrapper : dynamic_expression_wrapper<SqlType> {
-    dynamic_column_wrapper(root* p) : dynamic_expression_wrapper<SqlType>(p) { }
+    dynamic_column_wrapper(typename dynamic_expression_wrapper<SqlType>::root* p) : dynamic_expression_wrapper<SqlType>(p) { }
   };
 
   template<class Table, class SqlType, class Base>

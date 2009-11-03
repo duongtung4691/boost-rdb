@@ -57,7 +57,7 @@ namespace boost { namespace rdb { namespace sql {
     std::ostream& stream;
     typedef typename Expr::sql_type sql_type;
     typedef typename Expr::placeholder_vector placeholder_vector;
-    enum { precedence = Expr::precedence };
+    BOOST_STATIC_CONSTANT(int, precedence = Expr::precedence);
 
     BOOST_CONCEPT_USAGE(Expression) {
       expr.str(stream);
@@ -129,7 +129,7 @@ namespace boost { namespace rdb { namespace sql {
     const Expr& expr_;
     const Subquery& subquery_;
     typedef type::boolean sql_type;
-    enum { precedence = precedence_level::highest };
+    BOOST_STATIC_CONSTANT(int, precedence = precedence_level::highest);
     
     typedef typename fusion::result_of::join<
       const typename Expr::placeholder_vector,
@@ -200,7 +200,7 @@ namespace boost { namespace rdb { namespace sql {
     Expr expr_;
     ExprList alt_;
     typedef type::boolean sql_type;
-    enum { precedence = precedence_level::highest };
+    BOOST_STATIC_CONSTANT(int, precedence = precedence_level::highest);
 
     typedef typename fusion::result_of::join<
       const typename Expr::placeholder_vector,
@@ -284,7 +284,7 @@ namespace boost { namespace rdb { namespace sql {
   template<class Expr1, class Expr2, int Precedence>
   struct binary_operation {
 
-    enum { precedence = Precedence };
+    BOOST_STATIC_CONSTANT(int, precedence = Precedence);
 
     binary_operation(const Expr1& expr1, const Expr2& expr2) : expr1_(expr1), expr2_(expr2) { }
     
@@ -351,7 +351,7 @@ namespace boost { namespace rdb { namespace sql {
   struct expression : Expr {
     typedef expression this_type;
     expression() { }
-    template<typename T> expression(const T& arg) : Expr(arg) { }
+    template<typename T> explicit expression(const T& arg) : Expr(arg) { }
     template<typename T1, typename T2> expression(const T1& arg1, const T2& arg2) : Expr(arg1, arg2) { }
     const Expr& unwrap() const { return *this; }
     
@@ -365,7 +365,7 @@ namespace boost { namespace rdb { namespace sql {
     expression< sql::like<Expr, typename result_of::make_expression<Expr, Pattern>::type> >
     like(const Pattern& pattern) const {
       BOOST_MPL_ASSERT((boost::is_same<typename type_traits<typename Expr::sql_type>::kind, char_type>));
-      return sql::like<Expr, typename result_of::make_expression<Expr, Pattern>::type>(*this, make_expression(pattern));
+      return expression< sql::like<Expr, typename result_of::make_expression<Expr, Pattern>::type> >(*this, make_expression(pattern));
     }
     
     template<class Tag, class T>
@@ -409,7 +409,7 @@ namespace boost { namespace rdb { namespace sql {
     typedef null_type sql_type;
     typedef fusion::vector<> placeholder_vector;
     placeholder_vector placeholders() const { return fusion::make_vector(); }
-    enum { precedence = precedence_level::highest };
+    BOOST_STATIC_CONSTANT(int, precedence = precedence_level::highest);
     void str(std::ostream& os) const {
       os << "null";
     }

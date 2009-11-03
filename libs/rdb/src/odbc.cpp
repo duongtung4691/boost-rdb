@@ -29,7 +29,6 @@ odbc_error::odbc_error(SQLSMALLINT handle_type, SQLHANDLE handle, long rc) : rc(
   sprintf(msg, "rc %ld", rc);
   SQLSMALLINT mlen;
   SQLGetDiagField(handle_type, handle, 1, SQL_DIAG_MESSAGE_TEXT, (SQLPOINTER) msg, sizeof msg, &mlen);
-  cout << msg << endl;
 }
 
 database::~database() {

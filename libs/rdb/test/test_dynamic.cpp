@@ -12,6 +12,9 @@ struct empty { };
 struct ptr { void* p; };
 
 BOOST_AUTO_TEST_CASE(test_dynamic_expression_in_predicate) {
+
+  using sql::select;
+
   person p("p");
 
   dynamic_boolean predicate = make_dynamic(p.age > 18);
@@ -21,6 +24,7 @@ BOOST_AUTO_TEST_CASE(test_dynamic_expression_in_predicate) {
 }
 
 BOOST_AUTO_TEST_CASE(test_dynamic_integer_placeholder) {
+  using sql::select;
   person p("p");
   dynamic_boolean predicate = make_dynamic(p.age > _);
   fusion::vector< std::vector<dynamic_placeholder> > placeholders = (select(p.id).from(p).where(predicate)).placeholders();
@@ -30,6 +34,7 @@ BOOST_AUTO_TEST_CASE(test_dynamic_integer_placeholder) {
 }
 
 BOOST_AUTO_TEST_CASE(test_dynamic_varchar_placeholder) {
+  using sql::select;
   person p("p");
   dynamic_boolean predicate = make_dynamic(p.name == _);
   fusion::vector< std::vector<dynamic_placeholder> > placeholders = (select(p.id).from(p).where(predicate)).placeholders();

@@ -583,7 +583,7 @@ namespace boost { namespace rdb { namespace odbc {
     struct result<Self(Expr&, const Vector&)> {
       typedef typename fusion::result_of::push_back<
         Vector,
-        typedef typename type::cli_type<typename Expr::sql_type, Tag>::type
+        typename type::cli_type<typename Expr::sql_type, Tag>::type
       >::type type;
     };
   };
@@ -629,7 +629,7 @@ namespace boost { namespace rdb { namespace odbc {
     void bind_results_(result_ref_vector& results) {
       typedef fusion::vector<const select_list&, result_ref_vector&> zip;
       fusion::for_each(fusion::zip_view<zip>(zip(exprs_, results)),
-        results_binder(hstmt_));
+        results_binder(this->hstmt_));
     }
 
     #define BOOST_RDB_ADD_REF(z, n, type) BOOST_PP_COMMA_IF(n) type##n&

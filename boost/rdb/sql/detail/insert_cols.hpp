@@ -19,5 +19,5 @@ operator ()(BOOST_PP_ENUM_BINARY_PARAMS(n, const Col, &col)) {
     fusion::vector<
       BOOST_PP_ENUM_PARAMS(n, Col)
     >
-  >::type(add_key<Subdialect::cols>(this->data_, fusion::make_vector(BOOST_PP_ENUM_PARAMS(n, col))));
+  >::type(add_key<typename Subdialect::cols>(this->data_, fusion::make_vector(BOOST_PP_ENUM_PARAMS(n, col))));
 }

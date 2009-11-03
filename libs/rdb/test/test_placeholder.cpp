@@ -40,66 +40,56 @@ BOOST_AUTO_TEST_CASE(test_placeholder) {
     "update person set age = 75 where name like ?");
 
   using namespace boost;
+  using rdb::sql::select;
   using namespace rdb::type;
 
-  check_placeholders< fusion::vector< placeholder<integer> > >(p.age == _);
+  check_placeholders<
+    fusion::vector< placeholder<integer> >
+  >(p.age == _);
 
-  BOOST_MPL_ASSERT((same_placeholders<
-    BOOST_TYPEOF((p.age + _) == _)::placeholder_vector,
+  check_placeholders<
     fusion::vector< placeholder<integer>, placeholder<integer> >
-    >));
+  >((p.age + _) == _);
 
-  BOOST_MPL_ASSERT((same_placeholders<
-    BOOST_TYPEOF((p.age + _) == _ && p.name.like(_) && !(p.age < _))::placeholder_vector,
-    fusion::vector<placeholder<integer>, placeholder<integer>, placeholder< varchar<20> >, placeholder<integer>>
-    >));
+  check_placeholders<
+    fusion::vector<placeholder<integer>, placeholder<integer>, placeholder< varchar<20> >, placeholder<integer> >
+  >((p.age + _) == _ && p.name.like(_) && !(p.age < _));
 
-  BOOST_MPL_ASSERT((same_placeholders<
-    BOOST_TYPEOF(exists(select(p.id + _).from(p).where(p.name == _)))::placeholder_vector,
+  check_placeholders<
     fusion::vector< placeholder<integer>, placeholder< varchar<20> > >
-    >));
+  >(exists(select(p.id + _).from(p).where(p.name == _)));
 
-  BOOST_MPL_ASSERT((same_placeholders<
-    BOOST_TYPEOF(
-      select(p.id).from(p).where(p.age > _ && p.id.in(
-        select(p.id).from(p).where(p.name == _)))
-    )::placeholder_vector,
+  check_placeholders<
     fusion::vector< placeholder<integer>, placeholder< varchar<20> > >
-    >));
+  >(select(p.id).from(p).where(p.age > _ && p.id.in(
+      select(p.id).from(p).where(p.name == _))));
 
-  BOOST_MPL_ASSERT((same_placeholders<
-    BOOST_TYPEOF(p.id.in(1, _, 2, _))::placeholder_vector,
+  check_placeholders<
     fusion::vector< placeholder<integer>, placeholder<integer> >
-    >));
+  >(p.id.in(1, _, 2, _));
 
-  BOOST_MPL_ASSERT((same_placeholders<
-    BOOST_TYPEOF(p.id.in(1, _, 2, _))::placeholder_vector,
+  check_placeholders<
     fusion::vector< placeholder<integer>, placeholder<integer> >
-    >));
+  >(p.id.in(1, _, 2, _));
 
-  BOOST_MPL_ASSERT((same_placeholders<
-    BOOST_TYPEOF(insert_into(p)(p.id, p.first_name, p.name, p.age).values(_, _, _, 66))::placeholder_vector,
+  check_placeholders<
     fusion::vector< placeholder<integer>, placeholder< varchar<30> >, placeholder< varchar<20> > >
-    >));
+  >(insert_into(p)(p.id, p.first_name, p.name, p.age).values(_, _, _, 66));
 
-  {
-    typedef BOOST_TYPEOF(insert_into(p)(p.id).select(p.id).from(p).where(p.age > _))::placeholder_vector placeholders;
-    BOOST_MPL_ASSERT((same_placeholders<placeholders, fusion::vector<placeholder<integer>>>));
-  }
+  check_placeholders<
+    fusion::vector<placeholder<integer> >
+  >(insert_into(p)(p.id).select(p.id).from(p).where(p.age > _));
 
-  BOOST_MPL_ASSERT((same_placeholders<
-    BOOST_TYPEOF(update(p).set(p.age = 33).where(p.first_name == _))::placeholder_vector,
+  check_placeholders<
     fusion::vector< placeholder< varchar<30> > >
-    >));
+  >(update(p).set(p.age = 33).where(p.first_name == _));
 
-  BOOST_MPL_ASSERT((same_placeholders<
-    BOOST_TYPEOF(update(p).set(p.age = _).where(p.first_name == _))::placeholder_vector,
+  check_placeholders<
     fusion::vector< placeholder<integer>, placeholder< varchar<30> > >
-    >));
+  >(update(p).set(p.age = _).where(p.first_name == _));
 
-  BOOST_MPL_ASSERT((same_placeholders<
-    BOOST_TYPEOF(delete_from(p).where(p.first_name == _))::placeholder_vector,
+  check_placeholders<
     fusion::vector< placeholder< varchar<30> > >
-    >));
+  >(delete_from(p).where(p.first_name == _));
 }
 

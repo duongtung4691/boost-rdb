@@ -10,5 +10,5 @@ typename with_values<
 values(BOOST_PP_ENUM_BINARY_PARAMS(n, const Expr, &expr)) {
   return with_values<
     typename fusion::result_of::make_vector<BOOST_PP_ENUM_PARAMS(n, Expr)>::type
-  >::make(data_, fusion::make_vector(BOOST_PP_ENUM_PARAMS(n, expr)));
+  >::make(this->data_, fusion::make_vector(BOOST_PP_ENUM_PARAMS(n, expr)));
 }
