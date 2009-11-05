@@ -11,6 +11,8 @@ BOOST_AUTO_TEST_CASE(basic) {
 
   using boost::rdb::sql::select;
 
+  BOOST_TEST_CHECKPOINT("entry");
+
   database db("boost", "boost", "boost");
 
   try {
@@ -235,6 +237,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_varchar_param, springfield_fixture)
   st.bind_parameters(param);
   
   param = "Homer";
+  cerr << st.execute() << endl;
   BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((1))");
   
   param = "Marge";

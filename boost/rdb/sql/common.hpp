@@ -311,7 +311,7 @@ namespace boost { namespace rdb { namespace sql {
 
   struct char_comparable_type;
 
-  template<int N>
+  template<size_t N>
   struct type_traits< type::varchar<N> > {
     static void str(std::ostream& os) { os << "varchar(" << N << ")"; }
     typedef literal< std::string, type::varchar<N> > literal_type;
