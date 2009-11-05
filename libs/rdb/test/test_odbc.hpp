@@ -11,7 +11,7 @@
 #include "test_tables.hpp"
 
 template<typename ResultSet>
-std::string str(ResultSet& results) {
+std::string str_result_set(const ResultSet& results) {
   std::ostringstream os;
   os << results;
   return os.str();
@@ -92,6 +92,6 @@ struct object_model_fixture {
   }
 };
 
-#define BOOST_RDB_CHECK_SELECT_RESULTS(expr, expected) BOOST_CHECK(str(expr) == expected)
+#define BOOST_RDB_CHECK_SELECT_RESULTS(expr, expected) BOOST_CHECK(str_result_set(expr) == expected)
 
 #endif

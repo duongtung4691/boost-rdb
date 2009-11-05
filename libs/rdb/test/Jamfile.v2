@@ -27,10 +27,16 @@ project
     <include>../../.. 
     ;
 {
-   test-suite "rdb"
+    test-suite "rdb"
         : [ run test.cpp test_insert.cpp test_select.cpp test_placeholder.cpp test_update.cpp test_utils.cpp test_dynamic.cpp  /boost/test//boost_test_exec_monitor ]
         :
-		;
+	;
 
     test-suite syntax_checks : [ compile_fail_test_all ] ; 
+
+    test-suite "odbc"
+        : [ run test_odbc.cpp test_odbc_static.cpp test_odbc_dynamic.cpp /boost/test//boost_test_exec_monitor ]
+        :
+	;
+
 }
