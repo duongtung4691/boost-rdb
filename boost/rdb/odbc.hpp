@@ -160,7 +160,7 @@ namespace boost { namespace rdb { namespace odbc {
     integer& var_;
   };
 
-  template<int N>
+  template<size_t N>
   class dynamic_varchar_value : public dynamic_value {
   public:
 
@@ -186,7 +186,7 @@ namespace boost { namespace rdb { namespace odbc {
 
 namespace boost { namespace rdb { namespace type {
 
-  template<int N>
+  template<size_t N>
   struct cli_type<type::varchar<N>, odbc::odbc_tag> {
     typedef odbc::varchar<N> type;
   };
@@ -386,14 +386,14 @@ namespace boost { namespace rdb { namespace odbc {
       ++i;
     }
 
-    template<int N>
+    template<size_t N>
     inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder< type::varchar<N> >&, const varchar<N>& var) {
       sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
         (SQLPOINTER) var.chars_, 0, (SQLINTEGER*) &var.length_));
       ++i;
     }
 
-    template<int N>
+    template<size_t N>
     inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder< type::varchar<N> >&, const std::string& var) {
       sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
         (SQLPOINTER) var.c_str(), var.length(), 0));
@@ -407,7 +407,7 @@ namespace boost { namespace rdb { namespace odbc {
 //       ++i;
 //     }
 
-    template<int N>
+    template<size_t N>
     inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder< type::varchar<N> >&, const char var[]) {
       //BOOST_STATIC_ASSERT(M <= N);
       sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
@@ -704,7 +704,7 @@ namespace boost { namespace rdb {
     }
   };
 
-  template<int N>
+  template<size_t N>
   struct sql_type_adapter<type::varchar<N>, odbc::varchar<N>, odbc::odbc_tag> {
     static bool get_data(SQLHSTMT hstmt, int col, odbc::varchar<N>& value) {
       // TODO: post-fetch step to deal with signed/unsigned issue
@@ -715,7 +715,7 @@ namespace boost { namespace rdb {
     }
   };
 
-  template<int N>
+  template<size_t N>
   struct sql_type_adapter<type::varchar<N>, std::string, odbc::odbc_tag> {
     static bool get_data(SQLHSTMT hstmt, int col, std::string& value) {
       char buf[N];

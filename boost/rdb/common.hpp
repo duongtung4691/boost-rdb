@@ -29,9 +29,9 @@ namespace boost { namespace rdb {
       BOOST_STATIC_CONSTANT(int, length = 1);
     };
     
-    template<int N> struct varchar {
+    template<size_t N> struct varchar {
       BOOST_STATIC_CONSTANT(int, id = 3);
-      BOOST_STATIC_CONSTANT(int, length = N);
+      BOOST_STATIC_CONSTANT(size_t, length = N);
     };
     
     struct dynamic_expressions;
