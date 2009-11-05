@@ -10,6 +10,8 @@ using namespace boost::rdb::odbc;
 using namespace boost::rdb::sql::test::springfield;
 
 BOOST_FIXTURE_TEST_CASE(prepared_select_bind_dynamic_integer_param, springfield_fixture) {
+  
+  using sql::select;
 
   person p;
 
@@ -31,6 +33,8 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_dynamic_integer_param, springfield_
 
 BOOST_FIXTURE_TEST_CASE(prepared_select_bind_dynamic_varchar_param, springfield_fixture) {
 
+  using sql::select;
+
   person p;
 
   dynamic_boolean predicate = make_dynamic(p.first_name == _);
@@ -50,6 +54,8 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_dynamic_varchar_param, springfield_
 }
 
 BOOST_FIXTURE_TEST_CASE(prepared_insert_orm_style, springfield_fixture) {
+
+  using sql::select;
 
   person p;
 
@@ -106,6 +112,8 @@ BOOST_FIXTURE_TEST_CASE(prepared_insert_orm_style, springfield_fixture) {
 
 BOOST_FIXTURE_TEST_CASE(prepared_insert_mixed, springfield_fixture) {
 
+  using sql::select;
+
   person p;
 
   dynamic_columns cols;
@@ -151,6 +159,8 @@ BOOST_FIXTURE_TEST_CASE(prepared_insert_mixed, springfield_fixture) {
 
 BOOST_FIXTURE_TEST_CASE(prepared_update_dynamic, springfield_fixture) {
 
+  using sql::select;
+
   person p;
 
   dynamic_updates updates;
@@ -195,6 +205,9 @@ BOOST_FIXTURE_TEST_CASE(prepared_update_dynamic, springfield_fixture) {
 }
 
 BOOST_FIXTURE_TEST_CASE(prepared_select_dynamic_bind_results, springfield_fixture) {
+
+  using sql::select;
+
   person p;
   
   dynamic_expressions exprs;
@@ -229,6 +242,8 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_dynamic_bind_results, springfield_fixtur
 //ostream* init = boost::rdb::trace_stream = &std::cout;
 
 BOOST_FIXTURE_TEST_CASE(prepared_select_dynamic_tables, springfield_fixture) {
+
+  using sql::select;
 
   person p("husband");
   person spouse("wife");

@@ -8,6 +8,9 @@ using namespace boost::rdb::odbc;
 using namespace boost::rdb::sql::test::springfield;
 
 BOOST_AUTO_TEST_CASE(basic) {
+
+  using boost::rdb::sql::select;
+
   database db("boost", "boost", "boost");
 
   try {
@@ -44,7 +47,10 @@ BOOST_AUTO_TEST_CASE(basic) {
 
 BOOST_FIXTURE_TEST_CASE(test_null, springfield_fixture) {
 
+  using boost::rdb::sql::select;
+
   person p;
+
   db.execute(update(p).set(p.age = null).where(p.id == 1));
   BOOST_RDB_CHECK_SELECT_RESULTS(
     db.execute(select(p.id, p.age).from(p).where(p.id == 1)),
@@ -52,6 +58,8 @@ BOOST_FIXTURE_TEST_CASE(test_null, springfield_fixture) {
 }
 
 BOOST_FIXTURE_TEST_CASE(tx, springfield_fixture) {
+
+  using boost::rdb::sql::select;
 
   person p;
 
@@ -83,7 +91,7 @@ BOOST_FIXTURE_TEST_CASE(tx, springfield_fixture) {
 }
 
 BOOST_FIXTURE_TEST_CASE(expression_in_select_results, springfield_fixture) {
-
+  using boost::rdb::sql::select;
   person p;
   BOOST_RDB_CHECK_SELECT_RESULTS(
     db.execute(select(p.age + 1).from(p).where(p.id == 1)),
@@ -91,7 +99,7 @@ BOOST_FIXTURE_TEST_CASE(expression_in_select_results, springfield_fixture) {
 }
 
 template<class Results1, class Results2>
-vector< pair<string, string> > fetch_parallel(Results1& results1, Results2& results2) {
+vector< pair<string, string> > fetch_parallel(const Results1& results1, const Results2& results2) {
   nullable< fusion::vector<string> > row1, row2;
   vector< pair<string, string> > res;
   BOOST_CHECK(results1.fetch(row1));
@@ -104,6 +112,7 @@ vector< pair<string, string> > fetch_parallel(Results1& results1, Results2& resu
 }
 
 BOOST_FIXTURE_TEST_CASE(parallel_result_sets, springfield_fixture) {
+  using boost::rdb::sql::select;
   person p;
   vector< pair<string, string> > res = fetch_parallel(
     db.execute(select(p.first_name).from(p)),
@@ -115,6 +124,7 @@ BOOST_FIXTURE_TEST_CASE(parallel_result_sets, springfield_fixture) {
 }
 
 BOOST_FIXTURE_TEST_CASE(parameterless_prepared_statements, springfield_fixture) {
+  using boost::rdb::sql::select;
   person p;
   BOOST_AUTO(st, db.prepare(select(p.id, p.first_name, p.name, p.age).from(p)));
   BOOST_RDB_CHECK_SELECT_RESULTS(
@@ -127,9 +137,15 @@ BOOST_FIXTURE_TEST_CASE(parameterless_prepared_statements, springfield_fixture) 
 }
 
 BOOST_FIXTURE_TEST_CASE(prepared_insert, springfield_fixture) {
+  using boost::rdb::sql::select;
   person p;
   BOOST_AUTO(st, db.prepare(insert_into(p)(p.id, p.first_name, p.name, p.age).values(_, _, _, _)));
-  st.execute(3, (char*) "Bart", "Simpson", 9);
+  //st.execute(3, varchar<30>("Bart", (string) "Simpson", 9);
+  integer p0(3);
+  varchar<30> p1("Bart");
+  varchar<20> p2("Simpson");
+  integer p3(9);
+  st.execute(p0, p1, p2, p3);
   st.execute(4, (const char*) "Lisa", "Simpson", 7);
   st.execute(5, string("Maggie"), "Simpson", 0);
   BOOST_RDB_CHECK_SELECT_RESULTS(
@@ -143,6 +159,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_insert, springfield_fixture) {
 }
 
 BOOST_FIXTURE_TEST_CASE(prepared_select, springfield_fixture) {
+  using boost::rdb::sql::select;
   person p;
   BOOST_AUTO(st, db.prepare(select(p.first_name).from(p).where(p.id == _)));
   BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(1), "((Homer))");
@@ -150,6 +167,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_select, springfield_fixture) {
 }
 
 BOOST_FIXTURE_TEST_CASE(prepared_update_set, springfield_fixture) {
+  using boost::rdb::sql::select;
   person p;
   BOOST_AUTO(st, db.prepare(update(p).set(p.age = _, p.first_name = _).where(p.id == 1)));
   st.execute(9, "Bart");
@@ -163,6 +181,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_update_set, springfield_fixture) {
 }
 
 BOOST_FIXTURE_TEST_CASE(prepared_update_where, springfield_fixture) {
+  using boost::rdb::sql::select;
   person p;
   BOOST_AUTO(st, db.prepare(update(p).set(p.age = 66).where(p.id == _)));
   st.execute(1);
@@ -173,6 +192,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_update_where, springfield_fixture) {
 }
 
 BOOST_FIXTURE_TEST_CASE(prepared_update_both, springfield_fixture) {
+  using boost::rdb::sql::select;
   person p;
   BOOST_AUTO(st, db.prepare(update(p).set(p.age = _).where(p.id == _)));
   st.execute(38, 1);
@@ -183,6 +203,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_update_both, springfield_fixture) {
 }
 
 BOOST_FIXTURE_TEST_CASE(prepared_delete, springfield_fixture) {
+  using boost::rdb::sql::select;
   person p;
   BOOST_AUTO(st, db.prepare(delete_from(p).where(p.id == _)));
   st.execute(1);
@@ -196,6 +217,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_delete, springfield_fixture) {
 }
 
 BOOST_FIXTURE_TEST_CASE(prepared_select_bind_integer_param, springfield_fixture) {
+  using boost::rdb::sql::select;
   person p;
   BOOST_AUTO(st, db.prepare(select(p.first_name).from(p).where(p.id == _)));
   
@@ -210,6 +232,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_integer_param, springfield_fixture)
 }
 
 BOOST_FIXTURE_TEST_CASE(prepared_select_bind_varchar_param, springfield_fixture) {
+  using boost::rdb::sql::select;
   person p;
   BOOST_AUTO(st, db.prepare(select(p.id).from(p).where(p.first_name == _)));
   
@@ -224,6 +247,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_varchar_param, springfield_fixture)
 }
 
 BOOST_FIXTURE_TEST_CASE(prepared_select_bind_integer_param_in_exprs, springfield_fixture) {
+  using boost::rdb::sql::select;
   person p;
   BOOST_AUTO(st, db.prepare(select(p.age + _).from(p).where(p.id == 1)));
   
@@ -238,6 +262,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_integer_param_in_exprs, springfield
 }
 
 BOOST_FIXTURE_TEST_CASE(prepared_select_bind_results, springfield_fixture) {
+  using boost::rdb::sql::select;
   person p;
   BOOST_AUTO(st, db.prepare(select(p.id, p.first_name).from(p)));
   integer id;

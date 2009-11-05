@@ -62,13 +62,11 @@ Global
 		{26823D64-C19A-439F-8EEE-658AFED668D7}.Debug|Win32.ActiveCfg = Debug|Win32
 		{26823D64-C19A-439F-8EEE-658AFED668D7}.Debug|Win32.Build.0 = Debug|Win32
 		{26823D64-C19A-439F-8EEE-658AFED668D7}.Fast Compilation|Win32.ActiveCfg = Fast Compilation|Win32
-		{26823D64-C19A-439F-8EEE-658AFED668D7}.Fast Compilation|Win32.Build.0 = Fast Compilation|Win32
 		{26823D64-C19A-439F-8EEE-658AFED668D7}.Release|Win32.ActiveCfg = Release|Win32
 		{26823D64-C19A-439F-8EEE-658AFED668D7}.Release|Win32.Build.0 = Release|Win32
 		{AFCDB08B-7562-4256-9D00-C809DEFCA49E}.Debug|Win32.ActiveCfg = Debug|Win32
 		{AFCDB08B-7562-4256-9D00-C809DEFCA49E}.Debug|Win32.Build.0 = Debug|Win32
 		{AFCDB08B-7562-4256-9D00-C809DEFCA49E}.Fast Compilation|Win32.ActiveCfg = Fast Compilation|Win32
-		{AFCDB08B-7562-4256-9D00-C809DEFCA49E}.Fast Compilation|Win32.Build.0 = Fast Compilation|Win32
 		{AFCDB08B-7562-4256-9D00-C809DEFCA49E}.Release|Win32.ActiveCfg = Release|Win32
 		{AFCDB08B-7562-4256-9D00-C809DEFCA49E}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection

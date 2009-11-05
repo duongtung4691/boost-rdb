@@ -370,42 +370,11 @@ namespace boost { namespace rdb { namespace odbc {
     SQLHSTMT hstmt_;
   };
 
-  template<class Tag>
-  struct make_param_vector {
-    // todo : merge with make_result_vector below
+  template<class RdbType, class T, class Tag>
+  struct bind_parameter;
 
-    template<typename Sig>
-    struct result;
-
-    template<class Self, class SqlType, class Vector>
-    struct result<Self(type::placeholder<SqlType>&, const Vector&)> {
-      typedef typename fusion::result_of::push_back<
-        Vector,
-        typename type::cli_type<SqlType, Tag>::type
-      >::type type;
-    };
-
-    template<class Self, class Vector>
-    struct result<Self(const std::vector<dynamic_placeholder>&, const Vector&)> {
-      typedef typename fusion::result_of::push_back<
-        Vector,
-        dynamic_values
-      >::type type;
-    };
-  };
-
-  struct make_ref_vector {
-
-    template<typename Sig>
-    struct result;
-
-    template<class Self, class T, class Vector>
-    struct result<Self(T&, Vector&)> {
-      typedef typename fusion::result_of::push_back<
-        Vector,
-        T&
-      >::type type;
-    };
+  template<>
+  struct bind_parameter<> {
   };
 
   struct parameter_binder {
@@ -420,11 +389,47 @@ namespace boost { namespace rdb { namespace odbc {
       ++i_;
     }
 
+    void operator ()(fusion::vector<const type::placeholder<type::integer>&, int&>& zip) const {
+      using namespace fusion;
+      SQLLEN len = sizeof(long);
+      sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindParameter(hstmt_, i_, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
+        &at_c<1>(zip), 0, &len));
+      ++i_;
+    }
+
     template<size_t N>
     void operator ()(fusion::vector<const type::placeholder< type::varchar<N> >&, varchar<N>&>& zip) const {
       using namespace fusion;
       sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindParameter(hstmt_, i_, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
         at_c<1>(zip).chars_, 0, &at_c<1>(zip).length_));
+      ++i_;
+    }
+
+    template<size_t N>
+    void operator ()(fusion::vector<const type::placeholder< type::varchar<N> >&, const std::string&>& zip) const {
+      using namespace fusion;
+      SQLLEN len = at_c<1>.length();
+      sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindParameter(hstmt_, i_, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
+        at_c<1>(zip).c_str(), 0, length));
+      ++i_;
+    }
+
+    template<size_t N>
+    void operator ()(fusion::vector<const type::placeholder< type::varchar<N> >&, const char *&>& zip) const {
+      using namespace fusion;
+      SQLLEN len = strlen(at_c<1>);
+      sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindParameter(hstmt_, i_, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
+        at_c<1>(zip), 0, length));
+      ++i_;
+    }
+
+    template<size_t N, size_t M>
+    void operator ()(fusion::vector<const type::placeholder< type::varchar<N> >&, const char (&)[M]>& zip) const {
+      using namespace fusion;
+      BOOST_STATIC_ASSERT(M <= N);
+      SQLLEN len = strlen(at_c<1>);
+      sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindParameter(hstmt_, i_, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
+        at_c<1>(zip), 0, length));
       ++i_;
     }
 
@@ -461,22 +466,6 @@ namespace boost { namespace rdb { namespace odbc {
 
     typedef typename fusion::result_of::as_vector<typename Statement::placeholder_vector>::type placeholder_vector;
     placeholder_vector placeholders_;
-
-    typedef typename fusion::result_of::as_vector<
-      typename fusion::result_of::accumulate<
-        placeholder_vector, 
-        fusion::vector<>, 
-        make_param_vector<odbc_tag>
-      >::type
-    >::type param_vector;
-
-    typedef typename fusion::result_of::as_vector<
-      typename fusion::result_of::accumulate<
-        param_vector,
-        fusion::vector<>, 
-        make_ref_vector
-      >::type
-    >::type param_ref_vector;
   
   public:
     prepared_statement(const Statement& st, SQLHSTMT hstmt) :
@@ -488,11 +477,10 @@ namespace boost { namespace rdb { namespace odbc {
       SQLFreeHandle(SQL_HANDLE_STMT, hstmt_);
     }
 
-    template<class Vector>
-    void executev(const Vector& vec) {
-      param_vector params = vec;
-      typedef fusion::vector<const placeholder_vector&, param_vector&> zip;
-      fusion::for_each(fusion::zip_view<zip>(zip(placeholders_, params)),
+    template<class Params>
+    void executev(const Params& params) {
+      typedef fusion::vector<const placeholder_vector&, Params&> zip;
+      fusion::for_each(fusion::zip_view<zip>(zip(placeholders_, const_cast<Params&>(params))),
         parameter_binder(hstmt_));
       sql_check(SQL_HANDLE_STMT, hstmt_, SQLExecute(hstmt_));
     }
@@ -505,11 +493,18 @@ namespace boost { namespace rdb { namespace odbc {
     #define BOOST_PP_FILENAME_1       <boost/rdb/odbc/detail/execute.hpp>
     #include BOOST_PP_ITERATE()
 
-    void bind_parameters_(param_ref_vector& params) {
-      typedef fusion::vector<const placeholder_vector&, param_ref_vector&> zip;
-      fusion::for_each(fusion::zip_view<zip>(zip(placeholders_, params)),
+    template<class Params>
+    void bind_parameters_(const Params& params) {
+      typedef fusion::vector<const placeholder_vector&, Params&> zip;
+      fusion::for_each(fusion::zip_view<zip>(zip(placeholders_, const_cast<Params&>(params))),
         parameter_binder(hstmt_));
     }
+
+    //void bind_parameters_(param_ref_vector& params) {
+    //  typedef fusion::vector<const placeholder_vector&, param_ref_vector&> zip;
+    //  fusion::for_each(fusion::zip_view<zip>(zip(placeholders_, params)),
+    //    parameter_binder(hstmt_));
+    //}
 
     #define BOOST_RDB_ADD_REF(z, n, type) BOOST_PP_COMMA_IF(n) type##n&
     #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
@@ -571,23 +566,6 @@ namespace boost { namespace rdb { namespace odbc {
     }
   };
 
-  template<class Tag>
-  struct make_result_vector {
-
-    template<typename Sig>
-    struct result;
-    
-    typedef make_result_vector Self;
-
-    template<class Expr, class Vector>
-    struct result<Self(Expr&, const Vector&)> {
-      typedef typename fusion::result_of::push_back<
-        Vector,
-        typename type::cli_type<typename Expr::sql_type, Tag>::type
-      >::type type;
-    };
-  };
-
   template<class Select>
   class prepared_select_statement : public prepared_statement<Select> {
   
@@ -595,22 +573,6 @@ namespace boost { namespace rdb { namespace odbc {
     typedef typename Select::select_list select_list;
     typedef typename Select::result container;
     typedef prepared_statement<Select> base;
-
-    typedef typename fusion::result_of::as_vector<
-      typename fusion::result_of::accumulate<
-        select_list, 
-        fusion::vector<>, 
-        make_result_vector<odbc_tag>
-      >::type
-    >::type result_vector;
-
-    typedef typename fusion::result_of::as_vector<
-      typename fusion::result_of::accumulate<
-        result_vector,
-        fusion::vector<>, 
-        make_ref_vector
-      >::type
-    >::type result_ref_vector;
 
     prepared_select_statement(const Select& select, SQLHSTMT hstmt) :
       base(select, hstmt), exprs_(select.exprs()) { }
@@ -626,9 +588,10 @@ namespace boost { namespace rdb { namespace odbc {
     #define BOOST_PP_FILENAME_1       <boost/rdb/odbc/detail/execute_select.hpp>
     #include BOOST_PP_ITERATE()
 
-    void bind_results_(result_ref_vector& results) {
-      typedef fusion::vector<const select_list&, result_ref_vector&> zip;
-      fusion::for_each(fusion::zip_view<zip>(zip(exprs_, results)),
+    template<class Results>
+    void bind_results_(const Results& results) {
+      typedef fusion::vector<const select_list&, Results&> zip;
+      fusion::for_each(fusion::zip_view<zip>(zip(exprs_, const_cast<Results&>(results))),
         results_binder(this->hstmt_));
     }
 
@@ -659,7 +622,7 @@ namespace boost { namespace rdb { namespace odbc {
 
     typedef typename Container::value_type value_type;
 
-    bool fetch(value_type& row) {
+    bool fetch(value_type& row) const {
       long rc = SQLFetch(hstmt_);
 
       if (rc == SQL_NO_DATA) {
@@ -680,7 +643,7 @@ namespace boost { namespace rdb { namespace odbc {
       return true;
     }
 
-    bool fetch() {
+    bool fetch() const {
       long rc = SQLFetch(hstmt_);
 
       if (rc == SQL_NO_DATA) {
@@ -693,7 +656,7 @@ namespace boost { namespace rdb { namespace odbc {
       return true;
     }
 
-    Container all() {
+    Container all() const {
       Container results;
       value_type row;
 
@@ -705,7 +668,7 @@ namespace boost { namespace rdb { namespace odbc {
     }
 
     template<class OtherContainer>
-    void all(OtherContainer& results) {
+    void all(OtherContainer& results) const {
       value_type row;
 
       while (fetch(row)) {
@@ -714,12 +677,11 @@ namespace boost { namespace rdb { namespace odbc {
     }
   };
 
-  template<class ResultSet>
-  typename ResultSet::template enable<std::ostream&>::type
-  operator <<(std::ostream& os, ResultSet& results) {
+  template<class ExprList, class Container, bool Own>
+  std::ostream& operator <<(std::ostream& os, const result_set<ExprList, Container, Own>& results) {
     const char* sep = "";
     os << "(";
-    typename ResultSet::value_type row;
+    typename result_set<ExprList, Container, Own>::value_type row;
     while (results.fetch(row)) {
       os << sep;
       os << row;
