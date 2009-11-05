@@ -77,7 +77,7 @@ namespace boost { namespace rdb { namespace sql {
 
     template<class Col, class Expr, class Placeholders>
     typename result<extract_insert_values_placeholders(fusion::vector<const Col&, const Expr&>, Placeholders&)>::type
-    operator ()(fusion::vector<const Col&, const Expr&> zip, Placeholders& placeholders) const {
+    operator ()(const fusion::vector<const Col&, const Expr&> zip, const Placeholders& placeholders) const {
       using namespace fusion;
       //BOOST_AUTO(result, as_vector(join(placeholders,
       //  detail::binary_operation_placeholders<Col, Expr>::make(at_c<0>(zip), at_c<1>(zip)))));

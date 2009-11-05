@@ -25,7 +25,7 @@ namespace boost { namespace rdb { namespace sql {
 
     template<class Expr, class Placeholders>
     typename result<extract_placeholders_from_list(Expr&, Placeholders&)>::type
-    operator ()(Expr& expr, Placeholders& placeholders) {
+    operator ()(const Expr& expr, const Placeholders& placeholders) {
       return fusion::as_vector(fusion::join(placeholders, expr.placeholders()));
     }
   };

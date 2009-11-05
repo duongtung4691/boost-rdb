@@ -238,7 +238,7 @@ namespace boost { namespace rdb { namespace odbc {
     mutable int i_;
 
     template<class Expr, class Value>
-    void operator ()(fusion::vector<Expr, Value&>& value) const {
+    void operator ()(const fusion::vector<Expr, Value&>& value) const {
       using namespace fusion;
       row_.set_null(i_, !sql_type_adapter<
         typename remove_reference<Expr>::type::sql_type,
@@ -384,34 +384,42 @@ namespace boost { namespace rdb { namespace odbc {
       ++i;
     }
 
-    template<size_t N>
-    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder< type::varchar<N> >&, varchar<N>& var) {
+    template<int N>
+    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder< type::varchar<N> >&, const varchar<N>& var) {
       sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
-        (SQLPOINTER) var.chars_, 0, &var.length_));
+        (SQLPOINTER) var.chars_, 0, (SQLINTEGER*) &var.length_));
       ++i;
     }
 
-    template<size_t N>
+    template<int N>
     inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder< type::varchar<N> >&, const std::string& var) {
       sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
         (SQLPOINTER) var.c_str(), var.length(), 0));
       ++i;
     }
 
-    template<size_t N>
-    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder< type::varchar<N> >&, const char* var) {
+//     template<size_t N>
+//     inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder< type::varchar<N> >&, const char* var) {
+//       sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
+//         (SQLPOINTER) var, 0, 0));
+//       ++i;
+//     }
+
+    template<int N>
+    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder< type::varchar<N> >&, const char var[]) {
+      //BOOST_STATIC_ASSERT(M <= N);
       sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
         (SQLPOINTER) var, 0, 0));
       ++i;
     }
 
-    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const dynamic_placeholders& placeholders, dynamic_values& values) {
+    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const dynamic_placeholders& placeholders, const dynamic_values& values) {
 
       if (placeholders.size() != values.size())
         throw dynamic_value_mismatch();
 
       dynamic_placeholders::const_iterator placeholder_iter = placeholders.begin(), placeholder_last = placeholders.end();
-      dynamic_values::iterator value_iter = values.begin();
+      dynamic_values::const_iterator value_iter = values.begin();
 
       while (placeholder_iter != placeholder_last) {
 
@@ -438,7 +446,7 @@ namespace boost { namespace rdb { namespace odbc {
     mutable SQLUSMALLINT i_;
 
     template<class T1, class T2>
-    void operator ()(fusion::vector<T1&, T2&>& zip) const {
+    void operator ()(const fusion::vector<T1&, T2&>& zip) const {
       using namespace fusion;
       detail::bind_parameter(hstmt_, i_, at_c<0>(zip), at_c<1>(zip));
     }
@@ -497,6 +505,14 @@ namespace boost { namespace rdb { namespace odbc {
   protected:
     SQLHSTMT hstmt_;    
   };
+
+  template<class Expr, class CliType>
+  struct can_bind : is_same<typename Expr::sql_type, typename CliType::rdb_type> {
+  };
+
+  template<>
+  struct can_bind<dynamic_expressions, dynamic_values> : mpl::true_ {
+  };
   
   struct results_binder {
     results_binder(SQLHSTMT hstmt) : hstmt_(hstmt), i_(1) { }
@@ -504,9 +520,9 @@ namespace boost { namespace rdb { namespace odbc {
     mutable SQLUSMALLINT i_;
 
     template<class Expr, class CliType>
-    void operator ()(fusion::vector<const Expr&, CliType&>& zip) const {
-      BOOST_MPL_ASSERT((is_same<typename Expr::sql_type, typename CliType::rdb_type>));
-      bind(fusion::at_c<1>(zip));
+    void operator ()(const fusion::vector<const Expr&, CliType&>& zip) const {
+      BOOST_MPL_ASSERT((can_bind<Expr, CliType>));
+      bind(/*fusion::at_c<0>(zip),*/ fusion::at_c<1>(zip));
       ++i_;
     }
     
@@ -521,7 +537,7 @@ namespace boost { namespace rdb { namespace odbc {
         var.chars_, N + 1, &var.length_));
     }
 
-    void operator ()(fusion::vector<const dynamic_expressions&, dynamic_values&>& zip) const {
+    void operator ()(const fusion::vector<const dynamic_expressions&, dynamic_values&>& zip) const {
       using fusion::at_c;
 
       if (at_c<0>(zip).size() != at_c<1>(zip).size())
@@ -718,7 +734,7 @@ namespace boost { namespace rdb { namespace sql {
     return new odbc::dynamic_integer_value(type::integer::id, type::integer::length, lvalue);
   }
 
-  template<int N>
+  template<size_t N>
   inline intrusive_ptr<odbc::dynamic_value> make_dynamic(odbc::varchar<N>& lvalue) {
     return new odbc::dynamic_varchar_value<N>(type::varchar<N>::id, type::varchar<N>::length, lvalue);
   }

@@ -556,8 +556,8 @@ namespace boost { namespace rdb { namespace sql {
     print_row_element(std::ostream& os, const Row& r) : os_(os), r_(r), bit_(0) { }
     
     std::ostream& os_;
-    mutable int bit_;
     const Row& r_;
+    mutable int bit_;
     
     template<class T>
     void operator ()(const T& value) const {
