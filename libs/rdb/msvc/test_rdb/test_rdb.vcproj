@@ -49,6 +49,7 @@
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="test.hpp"
+				PrecompiledHeaderFile=""
 				WarningLevel="3"
 				DebugInformationFormat="4"
 			/>
@@ -123,7 +124,9 @@
 				ExceptionHandling="2"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderThrough="test.hpp"
+				PrecompiledHeaderFile=""
 				WarningLevel="3"
 				DebugInformationFormat="3"
 			/>
@@ -203,6 +206,7 @@
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="test.hpp"
+				PrecompiledHeaderFile=""
 				WarningLevel="3"
 				DebugInformationFormat="0"
 			/>
@@ -255,7 +259,7 @@
 			Name="compile-fail"
 			>
 			<File
-				RelativePath="..\..\test\compile_fail\select_sans_from.cpp"
+				RelativePath="..\..\test\rdb\compile_fail\insert_sans_cols.cpp"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -283,7 +287,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\test\compile_fail\select_where_from.cpp"
+				RelativePath="..\..\test\rdb\compile_fail\insert_values.cpp"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -311,7 +315,203 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\test\compile_fail\test_fail.hpp"
+				RelativePath="..\..\test\rdb\compile_fail\insert_values_mismatch.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Fast Compilation|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\test\rdb\compile_fail\insert_values_select.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Fast Compilation|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\test\rdb\compile_fail\select_from_distinct.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Fast Compilation|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\test\rdb\compile_fail\select_from_from.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Fast Compilation|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\test\rdb\compile_fail\select_sans_from.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Fast Compilation|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\test\rdb\compile_fail\select_where.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Fast Compilation|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\test\rdb\compile_fail\select_where_from.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Fast Compilation|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\test\rdb\compile_fail\test_fail.hpp"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -340,45 +540,22 @@
 			</File>
 		</Filter>
 		<File
-			RelativePath="..\..\test\Jamfile.v2"
+			RelativePath="..\..\test\rdb\Jamfile.v2"
 			>
 		</File>
 		<File
-			RelativePath=".\preprocess_rdb.cpp"
+			RelativePath="..\..\test\rdb\test.cpp"
 			>
 			<FileConfiguration
 				Name="Debug|Win32"
-				ExcludedFromBuild="true"
 				>
 				<Tool
 					Name="VCCLCompilerTool"
-					AdditionalOptions="/E"
+					UsePrecompiledHeader="1"
 				/>
 			</FileConfiguration>
 			<FileConfiguration
 				Name="Release|Win32"
-				ExcludedFromBuild="true"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					AdditionalOptions="/E"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Fast Compilation|Win32"
-				ExcludedFromBuild="true"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					AdditionalOptions="/E"
-				/>
-			</FileConfiguration>
-		</File>
-		<File
-			RelativePath="..\..\test\test.cpp"
-			>
-			<FileConfiguration
-				Name="Debug|Win32"
 				>
 				<Tool
 					Name="VCCLCompilerTool"
@@ -395,43 +572,35 @@
 			</FileConfiguration>
 		</File>
 		<File
-			RelativePath="..\..\test\test.hpp"
+			RelativePath="..\..\test\rdb\test.hpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\test\test_dynamic.cpp"
-			>
-			<FileConfiguration
-				Name="Fast Compilation|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="2"
-				/>
-			</FileConfiguration>
-		</File>
-		<File
-			RelativePath="..\..\test\test_insert.cpp"
+			RelativePath="..\..\test\rdb\test_dynamic.cpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\test\test_placeholder.cpp"
+			RelativePath="..\..\test\rdb\test_insert.cpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\test\test_select.cpp"
+			RelativePath="..\..\test\rdb\test_placeholder.cpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\test\test_tables.hpp"
+			RelativePath="..\..\test\rdb\test_select.cpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\test\test_update.cpp"
+			RelativePath="..\..\test\rdb\test_tables.hpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\test\test_utils.cpp"
+			RelativePath="..\..\test\rdb\test_update.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\test\rdb\test_utils.cpp"
 			>
 		</File>
 	</Files>

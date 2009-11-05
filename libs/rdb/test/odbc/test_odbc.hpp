@@ -8,7 +8,7 @@
 #include <boost/rdb/sql/dynamic.hpp>
 #include <boost/rdb/odbc.hpp>
 
-#include "test_tables.hpp"
+#include "../rdb/test_tables.hpp"
 
 template<typename ResultSet>
 std::string str_result_set(const ResultSet& results) {

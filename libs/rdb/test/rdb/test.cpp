@@ -1,7 +1,7 @@
+#include "test.hpp"
+
 #define BOOST_TEST_MODULE sql_composer
 #include <boost/test/unit_test.hpp>
-
-#include "test.hpp"
 
 #include <boost/rdb/sql/delete.hpp>
 #include <boost/rdb/sql/table.hpp>

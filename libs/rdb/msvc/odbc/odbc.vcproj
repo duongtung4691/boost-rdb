@@ -226,7 +226,11 @@
 			</File>
 		</Filter>
 		<File
-			RelativePath="..\..\src\odbc.cpp"
+			RelativePath="..\..\build\odbc\Jamfile.v2"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\odbc\odbc.cpp"
 			>
 		</File>
 		<File
