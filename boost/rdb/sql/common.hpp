@@ -583,8 +583,4 @@ namespace boost { namespace rdb { namespace sql {
   
 } } }
 
-namespace boost { namespace rdb {
-  extern std::ostream* trace_stream;
-} }
-
 #endif // BOOST_RDB_SQL_COMMON_HPP

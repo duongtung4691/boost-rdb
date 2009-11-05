@@ -20,7 +20,7 @@ project
     : requirements
     <library>../../build//boost_rdb
     <library>../../build/odbc//boost_rdb_odbc
-    <include>../../../.. 
+    <include>../../../..
     <os>LINUX:<library>odbc
     ;
 {

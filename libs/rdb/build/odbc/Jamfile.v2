@@ -8,14 +8,23 @@
 
 # See library home page at http://www.boost.org/libs/rdb
 
-project boost/rdb_odbc
-    : source-location ../../src/odbc
-    ;
+#project boost/rdb_odbc
+#    : source-location ../../src/odbc
+#    ;
 
 SOURCES =
     odbc ;
 
-lib boost_rdb_odbc
-	: $(SOURCES).cpp ../../build//boost_rdb
-    : <include>../../../..
+project
+    : requirements
+    # <library>../../build//boost_rdb
+    <include>../../../..
+    : source-location ../../src/odbc
     ;
+{
+  lib boost_rdb_odbc
+	  : $(SOURCES).cpp
+	    # ../../build//boost_rdb
+      : <include>../../../..
+      ;
+}

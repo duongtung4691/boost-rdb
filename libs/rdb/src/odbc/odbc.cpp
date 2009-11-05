@@ -95,4 +95,6 @@ const char* odbc_error::what() const throw() {
   return msg;
 }
 
+std::ostream* trace_stream;
+
 } } }

@@ -17,7 +17,3 @@ namespace boost { namespace rdb { namespace sql {
 
   select_statement<sql2003, sql2003::select, fusion::map<>, sql2003> select = fusion::map<>();
 } } }
-
-namespace boost { namespace rdb {
-  std::ostream* trace_stream;
-} }

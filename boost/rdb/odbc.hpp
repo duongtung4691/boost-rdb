@@ -24,6 +24,8 @@ namespace boost { namespace rdb {
 
 namespace boost { namespace rdb { namespace odbc {
 
+  extern std::ostream* trace_stream;
+
   struct odbc_tag { };
 
   struct odbc_error : std::exception {
