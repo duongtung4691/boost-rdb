@@ -5,6 +5,7 @@
 #define BOOST_RDB_COMMON_HPP
 
 #include <boost/intrusive_ptr.hpp>
+#include <boost/fusion/include/vector.hpp>
 
 namespace boost { namespace rdb {
 

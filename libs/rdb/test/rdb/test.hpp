@@ -19,6 +19,5 @@ std::string str(const T& obj) {
 }
 
 #include <boost/fusion/include/io.hpp>
-#include <boost/test/unit_test.hpp>
 
 #endif

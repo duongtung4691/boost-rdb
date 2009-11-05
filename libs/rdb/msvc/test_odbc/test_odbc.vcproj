@@ -256,24 +256,12 @@
 	</References>
 	<Files>
 		<File
-			RelativePath="..\..\test\test_odbc.cpp"
+			RelativePath="..\..\test\odbc\Jamfile.v2"
 			>
-			<FileConfiguration
-				Name="Debug|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
+		</File>
+		<File
+			RelativePath="..\..\test\odbc\test_odbc.cpp"
+			>
 			<FileConfiguration
 				Name="Fast Compilation|Win32"
 				>
@@ -284,15 +272,15 @@
 			</FileConfiguration>
 		</File>
 		<File
-			RelativePath="..\..\test\test_odbc.hpp"
+			RelativePath="..\..\test\odbc\test_odbc.hpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\test\test_odbc_dynamic.cpp"
+			RelativePath="..\..\test\odbc\test_odbc_dynamic.cpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\test\test_odbc_static.cpp"
+			RelativePath="..\..\test\odbc\test_odbc_static.cpp"
 			>
 		</File>
 	</Files>

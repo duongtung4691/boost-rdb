@@ -7,8 +7,6 @@
 #
 
 import testing ;
-import os ;
-import feature ;
 
 rule compile_fail_test_all
 {
@@ -22,31 +20,17 @@ rule compile_fail_test_all
    return $(all_rules) ;
 }
 
-if [ os.name ] = LINUX
-{
-  lib odbc ;
-  ECHO "lib odbc" ;
-}
-
 project
     : requirements
-    <library>../build//boost_rdb
-    <link>shared
-    <include>../../.. 
-    <os>LINUX:<library>odbc
+    <include>../../../..
     ;
 {
     test-suite "rdb"
-        : [ run test.cpp test_insert.cpp test_select.cpp test_placeholder.cpp test_update.cpp test_utils.cpp test_dynamic.cpp  /boost/test//boost_test_exec_monitor ]
-        :
-	;
+      : [ run test.cpp test_insert.cpp test_select.cpp test_placeholder.cpp test_update.cpp test_utils.cpp                   test_dynamic.cpp ../../build//boost_rdb/<link>static /boost/test//boost_test_exec_monitor 
+        ]
+      :
+      ;
 
     test-suite syntax_checks : [ compile_fail_test_all ] ; 
-
-    test-suite "test-odbc"
-        : [ run test_odbc.cpp test_odbc_static.cpp test_odbc_dynamic.cpp /boost/test//boost_test_exec_monitor
-	  ]
-
-	;
 
 }

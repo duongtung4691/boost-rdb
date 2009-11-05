@@ -3,6 +3,7 @@
 #endif
 
 #include <cstdio>
+#include <vector>
 
 #include <boost/rdb/sql.hpp>
 #include <boost/rdb/odbc.hpp>

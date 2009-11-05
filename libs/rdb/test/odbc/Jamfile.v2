@@ -1,0 +1,33 @@
+  # Boost rdb Library test Jamfile
+
+#  (C) Copyright Jean-Louis Leroy 2009.
+#  Use, modification, and distribution are subject to the 
+#  Boost Software License, Version 1.0. (See accompanying file 
+#  LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+#
+
+import testing ;
+import os ;
+import feature ;
+
+if [ os.name ] = LINUX
+{
+  lib odbc ;
+  ECHO "lib odbc" ;
+}
+
+project
+    : requirements
+    <library>../../build//boost_rdb
+    <library>../../build/odbc//boost_rdb_odbc
+    <include>../../../.. 
+    <os>LINUX:<library>odbc
+    ;
+{
+
+    test-suite "test-odbc"
+      : [ run test_odbc.cpp test_odbc_static.cpp test_odbc_dynamic.cpp
+          ../../build//boost_rdb ../../build/odbc//boost_rdb_odbc /boost/test//boost_test_exec_monitor ]
+	    ;
+
+}

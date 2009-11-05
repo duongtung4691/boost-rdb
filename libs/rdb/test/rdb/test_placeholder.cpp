@@ -1,5 +1,7 @@
 #include "test.hpp"
 
+#include <boost/test/unit_test.hpp>
+
 #include <boost/rdb/sql.hpp>
 
 using namespace boost::rdb::sql;
