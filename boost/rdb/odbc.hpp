@@ -370,77 +370,48 @@ namespace boost { namespace rdb { namespace odbc {
     SQLHSTMT hstmt_;
   };
 
-  template<class RdbType, class T, class Tag>
-  struct bind_parameter;
-
-  template<>
-  struct bind_parameter<> {
-  };
-
-  struct parameter_binder {
-    parameter_binder(SQLHSTMT hstmt) : hstmt_(hstmt), i_(1) { }
-    SQLHSTMT hstmt_;
-    mutable SQLUSMALLINT i_;
-
-    void operator ()(fusion::vector<const type::placeholder<type::integer>&, integer&>& zip) const {
-      using namespace fusion;
-      sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindParameter(hstmt_, i_, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
-        &at_c<1>(zip).value_, 0, &at_c<1>(zip).length_));
-      ++i_;
+  namespace detail {
+  
+    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder<type::integer>&, const integer& var) {
+      sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
+        (SQLPOINTER) &var.value_, 0, (SQLINTEGER*) &var.length_));
+      ++i;
     }
 
-    void operator ()(fusion::vector<const type::placeholder<type::integer>&, int&>& zip) const {
-      using namespace fusion;
-      SQLLEN len = sizeof(long);
-      sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindParameter(hstmt_, i_, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
-        &at_c<1>(zip), 0, &len));
-      ++i_;
+    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder<type::integer>&, const int& var) {
+      sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
+        (SQLPOINTER) &var, 0, 0));
+      ++i;
     }
 
     template<size_t N>
-    void operator ()(fusion::vector<const type::placeholder< type::varchar<N> >&, varchar<N>&>& zip) const {
-      using namespace fusion;
-      sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindParameter(hstmt_, i_, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
-        at_c<1>(zip).chars_, 0, &at_c<1>(zip).length_));
-      ++i_;
+    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder< type::varchar<N> >&, varchar<N>& var) {
+      sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
+        (SQLPOINTER) var.chars_, 0, &var.length_));
+      ++i;
     }
 
     template<size_t N>
-    void operator ()(fusion::vector<const type::placeholder< type::varchar<N> >&, const std::string&>& zip) const {
-      using namespace fusion;
-      SQLLEN len = at_c<1>.length();
-      sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindParameter(hstmt_, i_, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
-        at_c<1>(zip).c_str(), 0, length));
-      ++i_;
+    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder< type::varchar<N> >&, const std::string& var) {
+      sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
+        (SQLPOINTER) var.c_str(), var.length(), 0));
+      ++i;
     }
 
     template<size_t N>
-    void operator ()(fusion::vector<const type::placeholder< type::varchar<N> >&, const char *&>& zip) const {
-      using namespace fusion;
-      SQLLEN len = strlen(at_c<1>);
-      sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindParameter(hstmt_, i_, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
-        at_c<1>(zip), 0, length));
-      ++i_;
+    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder< type::varchar<N> >&, const char* var) {
+      sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
+        (SQLPOINTER) var, 0, 0));
+      ++i;
     }
 
-    template<size_t N, size_t M>
-    void operator ()(fusion::vector<const type::placeholder< type::varchar<N> >&, const char (&)[M]>& zip) const {
-      using namespace fusion;
-      BOOST_STATIC_ASSERT(M <= N);
-      SQLLEN len = strlen(at_c<1>);
-      sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindParameter(hstmt_, i_, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
-        at_c<1>(zip), 0, length));
-      ++i_;
-    }
+    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const dynamic_placeholders& placeholders, dynamic_values& values) {
 
-    void operator ()(fusion::vector<const dynamic_placeholders&, dynamic_values&>& zip) const {
-      using fusion::at_c;
-
-      if (at_c<0>(zip).size() != at_c<1>(zip).size())
+      if (placeholders.size() != values.size())
         throw dynamic_value_mismatch();
 
-      dynamic_placeholders::const_iterator placeholder_iter = at_c<0>(zip).begin(), placeholder_last = at_c<0>(zip).end();
-      dynamic_values::iterator value_iter = at_c<1>(zip).begin();
+      dynamic_placeholders::const_iterator placeholder_iter = placeholders.begin(), placeholder_last = placeholders.end();
+      dynamic_values::iterator value_iter = values.begin();
 
       while (placeholder_iter != placeholder_last) {
 
@@ -450,16 +421,28 @@ namespace boost { namespace rdb { namespace odbc {
         if (placeholder_iter->length() != (*value_iter)->length())
           throw dynamic_value_mismatch();
           
-        (*value_iter)->bind_parameter(hstmt_, i_);
+        (*value_iter)->bind_parameter(hstmt, i);
 
         ++placeholder_iter;
         ++value_iter;
-        ++i_;
+        ++i;
       }
-      //sql_check(SQL_HANDLE_STMT, hstmt_, SQLBindParameter(hstmt_, i_, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
-      //  at_c<1>(zip).chars_, 0, &at_c<1>(zip).length_));
+      //sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
+      //  values.chars_, 0, &values.length_));
     }
-  };
+   }
+
+  struct parameter_binder {
+    parameter_binder(SQLHSTMT hstmt) : hstmt_(hstmt), i_(1) { }
+    SQLHSTMT hstmt_;
+    mutable SQLUSMALLINT i_;
+
+    template<class T1, class T2>
+    void operator ()(fusion::vector<T1&, T2&>& zip) const {
+      using namespace fusion;
+      detail::bind_parameter(hstmt_, i_, at_c<0>(zip), at_c<1>(zip));
+    }
+ };
   
   template<class Statement>
   class prepared_statement {

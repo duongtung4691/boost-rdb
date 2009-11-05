@@ -140,12 +140,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_insert, springfield_fixture) {
   using boost::rdb::sql::select;
   person p;
   BOOST_AUTO(st, db.prepare(insert_into(p)(p.id, p.first_name, p.name, p.age).values(_, _, _, _)));
-  //st.execute(3, varchar<30>("Bart", (string) "Simpson", 9);
-  integer p0(3);
-  varchar<30> p1("Bart");
-  varchar<20> p2("Simpson");
-  integer p3(9);
-  st.execute(p0, p1, p2, p3);
+  st.execute(3, "Bart", "Simpson", 9);
   st.execute(4, (const char*) "Lisa", "Simpson", 7);
   st.execute(5, string("Maggie"), "Simpson", 0);
   BOOST_RDB_CHECK_SELECT_RESULTS(
