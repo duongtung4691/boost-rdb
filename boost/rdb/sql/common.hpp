@@ -301,18 +301,6 @@ namespace boost { namespace rdb { namespace sql {
   };
 
   template<>
-  struct type_traits<type::real> {
-    typedef float cpp_type;
-    static void str(std::ostream& os) { os << "real"; }
-    typedef literal<cpp_type, type::real> literal_type;
-    static literal_type make_literal(cpp_type val) { return literal_type(val); }
-    typedef boost::mpl::true_::type is_numeric;
-    typedef num_comparable_type comparable_type;
-    typedef numeric_type kind;
-    typedef cpp_type c_type;
-  };
-
-  template<>
   struct type_traits<type::boolean> {
     static void str(std::ostream& os) { os << "boolean"; }
     typedef literal<bool, type::boolean> literal_type;
