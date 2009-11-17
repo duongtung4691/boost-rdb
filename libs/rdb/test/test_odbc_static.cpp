@@ -246,7 +246,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_integer_param_in_exprs, springfield
   person p;
   BOOST_AUTO(st, db.prepare(select(p.age + _).from(p).where(p.id == 1)));
   
-  integer param;
+  real param;
   st.bind_parameters(param);
   
   param = 1;

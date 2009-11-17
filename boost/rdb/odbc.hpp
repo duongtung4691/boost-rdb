@@ -109,28 +109,35 @@ namespace boost { namespace rdb { namespace odbc {
 
     template<class SqlType, class Value, class Tag> friend struct sql_type_adapter;
   };
-  
-  class integer {
-  public:
-    integer() : value_(0), length_(SQL_NULL_DATA) { }
-    integer(long value) : value_(value), length_(sizeof(value_)) { }
 
-    integer& operator =(long value) {
-      value_ = value;
+  template<class RdbType, class CliType>  
+  class simple_numeric_type {
+  public:
+    simple_numeric_type() : value_(CliType()), length_(SQL_NULL_DATA) { }
+    
+    template<typename T>
+    simple_numeric_type(const T& value) : value_(static_cast<T>(value)), length_(sizeof(value_)) { }
+
+    template<typename T>
+    simple_numeric_type& operator =(const T& value) {
+      value_ = static_cast<T>(value);
       length_ = sizeof(value_);
       return *this;
     }
     
     void set_null() { length_ = SQL_NULL_DATA; }
     bool is_null() const { return length_ == SQL_NULL_DATA; }
-    long value() const { return value_; }
+    CliType value() const { return value_; }
     
-    typedef type::integer rdb_type;
+    typedef RdbType rdb_type;
   
   //private:
-    SQLINTEGER value_;
+    CliType value_;
     SQLLEN length_;
   };
+  
+  typedef simple_numeric_type<type::integer, SQLINTEGER> integer;
+  typedef simple_numeric_type<type::real, float> real;
 
   class dynamic_value : public abstract_dynamic_value {
   public:
@@ -185,19 +192,24 @@ namespace boost { namespace rdb { namespace odbc {
 namespace boost { namespace rdb { namespace type {
 
   template<int N>
-  struct cli_type<type::varchar<N>, odbc::odbc_tag> {
+  struct cli_type<varchar<N>, odbc::odbc_tag> {
     typedef odbc::varchar<N> type;
   };
 
   template<>
-  struct cli_type<type::integer, odbc::odbc_tag> {
+  struct cli_type<integer, odbc::odbc_tag> {
     typedef odbc::integer type;
   };
 
   template<>
-  struct cli_type<type::boolean, odbc::odbc_tag> {
-    typedef bool type;
+  struct cli_type<real, odbc::odbc_tag> {
+    typedef odbc::real type;
   };
+
+  //template<>
+  //struct cli_type<boolean, odbc::odbc_tag> {
+  //  typedef bool type;
+  //};
 
   template<>
   struct cli_type<type::dynamic_expressions, odbc::odbc_tag> {
@@ -383,6 +395,18 @@ namespace boost { namespace rdb { namespace odbc {
         (SQLPOINTER) &var, 0, 0));
       ++i;
     }
+  
+    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder<type::real>&, const real& var) {
+      sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_FLOAT, SQL_REAL, 0, 0,
+        (SQLPOINTER) &var.value_, 0, (SQLINTEGER*) &var.length_));
+      ++i;
+    }
+
+    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder<type::real>&, const float& var) {
+      sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_FLOAT, SQL_REAL, 0, 0,
+        (SQLPOINTER) &var, 0, 0));
+      ++i;
+    }
 
     template<size_t N>
     inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder< type::varchar<N> >&, varchar<N>& var) {
@@ -443,6 +467,25 @@ namespace boost { namespace rdb { namespace odbc {
       detail::bind_parameter(hstmt_, i_, at_c<0>(zip), at_c<1>(zip));
     }
  };
+
+  template<class Tag>    
+  struct make_cli_param_vector {
+    typedef make_cli_param_vector Self;
+    
+    template<typename Sig>
+    struct result;
+
+    template<class Placeholder, class CliVector>
+    struct result<Self(Placeholder, const CliVector&)> {
+      typedef typename fusion::result_of::push_back<
+        CliVector,
+        typename type::cli_type<
+          typename remove_reference<Placeholder>::type::rdb_type,
+          Tag
+        >::type
+      >::type type;
+    };
+  };
   
   template<class Statement>
   class prepared_statement {
@@ -459,11 +502,19 @@ namespace boost { namespace rdb { namespace odbc {
       SQLCloseCursor(hstmt_);
       SQLFreeHandle(SQL_HANDLE_STMT, hstmt_);
     }
-
+    
     template<class Params>
     void executev(const Params& params) {
-      typedef fusion::vector<const placeholder_vector&, Params&> zip;
-      fusion::for_each(fusion::zip_view<zip>(zip(placeholders_, const_cast<Params&>(params))),
+      typedef typename fusion::result_of::as_vector<
+        typename fusion::result_of::accumulate<
+          typename Statement::placeholder_vector,
+          fusion::vector<>,
+          make_cli_param_vector<odbc_tag>
+        >::type
+      >::type cli_param_vector;
+      cli_param_vector cli_params(params);
+      typedef fusion::vector<const placeholder_vector&, cli_param_vector&> zip;
+      fusion::for_each(fusion::zip_view<zip>(zip(placeholders_, const_cast<cli_param_vector&>(cli_params))),
         parameter_binder(hstmt_));
       sql_check(SQL_HANDLE_STMT, hstmt_, SQLExecute(hstmt_));
     }
@@ -686,6 +737,15 @@ namespace boost { namespace rdb {
     }
   };
 
+  template<>
+  struct sql_type_adapter<type::real, float, odbc::odbc_tag> {
+    static bool get_data(SQLHSTMT hstmt, int col, float& value) {    
+      SQLLEN n;
+      SQLGetData(hstmt, col, SQL_C_FLOAT, &value, 0, &n);
+      return n != SQL_NULL_DATA;
+    }
+  };
+
   template<int N>
   struct sql_type_adapter<type::varchar<N>, odbc::varchar<N>, odbc::odbc_tag> {
     static bool get_data(SQLHSTMT hstmt, int col, odbc::varchar<N>& value) {
@@ -717,6 +777,10 @@ namespace boost { namespace rdb { namespace sql {
   inline intrusive_ptr<odbc::dynamic_value> make_dynamic(odbc::integer& lvalue) {
     return new odbc::dynamic_integer_value(type::integer::id, type::integer::length, lvalue);
   }
+
+  //inline intrusive_ptr<odbc::dynamic_value> make_dynamic(odbc::real& lvalue) {
+  //  return new odbc::dynamic_integer_value(type::real::id, type::real::length, lvalue);
+  //}
 
   template<int N>
   inline intrusive_ptr<odbc::dynamic_value> make_dynamic(odbc::varchar<N>& lvalue) {
