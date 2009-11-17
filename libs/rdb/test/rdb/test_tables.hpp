@@ -12,7 +12,7 @@ namespace boost { namespace rdb { namespace sql { namespace test {
       BOOST_RDB_COLUMN(id, integer)
       BOOST_RDB_COLUMN(name, varchar<20>)
       BOOST_RDB_COLUMN(first_name, varchar<30>)
-      BOOST_RDB_COLUMN(age, real)
+      BOOST_RDB_COLUMN(age, integer)
     BOOST_RDB_END_TABLE(person) 
 
     BOOST_RDB_BEGIN_TABLE(partner) 
