@@ -44,15 +44,15 @@ BOOST_AUTO_TEST_CASE(test_placeholder) {
   using namespace rdb::type;
 
   check_placeholders<
-    fusion::vector< placeholder<integer> >
+    fusion::vector< placeholder<real> >
   >(p.age == _);
 
   check_placeholders<
-    fusion::vector< placeholder<integer>, placeholder<integer> >
+    fusion::vector< placeholder<real>, placeholder<real> >
   >((p.age + _) == _);
 
   check_placeholders<
-    fusion::vector<placeholder<integer>, placeholder<integer>, placeholder< varchar<20> >, placeholder<integer> >
+    fusion::vector<placeholder<real>, placeholder<real>, placeholder< varchar<20> >, placeholder<real> >
   >((p.age + _) == _ && p.name.like(_) && !(p.age < _));
 
   check_placeholders<
@@ -60,7 +60,7 @@ BOOST_AUTO_TEST_CASE(test_placeholder) {
   >(exists(select(p.id + _).from(p).where(p.name == _)));
 
   check_placeholders<
-    fusion::vector< placeholder<integer>, placeholder< varchar<20> > >
+    fusion::vector< placeholder<real>, placeholder< varchar<20> > >
   >(select(p.id).from(p).where(p.age > _ && p.id.in(
       select(p.id).from(p).where(p.name == _))));
 
@@ -77,7 +77,7 @@ BOOST_AUTO_TEST_CASE(test_placeholder) {
   >(insert_into(p)(p.id, p.first_name, p.name, p.age).values(_, _, _, 66));
 
   check_placeholders<
-    fusion::vector<placeholder<integer> >
+    fusion::vector<placeholder<real> >
   >(insert_into(p)(p.id).select(p.id).from(p).where(p.age > _));
 
   check_placeholders<
@@ -85,7 +85,7 @@ BOOST_AUTO_TEST_CASE(test_placeholder) {
   >(update(p).set(p.age = 33).where(p.first_name == _));
 
   check_placeholders<
-    fusion::vector< placeholder<integer>, placeholder< varchar<30> > >
+    fusion::vector< placeholder<real>, placeholder< varchar<30> > >
   >(update(p).set(p.age = _).where(p.first_name == _));
 
   check_placeholders<
