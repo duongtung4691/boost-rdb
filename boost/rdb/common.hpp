@@ -23,14 +23,19 @@ namespace boost { namespace rdb {
       BOOST_STATIC_CONSTANT(int, id = 1);
       BOOST_STATIC_CONSTANT(int, length = 1);
     };
-    
-    struct boolean {
+
+    struct real {
       BOOST_STATIC_CONSTANT(int, id = 2);
       BOOST_STATIC_CONSTANT(int, length = 1);
     };
     
-    template<size_t N> struct varchar {
+    struct boolean {
       BOOST_STATIC_CONSTANT(int, id = 3);
+      BOOST_STATIC_CONSTANT(int, length = 1);
+    };
+    
+    template<size_t N> struct varchar {
+      BOOST_STATIC_CONSTANT(int, id = 4);
       BOOST_STATIC_CONSTANT(size_t, length = N);
     };
     
