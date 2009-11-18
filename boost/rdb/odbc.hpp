@@ -11,6 +11,12 @@
 
 #include <boost/rdb/common.hpp>
 
+#include <boost/fusion/include/make_vector.hpp>
+#include <boost/fusion/include/at.hpp>
+#include <boost/fusion/include/accumulate.hpp>
+#include <boost/fusion/include/push_back.hpp>
+#include <boost/fusion/include/zip_view.hpp>
+
 namespace boost { namespace rdb {
 
   template<class SqlType, class Value, class Tag>
@@ -397,22 +403,10 @@ namespace boost { namespace rdb { namespace odbc {
         (SQLPOINTER) &var.value_, 0, (SQLINTEGER*) &var.length_));
       ++i;
     }
-
-    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder<type::integer>&, const int& var) {
-      sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
-        (SQLPOINTER) &var, 0, 0));
-      ++i;
-    }
   
     inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder<type::real>&, const real& var) {
       sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_FLOAT, SQL_REAL, 0, 0,
         (SQLPOINTER) &var.value_, 0, (SQLINTEGER*) &var.length_));
-      ++i;
-    }
-
-    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder<type::real>&, const float& var) {
-      sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_FLOAT, SQL_REAL, 0, 0,
-        (SQLPOINTER) &var, 0, 0));
       ++i;
     }
   
@@ -422,38 +416,10 @@ namespace boost { namespace rdb { namespace odbc {
       ++i;
     }
 
-    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder<type::float_>&, const float& var) {
-      sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_DOUBLE, SQL_DOUBLE, 0, 0,
-        (SQLPOINTER) &var, 0, 0));
-      ++i;
-    }
-
     template<size_t N>
     inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder< type::varchar<N> >&, const varchar<N>& var) {
       sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
         (SQLPOINTER) var.chars_, 0, (SQLINTEGER*) &var.length_));
-      ++i;
-    }
-
-    template<size_t N>
-    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder< type::varchar<N> >&, const std::string& var) {
-      sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
-        (SQLPOINTER) var.c_str(), var.length(), 0));
-      ++i;
-    }
-
-//     template<size_t N>
-//     inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder< type::varchar<N> >&, const char* var) {
-//       sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
-//         (SQLPOINTER) var, 0, 0));
-//       ++i;
-//     }
-
-    template<size_t N>
-    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder< type::varchar<N> >&, const char var[]) {
-      //BOOST_STATIC_ASSERT(M <= N);
-      sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
-        (SQLPOINTER) var, 0, 0));
       ++i;
     }
 
