@@ -7,6 +7,9 @@
 #include <boost/intrusive_ptr.hpp>
 #include <boost/fusion/include/vector.hpp>
 
+#define BOOST_RDB_MAX_SIZE FUSION_MAX_VECTOR_SIZE
+#define BOOST_RDB_MAX_ARG_COUNT 10
+
 namespace boost { namespace rdb {
 
   struct statement_tag { };
