@@ -305,6 +305,19 @@ namespace boost { namespace rdb { namespace sql {
     typedef float cpp_type;
     static void str(std::ostream& os) { os << "real"; }
     typedef literal<cpp_type, type::real> literal_type;
+    template<class T>
+    static literal_type make_literal(cpp_type val) { return literal_type(val); }
+    typedef boost::mpl::true_::type is_numeric;
+    typedef num_comparable_type comparable_type;
+    typedef numeric_type kind;
+    typedef cpp_type c_type;
+  };
+
+  template<>
+  struct type_traits<type::float_> {
+    typedef double cpp_type;
+    static void str(std::ostream& os) { os << "float"; }
+    typedef literal<cpp_type, type::float_> literal_type;
     static literal_type make_literal(cpp_type val) { return literal_type(val); }
     typedef boost::mpl::true_::type is_numeric;
     typedef num_comparable_type comparable_type;

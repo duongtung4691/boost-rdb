@@ -140,6 +140,7 @@ namespace boost { namespace rdb { namespace odbc {
   
   typedef simple_numeric_type<type::integer, SQLINTEGER> integer;
   typedef simple_numeric_type<type::real, float> real;
+  typedef simple_numeric_type<type::float_, double> float_;
 
   class dynamic_value : public abstract_dynamic_value {
   public:
@@ -206,6 +207,11 @@ namespace boost { namespace rdb { namespace type {
   template<>
   struct cli_type<real, odbc::odbc_tag> {
     typedef odbc::real type;
+  };
+
+  template<>
+  struct cli_type<float_, odbc::odbc_tag> {
+    typedef odbc::float_ type;
   };
 
   template<>
@@ -406,6 +412,18 @@ namespace boost { namespace rdb { namespace odbc {
 
     inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder<type::real>&, const float& var) {
       sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_FLOAT, SQL_REAL, 0, 0,
+        (SQLPOINTER) &var, 0, 0));
+      ++i;
+    }
+  
+    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder<type::float_>&, const float_& var) {
+      sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_DOUBLE, SQL_DOUBLE, 0, 0,
+        (SQLPOINTER) &var.value_, 0, (SQLINTEGER*) &var.length_));
+      ++i;
+    }
+
+    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder<type::float_>&, const float& var) {
+      sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_DOUBLE, SQL_DOUBLE, 0, 0,
         (SQLPOINTER) &var, 0, 0));
       ++i;
     }
@@ -760,6 +778,15 @@ namespace boost { namespace rdb {
     static bool get_data(SQLHSTMT hstmt, int col, float& value) {    
       SQLLEN n;
       SQLGetData(hstmt, col, SQL_C_FLOAT, &value, 0, &n);
+      return n != SQL_NULL_DATA;
+    }
+  };
+
+  template<>
+  struct sql_type_adapter<type::float_, double, odbc::odbc_tag> {
+    static bool get_data(SQLHSTMT hstmt, int col, double& value) {    
+      SQLLEN n;
+      SQLGetData(hstmt, col, SQL_C_DOUBLE, &value, 0, &n);
       return n != SQL_NULL_DATA;
     }
   };

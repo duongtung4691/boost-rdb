@@ -84,7 +84,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_dynamic_varchar_param, springfield_
 //  varchar<20> name_param;
 //  params.push_back(make_dynamic(name_param));
 //
-//  real age_param;  
+//  float_ age_param;  
 //  params.push_back(make_dynamic(age_param));
 //  
 //  st.bind_parameters(params);
@@ -134,7 +134,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_insert_mixed, springfield_fixture) {
   varchar<30> first_name_param;
   params.push_back(make_dynamic(first_name_param));
 
-  real age_param;
+  float_ age_param;
   
   st.bind_parameters(params, age_param);
 
@@ -179,7 +179,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_insert_mixed, springfield_fixture) {
 //  varchar<30> first_name_param;
 //  update_params.push_back(make_dynamic(first_name_param));
 //
-//  real age_param;  
+//  float_ age_param;  
 //  update_params.push_back(make_dynamic(age_param));
 //
 //  varchar<20> name_param;
