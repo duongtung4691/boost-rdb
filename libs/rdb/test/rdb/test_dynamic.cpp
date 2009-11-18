@@ -31,7 +31,7 @@ BOOST_AUTO_TEST_CASE(test_dynamic_integer_placeholder) {
   dynamic_boolean predicate = make_dynamic(p.age > _);
   fusion::vector< std::vector<dynamic_placeholder> > placeholders = (select(p.id).from(p).where(predicate)).placeholders();
   BOOST_REQUIRE(fusion::at_c<0>(placeholders).size() == 1);
-  BOOST_CHECK(fusion::at_c<0>(placeholders)[0].type() == rdb::type::real::id);
+  BOOST_CHECK(fusion::at_c<0>(placeholders)[0].type() == rdb::type::float_::id);
   BOOST_CHECK(fusion::at_c<0>(placeholders)[0].length() == 1);
 }
 
@@ -94,7 +94,7 @@ BOOST_AUTO_TEST_CASE(test_dynamic_update_placeholders) {
     (update(p).set(p.first_name = _, updates)).placeholders();
 
   BOOST_REQUIRE(fusion::at_c<1>(placeholders).size() == 1);
-  BOOST_CHECK(fusion::at_c<1>(placeholders)[0].type() == rdb::type::real::id);
+  BOOST_CHECK(fusion::at_c<1>(placeholders)[0].type() == rdb::type::float_::id);
 }
 
 BOOST_AUTO_TEST_CASE(test_dynamic_update_where_placeholders) {
@@ -111,7 +111,7 @@ BOOST_AUTO_TEST_CASE(test_dynamic_update_where_placeholders) {
     (update(p).set(updates).where(predicate)).placeholders();
 
   BOOST_REQUIRE(fusion::at_c<0>(placeholders).size() == 1);
-  BOOST_CHECK(fusion::at_c<0>(placeholders)[0].type() == rdb::type::real::id);
+  BOOST_CHECK(fusion::at_c<0>(placeholders)[0].type() == rdb::type::float_::id);
   BOOST_REQUIRE(fusion::at_c<1>(placeholders).size() == 1);
   BOOST_CHECK(fusion::at_c<1>(placeholders)[0].type() == rdb::type::varchar<20>::id);
 }
