@@ -118,7 +118,7 @@ namespace boost { namespace rdb { namespace odbc {
         &var.value_, 0, &var.length_));
     }
   
-    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT i, const integer& var) {
+    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT i, integer& var) {
       sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
         (SQLPOINTER) &var.value_, 0, (SQLINTEGER*) &var.length_));
     }
@@ -134,7 +134,7 @@ namespace boost { namespace rdb { namespace odbc {
         &var.value_, 0, &var.length_));
     }
   
-    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT i, const float_& var) {
+    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT i, float_& var) {
       sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_DOUBLE, SQL_DOUBLE, 0, 0,
         (SQLPOINTER) &var.value_, 0, (SQLINTEGER*) &var.length_));
     }
@@ -213,7 +213,7 @@ namespace boost { namespace rdb { namespace odbc {
     }
 
     template<size_t N>
-    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT i, const varchar<N>& var) {
+    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT i, varchar<N>& var) {
       sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
         (SQLPOINTER) var.chars_, 0, (SQLINTEGER*) &var.length_));
     }
@@ -446,7 +446,7 @@ namespace boost { namespace rdb { namespace odbc {
       ++i_;
     }
     
-    void operator ()(const fusion::vector<const dynamic_placeholders&, const dynamic_values&>& zip) const;
+    void operator ()(const fusion::vector<const dynamic_placeholders&, dynamic_values&>& zip) const;
   };
   
   template<class Tag>    
@@ -493,9 +493,9 @@ namespace boost { namespace rdb { namespace odbc {
           make_cli_param_vector<odbc_tag>
         >::type
       >::type cli_param_vector;
-      const cli_param_vector cli_params(params);
+      cli_param_vector cli_params(params);
       typedef fusion::vector<const placeholder_vector&, cli_param_vector&> zip;
-      fusion::for_each(fusion::zip_view<zip>(zip(placeholders_, const_cast<cli_param_vector&>(cli_params))),
+      fusion::for_each(fusion::zip_view<zip>(zip(placeholders_, cli_params)),
         parameter_binder(hstmt_));
       sql_check(SQL_HANDLE_STMT, hstmt_, SQLExecute(hstmt_));
     }
@@ -509,8 +509,8 @@ namespace boost { namespace rdb { namespace odbc {
     #include BOOST_PP_ITERATE()
 
     template<class Params>
-    void bind_parameters_(const Params& params) {
-      typedef fusion::vector<const placeholder_vector&, const Params&> zip;
+    void bind_parameters_(Params& params) {
+      typedef fusion::vector<const placeholder_vector&, Params&> zip;
       fusion::for_each(fusion::zip_view<zip>(zip(placeholders_, params)),
         parameter_binder(hstmt_));
     }
