@@ -262,10 +262,11 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_integer_param_in_exprs, springfield
 BOOST_FIXTURE_TEST_CASE(prepared_select_bind_results, springfield_fixture) {
   using boost::rdb::sql::select;
   person p;
-  BOOST_AUTO(st, db.prepare(select(p.id, p.first_name).from(p)));
+  BOOST_AUTO(st, db.prepare(select(p.id, p.first_name, p.age).from(p)));
   integer id;
   varchar<30> first_name;
-  st.bind_results(id, first_name);
+  float_ age;
+  st.bind_results(id, first_name, age);
   BOOST_AUTO(results, st.execute());
 
   results.fetch();
@@ -273,10 +274,14 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_results, springfield_fixture) {
   BOOST_CHECK_EQUAL(id.value(), 1);
   BOOST_CHECK(!first_name.is_null());
   BOOST_CHECK_EQUAL(string(first_name), "Homer");
+  BOOST_CHECK(!age.is_null());
+  BOOST_CHECK_EQUAL(age.value(), 37);
 
   results.fetch();
   BOOST_CHECK(!id.is_null());
   BOOST_CHECK_EQUAL(id.value(), 2);
   BOOST_CHECK(!first_name.is_null());
   BOOST_CHECK_EQUAL(string(first_name), "Marge");
+  BOOST_CHECK(!age.is_null());
+  BOOST_CHECK_EQUAL(age.value(), 34);
 }
