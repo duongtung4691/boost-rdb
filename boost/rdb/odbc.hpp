@@ -55,6 +55,15 @@ namespace boost { namespace rdb { namespace odbc {
     }
   }
 
+  class dynamic_value : public abstract_dynamic_value {
+  public:
+    dynamic_value(int type, int length) : abstract_dynamic_value(type, length) { }
+    virtual void bind_result(SQLHSTMT hstmt, SQLUSMALLINT i) = 0;
+    virtual void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT i) = 0;
+  };
+
+  typedef std::vector< intrusive_ptr<dynamic_value> > dynamic_values;
+
   template<class RdbType, class CliType>  
   class simple_numeric_type {
   public:
@@ -82,6 +91,25 @@ namespace boost { namespace rdb { namespace odbc {
   };
   
   typedef simple_numeric_type<type::integer, SQLINTEGER> integer;
+
+  template<class CliType>
+  class generic_dynamic_value : public dynamic_value {
+  public:
+
+    generic_dynamic_value(CliType& var) :
+      dynamic_value(CliType::rdb_type::id, CliType::rdb_type::length), var_(var) { }
+    
+    virtual void bind_result(SQLHSTMT hstmt, SQLUSMALLINT i) {
+      detail::bind_result(hstmt, i, var_);
+    }
+    
+    virtual void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT i) {
+      detail::bind_parameter(hstmt, i, var_);
+    }
+    
+  private:
+    CliType& var_;
+  };
   
   namespace detail {
     
@@ -90,35 +118,25 @@ namespace boost { namespace rdb { namespace odbc {
         &var.value_, 0, &var.length_));
     }
   
-    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder<type::integer>&, const integer& var) {
+    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT i, const integer& var) {
       sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
         (SQLPOINTER) &var.value_, 0, (SQLINTEGER*) &var.length_));
-      ++i;
     }
     
   }
-
-  typedef simple_numeric_type<type::real, float> real;
   
   typedef simple_numeric_type<type::float_, double> float_;
     
   namespace detail {
-  
-    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder<type::real>&, const real& var) {
-      sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_FLOAT, SQL_REAL, 0, 0,
-        (SQLPOINTER) &var.value_, 0, (SQLINTEGER*) &var.length_));
-      ++i;
-    }
     
     inline void bind_result(SQLHSTMT hstmt, SQLUSMALLINT i, float_& var) {
       sql_check(SQL_HANDLE_STMT, hstmt, SQLBindCol(hstmt, i, SQL_C_DOUBLE,
         &var.value_, 0, &var.length_));
     }
   
-    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder<type::float_>&, const float_& var) {
+    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT i, const float_& var) {
       sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_DOUBLE, SQL_DOUBLE, 0, 0,
         (SQLPOINTER) &var.value_, 0, (SQLINTEGER*) &var.length_));
-      ++i;
     }
     
   }
@@ -195,40 +213,12 @@ namespace boost { namespace rdb { namespace odbc {
     }
 
     template<size_t N>
-    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT& i, const type::placeholder< type::varchar<N> >&, const varchar<N>& var) {
+    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT i, const varchar<N>& var) {
       sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
         (SQLPOINTER) var.chars_, 0, (SQLINTEGER*) &var.length_));
-      ++i;
     }
     
   }
-
-  class dynamic_value : public abstract_dynamic_value {
-  public:
-    dynamic_value(int type, int length) : abstract_dynamic_value(type, length) { }
-    virtual void bind_result(SQLHSTMT hstmt, SQLUSMALLINT i) = 0;
-    virtual void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT i) = 0;
-  };
-
-  typedef std::vector< intrusive_ptr<dynamic_value> > dynamic_values;
-
-  class dynamic_integer_value : public dynamic_value {
-  public:
-
-    dynamic_integer_value(int type, int length, integer& var) : dynamic_value(type, length), var_(var) { }
-    
-    virtual void bind_result(SQLHSTMT hstmt, SQLUSMALLINT i) {
-      detail::bind_result(hstmt, i, var_);
-    }
-    
-    virtual void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT i) {
-      sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
-        &var_.value_, 0, &var_.length_));
-    }
-    
-  private:
-    integer& var_;
-  };
 
   template<size_t N>
   class dynamic_varchar_value : public dynamic_value {
@@ -262,11 +252,6 @@ namespace boost { namespace rdb { namespace type {
   template<>
   struct cli_type<integer, odbc::odbc_tag> {
     typedef odbc::integer type;
-  };
-
-  template<>
-  struct cli_type<real, odbc::odbc_tag> {
-    typedef odbc::real type;
   };
 
   template<>
@@ -457,7 +442,8 @@ namespace boost { namespace rdb { namespace odbc {
 
     template<class T1, class T2>
     void operator ()(const fusion::vector<T1&, T2&>& zip) const {
-      detail::bind_parameter(hstmt_, i_, fusion::at_c<0>(zip), fusion::at_c<1>(zip));
+      detail::bind_parameter(hstmt_, i_, fusion::at_c<1>(zip));
+      ++i_;
     }
     
     void operator ()(const fusion::vector<const dynamic_placeholders&, const dynamic_values&>& zip) const;
@@ -705,15 +691,6 @@ namespace boost { namespace rdb {
   };
 
   template<>
-  struct sql_type_adapter<type::real, float, odbc::odbc_tag> {
-    static bool get_data(SQLHSTMT hstmt, int col, float& value) {    
-      SQLLEN n;
-      SQLGetData(hstmt, col, SQL_C_FLOAT, &value, 0, &n);
-      return n != SQL_NULL_DATA;
-    }
-  };
-
-  template<>
   struct sql_type_adapter<type::float_, double, odbc::odbc_tag> {
     static bool get_data(SQLHSTMT hstmt, int col, double& value) {    
       SQLLEN n;
@@ -751,12 +728,16 @@ namespace boost { namespace rdb {
 namespace boost { namespace rdb { namespace sql {
 
   inline intrusive_ptr<odbc::dynamic_value> make_dynamic(odbc::integer& lvalue) {
-    return new odbc::dynamic_integer_value(type::integer::id, type::integer::length, lvalue);
+    return new odbc::generic_dynamic_value<odbc::integer>(lvalue);
+  }
+
+  inline intrusive_ptr<odbc::dynamic_value> make_dynamic(odbc::float_& lvalue) {
+    return new odbc::generic_dynamic_value<odbc::float_>(lvalue);
   }
 
   template<size_t N>
   inline intrusive_ptr<odbc::dynamic_value> make_dynamic(odbc::varchar<N>& lvalue) {
-    return new odbc::dynamic_varchar_value<N>(type::varchar<N>::id, type::varchar<N>::length, lvalue);
+    return new odbc::generic_dynamic_value< odbc::varchar<N> >(lvalue);
   }
 
 } } }
