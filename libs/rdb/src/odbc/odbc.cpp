@@ -94,6 +94,58 @@ const char* odbc_error::what() const throw() {
   return msg;
 }
 
+void results_binder::operator ()(const fusion::vector<const dynamic_expressions&, dynamic_values&>& zip) const {
+  using fusion::at_c;
+
+  if (at_c<0>(zip).size() != at_c<1>(zip).size())
+    throw dynamic_value_mismatch();
+
+  dynamic_expressions::const_iterator expression_iter = at_c<0>(zip).begin(), expression_last = at_c<0>(zip).end();
+  dynamic_values::iterator value_iter = at_c<1>(zip).begin();
+
+  while (expression_iter != expression_last) {
+
+    if (expression_iter->type() != (*value_iter)->type())
+      throw dynamic_value_mismatch();
+    
+    if (expression_iter->length() != (*value_iter)->length())
+      throw dynamic_value_mismatch();
+      
+    (*value_iter)->bind_result(hstmt_, i_);
+
+    ++expression_iter;
+    ++value_iter;
+    ++i_;
+  }
+}
+
+void parameter_binder::operator ()(const fusion::vector<const dynamic_placeholders&, const dynamic_values&>& zip) const {
+
+  const dynamic_placeholders& placeholders = fusion::at_c<0>(zip);
+  const dynamic_values& values = fusion::at_c<1>(zip);
+
+  if (placeholders.size() != values.size())
+    throw dynamic_value_mismatch();
+
+  dynamic_placeholders::const_iterator placeholder_iter = placeholders.begin(), placeholder_last = placeholders.end();
+  dynamic_values::const_iterator value_iter = values.begin();
+
+  while (placeholder_iter != placeholder_last) {
+
+    if (placeholder_iter->type() != (*value_iter)->type())
+      throw dynamic_value_mismatch();
+    
+    if (placeholder_iter->length() != (*value_iter)->length())
+      throw dynamic_value_mismatch();
+      
+    (*value_iter)->bind_parameter(hstmt_, i_);
+
+    ++placeholder_iter;
+    ++value_iter;
+    ++i_;
+  }
+}
+
 std::ostream* trace_stream;
 
 } } }
