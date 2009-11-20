@@ -6,6 +6,8 @@
 
 #include <boost/rdb/sql/common.hpp>
 
+#include <deque>
+
 namespace boost { namespace rdb { namespace sql {
 
   struct make_row {

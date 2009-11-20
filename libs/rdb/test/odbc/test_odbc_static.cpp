@@ -3,6 +3,7 @@
 
 using namespace std;
 using namespace boost;
+using namespace boost::rdb;
 using namespace boost::rdb::sql;
 using namespace boost::rdb::odbc;
 using namespace boost::rdb::sql::test::springfield;
@@ -237,7 +238,6 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_varchar_param, springfield_fixture)
   st.bind_parameters(param);
   
   param = "Homer";
-  cerr << st.execute() << endl;
   BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((1))");
   
   param = "Marge";
