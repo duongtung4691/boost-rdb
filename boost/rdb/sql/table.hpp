@@ -75,6 +75,59 @@ namespace boost { namespace rdb { namespace sql {
     }
   };
   
+  struct dynamic_table {
+
+    struct root : rdb::detail::ref_counted {
+      root() { }
+      virtual void str(std::ostream& os) const = 0;
+    };
+  
+    dynamic_table(root* impl) : impl_(impl) { }
+
+    intrusive_ptr<root> impl_;
+
+    void str(std::ostream& os) const {
+      impl_->str(os);
+    }
+    
+    template<class Table>
+    struct wrapper : root {
+
+      wrapper(const Table& table) : table_(table) {
+      }
+      
+      const Table& table_;
+      
+      virtual void str(std::ostream& os) const {
+        table_.str(os);
+      }
+    };
+  };
+  
+  class dynamic_tables {
+  
+  private:
+    std::vector<dynamic_table> tables_;
+  
+  public:
+  
+    typedef void table_container_tag;
+  
+    typedef fusion::vector<> placeholder_vector;
+
+    placeholder_vector placeholders() const {
+      return placeholder_vector();
+    }
+    
+    void push_back(const dynamic_table& table) {
+      tables_.push_back(table);
+    }
+    
+    void str(std::ostream& os) const {
+      std::for_each(tables_.begin(), tables_.end(), comma_output(os));
+    }
+  };
+  
   template<class Table, class SqlType, class Base>
   struct is_column_container< column<Table, SqlType, Base> > : mpl::true_ {
   };
@@ -147,6 +200,7 @@ namespace boost { namespace rdb { namespace sql {
     NAME##_(const std::string& alias) : table_<NAME##_base, Alias == -1>(alias) { initialize(); }  \
     NAME##_(const this_table& other) { initialize(); }  \
     typedef NAME##_<-1> qualified;  \
+    dynamic_table dynamic() const { return dynamic_table(new dynamic_table::wrapper<this_table>(*this)); } \
     typedef boost::mpl::vector0<>
 
   #define BOOST_RDB_END_TABLE(NAME)  \

@@ -21,7 +21,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_dynamic_integer_param, springfield_
   
   integer id_param;
   dynamic_values params;
-  params.push_back(make_dynamic(id_param));
+  params.push_back(id_param.dynamic());
   st.bind_parameters(params);
   
   id_param = 1;
@@ -43,7 +43,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_dynamic_varchar_param, springfield_
   
   varchar<30> first_name_param;
   dynamic_values params;
-  params.push_back(make_dynamic(first_name_param));
+  params.push_back(first_name_param.dynamic());
   st.bind_parameters(params);
   
   first_name_param = "Homer";
@@ -76,16 +76,16 @@ BOOST_FIXTURE_TEST_CASE(prepared_insert_orm_style, springfield_fixture) {
   dynamic_values params;
 
   integer id_param;  
-  params.push_back(make_dynamic(id_param));
+  params.push_back(id_param.dynamic());
 
   varchar<30> first_name_param;
-  params.push_back(make_dynamic(first_name_param));
+  params.push_back(first_name_param.dynamic());
 
   varchar<20> name_param;
-  params.push_back(make_dynamic(name_param));
+  params.push_back(name_param.dynamic());
 
   float_ age_param;  
-  params.push_back(make_dynamic(age_param));
+  params.push_back(age_param.dynamic());
   
   st.bind_parameters(params);
 
@@ -129,10 +129,10 @@ BOOST_FIXTURE_TEST_CASE(prepared_insert_mixed, springfield_fixture) {
   dynamic_values params;
 
   integer id_param;  
-  params.push_back(make_dynamic(id_param));
+  params.push_back(id_param.dynamic());
 
   varchar<30> first_name_param;
-  params.push_back(make_dynamic(first_name_param));
+  params.push_back(first_name_param.dynamic());
 
   float_ age_param;
   
@@ -173,14 +173,14 @@ BOOST_FIXTURE_TEST_CASE(prepared_update_dynamic, springfield_fixture) {
   
   integer id_param;
   dynamic_values predicate_params;
-  predicate_params.push_back(make_dynamic(id_param));
+  predicate_params.push_back(id_param.dynamic());
 
   dynamic_values update_params;
   varchar<30> first_name_param;
-  update_params.push_back(make_dynamic(first_name_param));
+  update_params.push_back(first_name_param.dynamic());
 
   float_ age_param;  
-  update_params.push_back(make_dynamic(age_param));
+  update_params.push_back(age_param.dynamic());
 
   varchar<20> name_param;
   name_param = "Bouvier";
@@ -218,9 +218,9 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_dynamic_bind_results, springfield_fixtur
   
   dynamic_values results;
   integer id;
-  results.push_back(make_dynamic(id));
+  results.push_back(id.dynamic());
   varchar<30> first_name;
-  results.push_back(make_dynamic(first_name));
+  results.push_back(first_name.dynamic());
   st.bind_results(results);
   
   BOOST_AUTO(cursor, st.execute());
@@ -253,8 +253,8 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_dynamic_tables, springfield_fixture) {
   exprs.push_back(make_dynamic(spouse.first_name));
   
   dynamic_tables tables;
-  tables.push_back(make_dynamic(spouse));
-  tables.push_back(make_dynamic(link));
+  tables.push_back(spouse.dynamic());
+  tables.push_back(link.dynamic());
   
   dynamic_boolean predicate = make_dynamic(p.id == link.husband && link.wife == spouse.id);
   
@@ -265,7 +265,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_dynamic_tables, springfield_fixture) {
 
   dynamic_values results;
   varchar<30> her;
-  results.push_back(make_dynamic(her));
+  results.push_back(her.dynamic());
 
   BOOST_TEST_CHECKPOINT("bind results");
   st.bind_results(him, results);
