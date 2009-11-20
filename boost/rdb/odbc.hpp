@@ -88,6 +88,10 @@ namespace boost { namespace rdb { namespace odbc {
   //private:
     CliType value_;
     SQLLEN length_;
+
+    intrusive_ptr<dynamic_value> dynamic() {
+      return new odbc::generic_dynamic_value<simple_numeric_type>(*this);
+    }
   };
   
   typedef simple_numeric_type<type::integer, SQLINTEGER> integer;
@@ -196,6 +200,10 @@ namespace boost { namespace rdb { namespace odbc {
 
     void set_null() { length_ = SQL_NULL_DATA; }
     bool is_null() const { return length_ == SQL_NULL_DATA; }
+
+    intrusive_ptr<odbc::dynamic_value> dynamic() {
+      return new odbc::generic_dynamic_value< odbc::varchar<N> >(*this);
+    }
 
 //  private:
     SQLLEN length_;
@@ -724,22 +732,5 @@ namespace boost { namespace rdb {
   };
 
 } }
-
-namespace boost { namespace rdb { namespace sql {
-
-  inline intrusive_ptr<odbc::dynamic_value> make_dynamic(odbc::integer& lvalue) {
-    return new odbc::generic_dynamic_value<odbc::integer>(lvalue);
-  }
-
-  inline intrusive_ptr<odbc::dynamic_value> make_dynamic(odbc::float_& lvalue) {
-    return new odbc::generic_dynamic_value<odbc::float_>(lvalue);
-  }
-
-  template<size_t N>
-  inline intrusive_ptr<odbc::dynamic_value> make_dynamic(odbc::varchar<N>& lvalue) {
-    return new odbc::generic_dynamic_value< odbc::varchar<N> >(lvalue);
-  }
-
-} } }
 
 #endif // BOOST_ODBC_HPP
