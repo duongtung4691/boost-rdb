@@ -106,6 +106,7 @@ namespace boost { namespace rdb { namespace odbc {
     void set_null() { length_ = SQL_NULL_DATA; }
     bool is_null() const { return length_ == SQL_NULL_DATA; }
     CliType value() const { return value_; }
+    CliType cpp_value() const { return value_; }
     
     typedef RdbType rdb_type;
     typedef CliType cpp_type;
@@ -172,7 +173,8 @@ namespace boost { namespace rdb { namespace odbc {
     }
 
     operator std::string() const { return std::string(chars_, chars_ + length()); }
-    const char* chars() const { return chars_; }
+    std::string cpp_value() const { return std::string(chars_, chars_ + length()); }
+    const SQLCHAR* value() const { return static_cast<const char*>(chars_); }
     size_t length() const { return length_; }
 
     template<int Length>
@@ -308,25 +310,29 @@ namespace boost { namespace rdb { namespace odbc {
 
   template<size_t N>
   std::ostream& operator <<(std::ostream& os, const varchar<N>& str) {
-    os.write(str.chars(), str.length());
+    if (str.is_null())
+      os << "<null>";
+    else
+      os.write(str.value(), str.length());
     return os;
   }
 
   template<class Row>
   struct read_row {
-    read_row(SQLHSTMT hstmt, Row& row) : hstmt_(hstmt), row_(row), i_(0) { }
-    SQLHSTMT hstmt_;
+    read_row(Row& row) : row_(row), i_(0) { }
     Row& row_;
     mutable int i_;
 
-    template<class Expr, class Value>
-    void operator ()(const fusion::vector<Expr, Value&>& value) const {
+    template<class CliType, class Value>
+    void operator ()(const fusion::vector<CliType, Value&>& value) const {
+    
       using namespace fusion;
-      row_.set_null(i_, !sql_type_adapter<
-        typename remove_reference<Expr>::type::sql_type,
-        Value,
-        odbc_tag
-      >::get_data(hstmt_, i_ + 1, at_c<1>(value)));
+      
+      row_.set_null(i_, at_c<0>(value).is_null());
+      
+      if (!at_c<0>(value).is_null())
+        at_c<1>(value) = at_c<0>(value).cpp_value();
+        
       ++i_;
     }
   };
@@ -704,9 +710,12 @@ namespace boost { namespace rdb { namespace odbc {
     }
 
     void bind() {
-      typedef fusion::vector<const ExprList&, result_vector&> zip;
-      fusion::for_each(fusion::zip_view<zip>(zip(exprs_, results_)),
-        results_binder(this->hstmt_));
+      if (!bound_) {
+        typedef fusion::vector<const ExprList&, result_vector&> zip;
+        fusion::for_each(fusion::zip_view<zip>(zip(exprs_, results_)),
+          results_binder(this->hstmt_));
+        bound_ = true;
+      }
     }
 
     ~result_set() {
@@ -717,12 +726,12 @@ namespace boost { namespace rdb { namespace odbc {
         SQLFreeHandle(SQL_HANDLE_STMT, hstmt_);
     }
 
-    template<class T>
-    struct enable {
-      typedef T type;
-    };
+    bool fetch(value_type& row) {
+      bind();
+      return fetch2(row);
+    }
 
-    bool fetch(value_type& row) const {
+    bool fetch2(value_type& row) {
     
       // error here indicates that at least one select expression is dynamic
       // this is not supported - explicitly bind results instead
@@ -737,18 +746,15 @@ namespace boost { namespace rdb { namespace odbc {
       if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO)
         throw odbc_error(SQL_HANDLE_STMT, hstmt_, rc);
 
-      typedef fusion::vector<const ExprList&, typename value_type::value_vector_type&> zip;
+      typedef fusion::vector<const result_vector&, typename value_type::value_vector_type&> zip;
 
-      // TODO
-      // Ugly hack: we don't need the expressions themselves, just their type. 
-      // What we'd need here is the ability to zip a mpl::vector with a fusion::vector.
-      fusion::for_each(fusion::zip_view<zip>(zip(*(const ExprList*) 0, row.values())),
-        read_row<value_type>(hstmt_, row));
+      fusion::for_each(fusion::zip_view<zip>(zip(results_, row.values())),
+        read_row<value_type>(row));
 
       return true;
     }
 
-    bool fetch() const {
+    bool fetch() {
       long rc = SQLFetch(hstmt_);
 
       if (rc == SQL_NO_DATA) {
@@ -761,16 +767,18 @@ namespace boost { namespace rdb { namespace odbc {
       return true;
     }
 
-    Container all() const {
+    Container all() {
     
       // error here indicates that at least one select expression is dynamic
       // this is not supported - explicitly bind results instead
       BOOST_MPL_ASSERT((detail::contains_only_static_expressions<ExprList>));
+      
+      bind();
       
       Container results;
       value_type row;
 
-      while (fetch(row)) {
+      while (fetch2(row)) {
         results.push_back(row);
       }
 
@@ -778,7 +786,7 @@ namespace boost { namespace rdb { namespace odbc {
     }
 
     template<class OtherContainer>
-    void all(OtherContainer& results) const {
+    void all(OtherContainer& results) {
       value_type row;
 
       while (fetch(row)) {
@@ -792,7 +800,7 @@ namespace boost { namespace rdb { namespace odbc {
     const char* sep = "";
     os << "(";
     typename result_set<ExprList, Own>::value_type row;
-    while (results.fetch(row)) {
+    while (const_cast<result_set<ExprList, Own>&>(results).fetch(row)) {
       os << sep;
       os << row;
       sep = " ";
