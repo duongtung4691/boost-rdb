@@ -64,6 +64,25 @@ namespace boost { namespace rdb { namespace odbc {
 
   typedef std::vector< intrusive_ptr<dynamic_value> > dynamic_values;
 
+  template<class CliType>
+  class generic_dynamic_value : public dynamic_value {
+  public:
+
+    generic_dynamic_value(CliType& var) :
+      dynamic_value(CliType::rdb_type::id, CliType::rdb_type::length), var_(var) { }
+    
+    virtual void bind_result(SQLHSTMT hstmt, SQLUSMALLINT i) {
+      detail::bind_result(hstmt, i, var_);
+    }
+    
+    virtual void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT i) {
+      detail::bind_parameter(hstmt, i, var_);
+    }
+    
+  private:
+    CliType& var_;
+  };
+
   template<class RdbType, class CliType>  
   class simple_numeric_type {
   public:
@@ -89,27 +108,13 @@ namespace boost { namespace rdb { namespace odbc {
     CliType value_;
     SQLLEN length_;
   };
+
+  template<class RdbType, class CliType>  
+  inline intrusive_ptr<dynamic_value> make_dynamic(simple_numeric_type<RdbType, CliType>& lvalue) {
+    return new generic_dynamic_value< simple_numeric_type<RdbType, CliType> >(lvalue);
+  }
   
   typedef simple_numeric_type<type::integer, SQLINTEGER> integer;
-
-  template<class CliType>
-  class generic_dynamic_value : public dynamic_value {
-  public:
-
-    generic_dynamic_value(CliType& var) :
-      dynamic_value(CliType::rdb_type::id, CliType::rdb_type::length), var_(var) { }
-    
-    virtual void bind_result(SQLHSTMT hstmt, SQLUSMALLINT i) {
-      detail::bind_result(hstmt, i, var_);
-    }
-    
-    virtual void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT i) {
-      detail::bind_parameter(hstmt, i, var_);
-    }
-    
-  private:
-    CliType& var_;
-  };
   
   namespace detail {
     
@@ -203,6 +208,11 @@ namespace boost { namespace rdb { namespace odbc {
 
     template<class SqlType, class Value, class Tag> friend struct sql_type_adapter;
   };
+
+  template<size_t N>
+  inline intrusive_ptr<odbc::dynamic_value> make_dynamic(odbc::varchar<N>& lvalue) {
+    return new odbc::generic_dynamic_value< odbc::varchar<N> >(lvalue);
+  }
     
   namespace detail {
 
@@ -724,22 +734,5 @@ namespace boost { namespace rdb {
   };
 
 } }
-
-namespace boost { namespace rdb { namespace sql {
-
-  inline intrusive_ptr<odbc::dynamic_value> make_dynamic(odbc::integer& lvalue) {
-    return new odbc::generic_dynamic_value<odbc::integer>(lvalue);
-  }
-
-  inline intrusive_ptr<odbc::dynamic_value> make_dynamic(odbc::float_& lvalue) {
-    return new odbc::generic_dynamic_value<odbc::float_>(lvalue);
-  }
-
-  template<size_t N>
-  inline intrusive_ptr<odbc::dynamic_value> make_dynamic(odbc::varchar<N>& lvalue) {
-    return new odbc::generic_dynamic_value< odbc::varchar<N> >(lvalue);
-  }
-
-} } }
 
 #endif // BOOST_ODBC_HPP
