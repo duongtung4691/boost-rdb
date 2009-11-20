@@ -135,15 +135,6 @@ int main() {
       //]
     }
 
-    {
-      //[ select_with_nested_row_type
-      BOOST_AUTO(query, select(p.id, p.first_name, p.name, p.age).from(p));
-      typedef BOOST_TYPEOF(query)::row row;
-      std::vector<row> results;
-      db.execute(query).all(results);
-      //]
-    }
-
     markup(aliases) {
     //[aliases
     partner assoc;

@@ -10,25 +10,6 @@
 
 namespace boost { namespace rdb { namespace sql {
 
-  struct make_row {
-
-    template<typename Sig>
-    struct result;
-
-    template<typename Self, typename Expr>
-    struct result<Self(Expr)>
-    {
-      typedef typename type_traits<typename boost::remove_reference<Expr>::type::sql_type>::cpp_type type;
-    };
-  };
-
-  template<class SelectList>
-  struct select_row {
-    typedef typename fusion::result_of::as_vector<
-      typename fusion::result_of::transform<SelectList, make_row>::type
-    >::type type;
-  };
-
   extern select_statement<sql2003, sql2003::select, fusion::map<>, sql2003> select;
   
   template<class Data, class Key, class Enable = void>
@@ -47,8 +28,6 @@ namespace boost { namespace rdb { namespace sql {
   > {
 
     typedef typename fusion::result_of::value_at_key<Data, Key>::type select_list;
-    typedef nullable<typename select_row<select_list>::type> row;
-    typedef std::deque<row> result;
 
     select_result_if(const Data& data) : data_(data) { }
     Data data_;
