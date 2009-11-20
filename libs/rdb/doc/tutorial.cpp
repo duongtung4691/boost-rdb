@@ -4,6 +4,7 @@
 #include <boost/rdb/sql.hpp>
 #include <boost/rdb/odbc.hpp>
 
+using namespace boost::rdb;
 using namespace boost::rdb::sql;
 using namespace boost::rdb::odbc;
 
