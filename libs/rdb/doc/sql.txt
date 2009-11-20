@@ -1,6 +1,6 @@
 drop table person
 drop table partner
-create table person(id integer, name varchar(20), first_name varchar(30), age integer)
+create table person(id integer, name varchar(20), first_name varchar(30), age float)
 create table partner(husband integer, wife integer)
 //[ insert_sql
 insert into person (id, first_name, name, age) values (1, 'Homer', 'Simpson', 37)
@@ -15,7 +15,6 @@ select first_name, age from person
 //[select_fetch_sql
 select first_name, age from person
 //]
-select id, first_name, name, age from person
 //[aliases_sql
 insert into partner (husband, wife) values (1, 2)
 select husband.id, husband.first_name, husband.name, wife.id, wife.first_name from person as husband, person as wife, partner where husband.id = husband and wife.id = wife
