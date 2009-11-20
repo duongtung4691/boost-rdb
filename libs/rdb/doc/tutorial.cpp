@@ -20,7 +20,7 @@ using namespace boost::rdb::sql::test::springfield;
 ofstream file("output.txt");
 ofstream osql("sql.txt");
 #define cout file
-ostream* init = boost::rdb::trace_stream = &osql;
+ostream* init = boost::rdb::odbc::trace_stream = &osql;
 
 //[ output_deque
 template<typename T>
@@ -104,7 +104,7 @@ int main() {
 
     markup(select_into_vector) {
       //[ select_into_vector
-      typedef nullable< boost::fusion::vector<string, float> > row_type;
+      typedef nullable< boost::fusion::vector<string, double> > row_type;
       std::deque<row_type> results;
       db.execute(select(p.first_name, p.age).from(p)).all(results);
       for (size_t i = 0; i < results.size(); i++) {

@@ -16,6 +16,11 @@
 #include <boost/fusion/include/accumulate.hpp>
 #include <boost/fusion/include/push_back.hpp>
 #include <boost/fusion/include/zip_view.hpp>
+#include <boost/fusion/include/find_if.hpp>
+#include <boost/fusion/include/begin.hpp>
+#include <boost/fusion/include/end.hpp>
+
+#include <deque>
 
 namespace boost { namespace rdb {
 
@@ -103,6 +108,7 @@ namespace boost { namespace rdb { namespace odbc {
     CliType value() const { return value_; }
     
     typedef RdbType rdb_type;
+    typedef CliType cpp_type;
   
   //private:
     CliType value_;
@@ -152,6 +158,7 @@ namespace boost { namespace rdb { namespace odbc {
     BOOST_STATIC_CONSTANT(size_t, size = N);
 
     typedef type::varchar<N> rdb_type;
+    typedef std::string cpp_type;
 
     varchar() : length_(0) {
     }
@@ -330,7 +337,7 @@ namespace boost { namespace rdb { namespace odbc {
   template<class Statement>
   class prepared_statement;
 
-  template<class ExprList, class Container, bool Own>
+  template<class ExprList, bool Own>
   class result_set;
 
   class database /*: public generic_database<database>*/ {
@@ -372,14 +379,14 @@ namespace boost { namespace rdb { namespace odbc {
     template<class Select>
     struct discriminate<select_statement_tag, Select> {
 
-      typedef result_set<typename Select::select_list, typename Select::result, false> execute_return_type;
+      typedef result_set<typename Select::select_list, false> execute_return_type;
 
       static execute_return_type execute(database& db, const Select& select) {
         HSTMT hstmt;
         sql_check(SQL_HANDLE_DBC, db.hdbc_, SQLAllocStmt(db.hdbc_, &hstmt));
         try {
           db.exec_str(hstmt, as_string(select));
-          return execute_return_type(hstmt);
+          return execute_return_type(hstmt, select.exprs());
         } catch (...) {
           SQLFreeHandle(SQL_HANDLE_STMT, &hstmt);
           throw;
@@ -457,6 +464,50 @@ namespace boost { namespace rdb { namespace odbc {
     }
     
     void operator ()(const fusion::vector<const dynamic_placeholders&, dynamic_values&>& zip) const;
+  };
+  
+  template<class Tag>    
+  struct make_cli_result_vector {
+    typedef make_cli_result_vector Self;
+    
+    template<typename Sig>
+    struct result;
+
+    template<class Expr, class CliVector>
+    struct result<Self(Expr, const CliVector&)> {
+      typedef typename fusion::result_of::push_back<
+        CliVector,
+        typename type::cli_type<
+          typename remove_reference<Expr>::type::sql_type,
+          Tag
+        >::type
+      >::type type;
+    };
+  };
+  
+  template<class CliType>
+  struct compact_result {
+    typedef typename CliType::cpp_type type;
+  };
+  
+  template<>
+  struct compact_result<dynamic_values> {
+    typedef dynamic_values type;
+  };
+  
+  struct make_compact_result_vector {
+    typedef make_compact_result_vector Self;
+    
+    template<typename Sig>
+    struct result;
+
+    template<class CliType, class Vector>
+    struct result<Self(CliType, const Vector&)> {
+      typedef typename fusion::result_of::push_back<
+        Vector,
+        typename compact_result<typename remove_reference<CliType>::type>::type
+      >::type type;
+    };
   };
   
   template<class Tag>    
@@ -568,7 +619,6 @@ namespace boost { namespace rdb { namespace odbc {
   
   public:
     typedef typename Select::select_list select_list;
-    typedef typename Select::result container;
     typedef prepared_statement<Select> base;
 
     prepared_select_statement(const Select& select, SQLHSTMT hstmt) :
@@ -576,9 +626,9 @@ namespace boost { namespace rdb { namespace odbc {
       
     select_list exprs_;
 
-    result_set<select_list, container, false> execute() {
+    result_set<select_list, false> execute() {
       sql_check(SQL_HANDLE_STMT, this->hstmt_, SQLExecute(this->hstmt_));
-      return result_set<select_list, container, false>(this->hstmt_);
+      return result_set<select_list, false>(this->hstmt_, exprs_);
     }
 
     #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
@@ -597,17 +647,72 @@ namespace boost { namespace rdb { namespace odbc {
     #define BOOST_PP_FILENAME_1       <boost/rdb/odbc/detail/bind_results.hpp>
     #include BOOST_PP_ITERATE()
   };
+  
+  namespace detail {
+  
+    struct is_dynamic_expression_lambda {
+      template<class Expr>
+      struct apply : is_same<Expr, dynamic_expressions> { };
+    };
+      
+    template<class ExprList>
+    struct contains_only_static_expressions : fusion::result_of::equal_to<
+      typename fusion::result_of::find_if<ExprList, is_dynamic_expression_lambda>::type,
+      typename fusion::result_of::end<ExprList>::type
+    > {
+    };
 
-  template<class ExprList, class Container, bool Own>
+  }
+
+  template<class ExprList, bool Own>
   class result_set {
 
     SQLHSTMT hstmt_;
+    const ExprList& exprs_;
+    bool bound_;
 
   public:
-    result_set(SQLHSTMT hstmt) : hstmt_(hstmt) { }
+    
+    typedef typename fusion::result_of::as_vector<
+      typename fusion::result_of::accumulate<
+        ExprList,
+        fusion::vector<>,
+        make_cli_result_vector<odbc_tag>
+      >::type
+    >::type result_vector;
+    
+    result_vector results_;
+    
+    typedef nullable<
+      typename fusion::result_of::as_vector<
+        typename fusion::result_of::accumulate<
+          result_vector,
+          fusion::vector<>,
+          make_compact_result_vector
+        >::type
+      >::type
+    > compact_result_vector;
+    
+    typedef std::deque<compact_result_vector> Container;
+  
+    typedef typename Container::value_type value_type;
+
+    result_set(SQLHSTMT hstmt, const ExprList& exprs) : hstmt_(hstmt), exprs_(exprs), bound_(false) {
+    }
+  
+    result_set(const result_set& other) : hstmt_(other.hstmt_), exprs_(other.exprs_), bound_(false) {
+    }
+
+    void bind() {
+      typedef fusion::vector<const ExprList&, result_vector&> zip;
+      fusion::for_each(fusion::zip_view<zip>(zip(exprs_, results_)),
+        results_binder(this->hstmt_));
+    }
 
     ~result_set() {
+    
       SQLCloseCursor(hstmt_);
+      
       if (Own)
         SQLFreeHandle(SQL_HANDLE_STMT, hstmt_);
     }
@@ -617,9 +722,12 @@ namespace boost { namespace rdb { namespace odbc {
       typedef T type;
     };
 
-    typedef typename Container::value_type value_type;
-
     bool fetch(value_type& row) const {
+    
+      // error here indicates that at least one select expression is dynamic
+      // this is not supported - explicitly bind results instead
+      BOOST_MPL_ASSERT((detail::contains_only_static_expressions<ExprList>));
+      
       long rc = SQLFetch(hstmt_);
 
       if (rc == SQL_NO_DATA) {
@@ -654,6 +762,11 @@ namespace boost { namespace rdb { namespace odbc {
     }
 
     Container all() const {
+    
+      // error here indicates that at least one select expression is dynamic
+      // this is not supported - explicitly bind results instead
+      BOOST_MPL_ASSERT((detail::contains_only_static_expressions<ExprList>));
+      
       Container results;
       value_type row;
 
@@ -674,11 +787,11 @@ namespace boost { namespace rdb { namespace odbc {
     }
   };
 
-  template<class ExprList, class Container, bool Own>
-  std::ostream& operator <<(std::ostream& os, const result_set<ExprList, Container, Own>& results) {
+  template<class ExprList, bool Own>
+  std::ostream& operator <<(std::ostream& os, const result_set<ExprList, Own>& results) {
     const char* sep = "";
     os << "(";
-    typename result_set<ExprList, Container, Own>::value_type row;
+    typename result_set<ExprList, Own>::value_type row;
     while (results.fetch(row)) {
       os << sep;
       os << row;
