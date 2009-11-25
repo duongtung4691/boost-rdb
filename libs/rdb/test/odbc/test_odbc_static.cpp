@@ -114,6 +114,11 @@ vector< pair<string, string> > fetch_parallel(Results1& results1, Results2& resu
   return res;
 }
 
+template<class Results1, class Results2>
+vector< pair<string, string> > fetch_parallel(const Results1& results1, const Results2& results2) {
+  return fetch_parallel(const_cast<Results1&>(results1), const_cast<Results2&>(results2));
+}
+
 BOOST_FIXTURE_TEST_CASE(parallel_result_sets, springfield_fixture) {
   using boost::rdb::sql::select;
   person p;

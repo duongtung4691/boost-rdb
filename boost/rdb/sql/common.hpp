@@ -4,7 +4,6 @@
 #ifndef BOOST_RDB_SQL_COMMON_HPP
 #define BOOST_RDB_SQL_COMMON_HPP
 
-#include <ostream>
 #include <sstream>
 #include <string>
 
@@ -38,7 +37,6 @@
 #include <boost/fusion/include/value_at_key.hpp>
 #include <boost/fusion/include/erase_key.hpp>
 #include <boost/fusion/include/size.hpp>
-#include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/accumulate.hpp>
 #include <boost/fusion/include/push_back.hpp>
 #include <boost/fusion/include/join.hpp>
@@ -546,26 +544,6 @@ namespace boost { namespace rdb { namespace sql {
   template<class T>
   struct tag_of {
     typedef no_tag type;
-  };
-
-  template<class Row>
-  struct print_row_element {
-
-    print_row_element(std::ostream& os, const Row& r) : os_(os), r_(r), bit_(0) { }
-    
-    std::ostream& os_;
-    const Row& r_;
-    mutable int bit_;
-    
-    template<class T>
-    void operator ()(const T& value) const {
-      if (bit_)
-        os_ << " ";
-      if (r_.is_null(bit_++))
-        os_ << "null";
-      else
-        os_ << value;
-    }
   };
   
   template<class T>
