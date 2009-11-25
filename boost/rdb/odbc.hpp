@@ -21,6 +21,7 @@
 #include <boost/fusion/include/end.hpp>
 
 #include <deque>
+#include <stdexcept>
 
 namespace boost { namespace rdb {
 
@@ -60,6 +61,11 @@ namespace boost { namespace rdb { namespace odbc {
     }
   }
 
+  namespace detail {
+    template<class CliType>
+    struct bind;
+  }
+
   class dynamic_value : public abstract_dynamic_value {
   public:
     dynamic_value(int type, int length) : abstract_dynamic_value(type, length) { }
@@ -68,25 +74,6 @@ namespace boost { namespace rdb { namespace odbc {
   };
 
   typedef std::vector< intrusive_ptr<dynamic_value> > dynamic_values;
-
-  template<class CliType>
-  class generic_dynamic_value : public dynamic_value {
-  public:
-
-    generic_dynamic_value(CliType& var) :
-      dynamic_value(CliType::rdb_type::id, CliType::rdb_type::length), var_(var) { }
-    
-    virtual void bind_result(SQLHSTMT hstmt, SQLUSMALLINT i) {
-      detail::bind_result(hstmt, i, var_);
-    }
-    
-    virtual void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT i) {
-      detail::bind_parameter(hstmt, i, var_);
-    }
-    
-  private:
-    CliType& var_;
-  };
 
   template<class RdbType, class CliType>  
   class simple_numeric_type {
@@ -115,41 +102,65 @@ namespace boost { namespace rdb { namespace odbc {
     CliType value_;
     SQLLEN length_;
   };
+  
+  typedef simple_numeric_type<type::integer, SQLINTEGER> integer;
+  
+  namespace detail {
+    
+    template<>
+    struct bind<integer> {
+      static void result(SQLHSTMT hstmt, SQLUSMALLINT i, integer& var) {
+        sql_check(SQL_HANDLE_STMT, hstmt, SQLBindCol(hstmt, i, SQL_C_SLONG,
+          &var.value_, 0, &var.length_));
+      }
+    
+      static void parameter(SQLHSTMT hstmt, SQLUSMALLINT i, integer& var) {
+        sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
+          (SQLPOINTER) &var.value_, 0, (SQLINTEGER*) &var.length_));
+      }
+    };
+  }
+
+  template<class CliType>
+  class generic_dynamic_value : public dynamic_value {
+  public:
+
+    generic_dynamic_value(const CliType& var) :
+      dynamic_value(CliType::rdb_type::id, CliType::rdb_type::length), var_(const_cast<CliType&>(var)) { }
+    
+    virtual void bind_result(SQLHSTMT hstmt, SQLUSMALLINT i) {
+      detail::bind<CliType>::result(hstmt, i, var_);
+    }
+    
+    virtual void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT i) {
+      detail::bind<CliType>::parameter(hstmt, i, var_);
+    }
+    
+  private:
+    CliType& var_;
+  };
 
   template<class RdbType, class CliType>  
   inline intrusive_ptr<dynamic_value> make_dynamic(simple_numeric_type<RdbType, CliType>& lvalue) {
     return new generic_dynamic_value< simple_numeric_type<RdbType, CliType> >(lvalue);
   }
   
-  typedef simple_numeric_type<type::integer, SQLINTEGER> integer;
-  
-  namespace detail {
-    
-    inline void bind_result(SQLHSTMT hstmt, SQLUSMALLINT i, integer& var) {
-      sql_check(SQL_HANDLE_STMT, hstmt, SQLBindCol(hstmt, i, SQL_C_SLONG,
-        &var.value_, 0, &var.length_));
-    }
-  
-    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT i, integer& var) {
-      sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
-        (SQLPOINTER) &var.value_, 0, (SQLINTEGER*) &var.length_));
-    }
-    
-  }
-  
   typedef simple_numeric_type<type::float_, double> float_;
     
   namespace detail {
     
-    inline void bind_result(SQLHSTMT hstmt, SQLUSMALLINT i, float_& var) {
-      sql_check(SQL_HANDLE_STMT, hstmt, SQLBindCol(hstmt, i, SQL_C_DOUBLE,
-        &var.value_, 0, &var.length_));
-    }
-  
-    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT i, float_& var) {
-      sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_DOUBLE, SQL_DOUBLE, 0, 0,
-        (SQLPOINTER) &var.value_, 0, (SQLINTEGER*) &var.length_));
-    }
+    template<>
+    struct bind<float_> {
+      static void result(SQLHSTMT hstmt, SQLUSMALLINT i, float_& var) {
+        sql_check(SQL_HANDLE_STMT, hstmt, SQLBindCol(hstmt, i, SQL_C_DOUBLE,
+          &var.value_, 0, &var.length_));
+      }
+    
+      static void parameter(SQLHSTMT hstmt, SQLUSMALLINT i, float_& var) {
+        sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_DOUBLE, SQL_DOUBLE, 0, 0,
+          (SQLPOINTER) &var.value_, 0, (SQLINTEGER*) &var.length_));
+      }
+    };
     
   }
 
@@ -192,7 +203,7 @@ namespace boost { namespace rdb { namespace odbc {
       SQLCHAR* last = chars_ + N;
       while (*src) {
         if (dest == last)
-          throw std::range_error("overflow in varchar");
+          throw std::overflow_error("overflow in varchar");
         *dest++ = *src++;
       }
       *dest = 0;
@@ -219,24 +230,24 @@ namespace boost { namespace rdb { namespace odbc {
   };
 
   template<size_t N>
-  inline intrusive_ptr<odbc::dynamic_value> make_dynamic(odbc::varchar<N>& lvalue) {
-    return new odbc::generic_dynamic_value< odbc::varchar<N> >(lvalue);
+  inline intrusive_ptr<dynamic_value> make_dynamic(varchar<N>& lvalue) {
+    return new generic_dynamic_value< varchar<N> >(lvalue);
   }
     
   namespace detail {
 
     template<size_t N>
-    inline void bind_result(SQLHSTMT hstmt, SQLUSMALLINT i, varchar<N>& var) {
-      sql_check(SQL_HANDLE_STMT, hstmt, SQLBindCol(hstmt, i, SQL_C_CHAR,
-        var.chars_, N + 1, &var.length_));
-    }
+    struct bind< varchar<N> > {
+      static void result(SQLHSTMT hstmt, SQLUSMALLINT i, varchar<N>& var) {
+        sql_check(SQL_HANDLE_STMT, hstmt, SQLBindCol(hstmt, i, SQL_C_CHAR,
+          var.chars_, N + 1, &var.length_));
+      }
 
-    template<size_t N>
-    inline void bind_parameter(SQLHSTMT hstmt, SQLUSMALLINT i, varchar<N>& var) {
-      sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
-        (SQLPOINTER) var.chars_, 0, (SQLINTEGER*) &var.length_));
-    }
-    
+      static void parameter(SQLHSTMT hstmt, SQLUSMALLINT i, varchar<N>& var) {
+        sql_check(SQL_HANDLE_STMT, hstmt, SQLBindParameter(hstmt, i, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, N, 0,
+          (SQLPOINTER) var.chars_, 0, (SQLINTEGER*) &var.length_));
+      }
+    };
   }
 
   template<size_t N>
@@ -465,7 +476,7 @@ namespace boost { namespace rdb { namespace odbc {
 
     template<class T1, class T2>
     void operator ()(const fusion::vector<T1&, T2&>& zip) const {
-      detail::bind_parameter(hstmt_, i_, fusion::at_c<1>(zip));
+      detail::bind<T2>::parameter(hstmt_, i_, fusion::at_c<1>(zip));
       ++i_;
     }
     
@@ -613,7 +624,7 @@ namespace boost { namespace rdb { namespace odbc {
     template<class Expr, class CliType>
     void operator ()(const fusion::vector<const Expr&, CliType&>& zip) const {
       BOOST_MPL_ASSERT((can_bind<Expr, CliType>));
-      detail::bind_result(hstmt_, i_, fusion::at_c<1>(zip));
+      detail::bind<CliType>::result(hstmt_, i_, fusion::at_c<1>(zip));
       ++i_;
     }
 
