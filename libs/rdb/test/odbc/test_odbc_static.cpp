@@ -48,7 +48,7 @@ BOOST_AUTO_TEST_CASE(basic) {
     "((1 Homer Simpson 38) (2 Marge Simpson 34))"); // WRONG: assumes row order
 }
 
-BOOST_FIXTURE_TEST_CASE(test_null, springfield_fixture) {
+BOOST_FIXTURE_TEST_CASE(test_null, homer_marge_fixture) {
 
   using boost::rdb::sql::select;
 
@@ -60,7 +60,7 @@ BOOST_FIXTURE_TEST_CASE(test_null, springfield_fixture) {
     "((1 null))");
 }
 
-BOOST_FIXTURE_TEST_CASE(tx, springfield_fixture) {
+BOOST_FIXTURE_TEST_CASE(tx, homer_marge_fixture) {
 
   using boost::rdb::sql::select;
 
@@ -93,7 +93,7 @@ BOOST_FIXTURE_TEST_CASE(tx, springfield_fixture) {
   BOOST_CHECK(db.execute(select(p.age).from(p).where(p.id == 1)).all()[0].get<0>() == 39);
 }
 
-BOOST_FIXTURE_TEST_CASE(expression_in_select_results, springfield_fixture) {
+BOOST_FIXTURE_TEST_CASE(expression_in_select_results, homer_marge_fixture) {
   using boost::rdb::sql::select;
   person p;
   BOOST_RDB_CHECK_SELECT_RESULTS(
@@ -119,7 +119,7 @@ vector< pair<string, string> > fetch_parallel(const Results1& results1, const Re
   return fetch_parallel(const_cast<Results1&>(results1), const_cast<Results2&>(results2));
 }
 
-BOOST_FIXTURE_TEST_CASE(parallel_result_sets, springfield_fixture) {
+BOOST_FIXTURE_TEST_CASE(parallel_result_sets, homer_marge_fixture) {
   using boost::rdb::sql::select;
   person p;
   vector< pair<string, string> > res = fetch_parallel(
@@ -131,7 +131,7 @@ BOOST_FIXTURE_TEST_CASE(parallel_result_sets, springfield_fixture) {
   BOOST_CHECK(res[1].first == res[1].second);
 }
 
-BOOST_FIXTURE_TEST_CASE(parameterless_prepared_statements, springfield_fixture) {
+BOOST_FIXTURE_TEST_CASE(parameterless_prepared_statements, homer_marge_fixture) {
   using boost::rdb::sql::select;
   person p;
   BOOST_AUTO(st, db.prepare(select(p.id, p.first_name, p.name, p.age).from(p)));
@@ -144,7 +144,7 @@ BOOST_FIXTURE_TEST_CASE(parameterless_prepared_statements, springfield_fixture) 
     "((1 Homer Simpson 37) (2 Marge Simpson 34))");
 }
 
-BOOST_FIXTURE_TEST_CASE(prepared_insert, springfield_fixture) {
+BOOST_FIXTURE_TEST_CASE(prepared_insert, homer_marge_fixture) {
   using boost::rdb::sql::select;
   person p;
   BOOST_AUTO(st, db.prepare(insert_into(p)(p.id, p.first_name, p.name, p.age).values(_, _, _, _)));
@@ -161,7 +161,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_insert, springfield_fixture) {
     );
 }
 
-BOOST_FIXTURE_TEST_CASE(prepared_select, springfield_fixture) {
+BOOST_FIXTURE_TEST_CASE(prepared_select, homer_marge_fixture) {
   using boost::rdb::sql::select;
   person p;
   BOOST_AUTO(st, db.prepare(select(p.first_name).from(p).where(p.id == _)));
@@ -169,7 +169,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_select, springfield_fixture) {
   BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(2), "((Marge))");
 }
 
-BOOST_FIXTURE_TEST_CASE(prepared_update_set, springfield_fixture) {
+BOOST_FIXTURE_TEST_CASE(prepared_update_set, homer_marge_fixture) {
   using boost::rdb::sql::select;
   person p;
   BOOST_AUTO(st, db.prepare(update(p).set(p.age = _, p.first_name = _).where(p.id == 1)));
@@ -183,7 +183,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_update_set, springfield_fixture) {
     "((Lisa 7))");
 }
 
-BOOST_FIXTURE_TEST_CASE(prepared_update_where, springfield_fixture) {
+BOOST_FIXTURE_TEST_CASE(prepared_update_where, homer_marge_fixture) {
   using boost::rdb::sql::select;
   person p;
   BOOST_AUTO(st, db.prepare(update(p).set(p.age = 66).where(p.id == _)));
@@ -194,7 +194,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_update_where, springfield_fixture) {
     "((66) (66))");
 }
 
-BOOST_FIXTURE_TEST_CASE(prepared_update_both, springfield_fixture) {
+BOOST_FIXTURE_TEST_CASE(prepared_update_both, homer_marge_fixture) {
   using boost::rdb::sql::select;
   person p;
   BOOST_AUTO(st, db.prepare(update(p).set(p.age = _).where(p.id == _)));
@@ -205,7 +205,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_update_both, springfield_fixture) {
     "((38) (35))");
 }
 
-BOOST_FIXTURE_TEST_CASE(prepared_delete, springfield_fixture) {
+BOOST_FIXTURE_TEST_CASE(prepared_delete, homer_marge_fixture) {
   using boost::rdb::sql::select;
   person p;
   BOOST_AUTO(st, db.prepare(delete_from(p).where(p.id == _)));
@@ -219,7 +219,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_delete, springfield_fixture) {
     "()");
 }
 
-BOOST_FIXTURE_TEST_CASE(prepared_select_bind_integer_param, springfield_fixture) {
+BOOST_FIXTURE_TEST_CASE(prepared_select_bind_integer_param, homer_marge_fixture) {
   using boost::rdb::sql::select;
   person p;
   BOOST_AUTO(st, db.prepare(select(p.first_name).from(p).where(p.id == _)));
@@ -234,7 +234,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_integer_param, springfield_fixture)
   BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((Marge))");
 }
 
-BOOST_FIXTURE_TEST_CASE(prepared_select_bind_varchar_param, springfield_fixture) {
+BOOST_FIXTURE_TEST_CASE(prepared_select_bind_varchar_param, homer_marge_fixture) {
   using boost::rdb::sql::select;
   person p;
   BOOST_AUTO(st, db.prepare(select(p.id).from(p).where(p.first_name == _)));
@@ -249,7 +249,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_varchar_param, springfield_fixture)
   BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((2))");
 }
 
-BOOST_FIXTURE_TEST_CASE(prepared_select_bind_integer_param_in_exprs, springfield_fixture) {
+BOOST_FIXTURE_TEST_CASE(prepared_select_bind_integer_param_in_exprs, homer_marge_fixture) {
   using boost::rdb::sql::select;
   person p;
   BOOST_AUTO(st, db.prepare(select(p.age + _).from(p).where(p.id == 1)));
@@ -264,7 +264,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_integer_param_in_exprs, springfield
   BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((39))");
 }
 
-BOOST_FIXTURE_TEST_CASE(prepared_select_bind_results, springfield_fixture) {
+BOOST_FIXTURE_TEST_CASE(prepared_select_bind_results, homer_marge_fixture) {
   using boost::rdb::sql::select;
   person p;
   BOOST_AUTO(st, db.prepare(select(p.id, p.first_name, p.age).from(p)));
@@ -289,4 +289,49 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_results, springfield_fixture) {
   BOOST_CHECK_EQUAL(string(first_name), "Marge");
   BOOST_CHECK(!age.is_null());
   BOOST_CHECK_EQUAL(age.value(), 34);
+}
+
+BOOST_FIXTURE_TEST_CASE(prepared_insert_bind_params, schema_fixture) {
+  using boost::rdb::sql::select;
+  person p;
+  BOOST_AUTO(st, db.prepare(insert_into(p)(p.id, p.first_name, p.name, p.age).values(_, _, _, _)));
+  
+  integer id_param;
+  varchar<30> first_name_param;
+  varchar<20> name_param;
+  float_ age_param;
+  
+  st.bind_parameters(id_param, first_name_param, name_param, age_param);
+  
+  id_param = 1;
+  first_name_param = "Bart";
+  name_param = "Simpson";
+  age_param = 9;
+  st.execute();  
+  
+  id_param = 2;
+  first_name_param = "Lisa";
+  name_param = "Simpson";
+  age_param = 7;
+  st.execute();  
+  
+  id_param = 3;
+  first_name_param = "Maggie";
+  name_param = "Simpson";
+  age_param = 0;
+  st.execute();  
+  
+  id_param = 4;
+  first_name_param = "Montgomery";
+  name_param = "Burns";
+  age_param.set_null();
+  st.execute();  
+
+  BOOST_RDB_CHECK_SELECT_RESULTS(
+    db.execute(select(p.id, p.first_name, p.name, p.age).from(p)),
+    "((1 Bart Simpson 9)"
+    " (2 Lisa Simpson 7)"
+    " (3 Maggie Simpson 0)"
+    " (4 Montgomery Burns null))"
+    );
 }
