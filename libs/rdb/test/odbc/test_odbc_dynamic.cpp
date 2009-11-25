@@ -9,7 +9,7 @@ using namespace boost::rdb::sql;
 using namespace boost::rdb::odbc;
 using namespace boost::rdb::sql::test::springfield;
 
-BOOST_FIXTURE_TEST_CASE(prepared_select_bind_dynamic_integer_param, springfield_fixture) {
+BOOST_FIXTURE_TEST_CASE(prepared_select_bind_dynamic_integer_param, homer_marge_fixture) {
   
   using sql::select;
 
@@ -31,7 +31,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_dynamic_integer_param, springfield_
   BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((Marge))");
 }
 
-BOOST_FIXTURE_TEST_CASE(prepared_select_bind_dynamic_varchar_param, springfield_fixture) {
+BOOST_FIXTURE_TEST_CASE(prepared_select_bind_dynamic_varchar_param, homer_marge_fixture) {
 
   using sql::select;
 
@@ -53,7 +53,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_bind_dynamic_varchar_param, springfield_
   BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(), "((2))");
 }
 
-BOOST_FIXTURE_TEST_CASE(prepared_insert_orm_style, springfield_fixture) {
+BOOST_FIXTURE_TEST_CASE(prepared_insert_orm_style, homer_marge_fixture) {
 
   using sql::select;
 
@@ -110,7 +110,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_insert_orm_style, springfield_fixture) {
     "((Lisa 7))");
 }
 
-BOOST_FIXTURE_TEST_CASE(prepared_insert_mixed, springfield_fixture) {
+BOOST_FIXTURE_TEST_CASE(prepared_insert_mixed, homer_marge_fixture) {
 
   using sql::select;
 
@@ -157,7 +157,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_insert_mixed, springfield_fixture) {
     "((Lisa 7))");
 }
 
-BOOST_FIXTURE_TEST_CASE(prepared_update_dynamic, springfield_fixture) {
+BOOST_FIXTURE_TEST_CASE(prepared_update_dynamic, homer_marge_fixture) {
 
   using sql::select;
 
@@ -204,7 +204,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_update_dynamic, springfield_fixture) {
     );
 }
 
-BOOST_FIXTURE_TEST_CASE(prepared_select_dynamic_bind_results, springfield_fixture) {
+BOOST_FIXTURE_TEST_CASE(prepared_select_dynamic_bind_results, homer_marge_fixture) {
 
   using sql::select;
 
@@ -241,7 +241,7 @@ BOOST_FIXTURE_TEST_CASE(prepared_select_dynamic_bind_results, springfield_fixtur
 //#include <iostream>
 //ostream* init = boost::rdb::trace_stream = &std::cout;
 
-BOOST_FIXTURE_TEST_CASE(prepared_select_dynamic_tables, springfield_fixture) {
+BOOST_FIXTURE_TEST_CASE(prepared_select_dynamic_tables, homer_marge_fixture) {
 
   using sql::select;
 

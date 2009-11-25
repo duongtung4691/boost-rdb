@@ -17,11 +17,11 @@ std::string str_result_set(const ResultSet& results) {
   return os.str();
 }
 
-struct springfield_fixture {
+struct schema_fixture {
 
   boost::rdb::odbc::database db;
 
-  springfield_fixture() : db("boost", "boost", "boost") {
+  schema_fixture() : db("boost", "boost", "boost") {
     using namespace boost::rdb::odbc;
     using namespace boost::rdb::sql::test::springfield;
     try {
@@ -37,6 +37,20 @@ struct springfield_fixture {
       db.execute(drop_table(partner::_));
       db.execute(create_table(partner::_));
     }
+  }
+
+  ~schema_fixture() {
+    using namespace boost::rdb::sql::test::springfield;
+    db.execute(drop_table(person::_));
+    db.execute(drop_table(partner::_));
+  }
+};
+
+struct homer_marge_fixture : schema_fixture {
+
+  homer_marge_fixture() {
+    using namespace boost::rdb::odbc;
+    using namespace boost::rdb::sql::test::springfield;
     
     person p;
     partner l;
@@ -44,12 +58,6 @@ struct springfield_fixture {
     db.execute(insert_into(p)(p.id, p.first_name, p.name, p.age).values(1, "Homer", "Simpson", 37));
     db.execute(insert_into(p)(p.id, p.first_name, p.name, p.age).values(2, "Marge", "Simpson", 34));
     db.execute(insert_into(l)(l.husband, l.wife).values(1, 2));
-  }
-
-  ~springfield_fixture() {
-    using namespace boost::rdb::sql::test::springfield;
-    db.execute(drop_table(person::_));
-    db.execute(drop_table(partner::_));
   }
 };
 
