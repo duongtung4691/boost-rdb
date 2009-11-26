@@ -1,0 +1,14 @@
+import template-profile ;
+
+project
+    : requirements
+    <library>../../build//boost_rdb
+    <library>../../build/odbc//boost_rdb_odbc
+    <include>../../../..
+    ;
+{
+  template-profile test_odbc_static : ../odbc/test_odbc_static.cpp ;
+  template-profile insert : insert.cpp ;
+  template-profile select : select.cpp ;
+}
+
