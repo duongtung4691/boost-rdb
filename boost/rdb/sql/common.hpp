@@ -235,7 +235,6 @@ namespace boost { namespace rdb { namespace sql {
   struct literal : any_literal {
     literal(const T& value) : value_(value) { }
     void str(std::ostream& os) const { os << value_; }
-    typedef T cpp_type;
     typedef SqlType sql_type;
     T value_;
   };
@@ -290,33 +289,37 @@ namespace boost { namespace rdb { namespace sql {
     typedef boost::mpl::true_::type is_numeric;
     typedef num_comparable_type comparable_type;
     typedef numeric_type kind;
-    typedef long cpp_type;
-    typedef long c_type;
   };
 
   template<>
   struct type_traits<type::real> {
-    typedef float cpp_type;
     static void str(std::ostream& os) { os << "real"; }
-    typedef literal<cpp_type, type::real> literal_type;
+    typedef literal<float, type::real> literal_type;
     template<class T>
-    static literal_type make_literal(cpp_type val) { return literal_type(val); }
+    static literal_type make_literal(float val) { return literal_type(val); }
     typedef boost::mpl::true_::type is_numeric;
     typedef num_comparable_type comparable_type;
     typedef numeric_type kind;
-    typedef cpp_type c_type;
   };
 
   template<>
   struct type_traits<type::float_> {
-    typedef double cpp_type;
     static void str(std::ostream& os) { os << "float"; }
-    typedef literal<cpp_type, type::float_> literal_type;
-    static literal_type make_literal(cpp_type val) { return literal_type(val); }
+    typedef literal<double, type::float_> literal_type;
+    static literal_type make_literal(double val) { return literal_type(val); }
     typedef boost::mpl::true_::type is_numeric;
     typedef num_comparable_type comparable_type;
     typedef numeric_type kind;
-    typedef cpp_type c_type;
+  };
+
+  template<>
+  struct type_traits<type::datetime> {
+    static void str(std::ostream& os) { os << "datetime"; }
+    typedef literal<double, type::datetime> literal_type;
+    static literal_type make_literal(double val) { return literal_type(val); }
+    typedef boost::mpl::true_::type is_numeric;
+    typedef num_comparable_type comparable_type;
+    typedef numeric_type kind;
   };
 
   template<>
@@ -325,7 +328,6 @@ namespace boost { namespace rdb { namespace sql {
     typedef literal<bool, type::boolean> literal_type;
     static literal_type make_literal(bool val) { return literal_type(val); }
     typedef boolean_type kind;
-    typedef bool cpp_type;
   };
 
   struct char_comparable_type;
@@ -337,8 +339,6 @@ namespace boost { namespace rdb { namespace sql {
     static literal_type make_literal(const char* str) { return literal_type(str); }
     typedef char_comparable_type comparable_type;
     typedef char_type kind;
-    //typedef varchar<N> c_type;
-    typedef std::string cpp_type;
   };
 
   struct comparison {
