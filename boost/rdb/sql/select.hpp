@@ -17,25 +17,6 @@ namespace boost { namespace rdb { namespace sql {
     select_result_if(const Data& data) : data_(data) { }
     Data data_;
   };
-  
-  template<class Data, class Key>
-  struct select_result_if<
-    Data,
-    Key,
-    typename enable_if<
-      fusion::result_of::has_key<Data, Key>
-    >::type
-  > {
-
-    typedef typename fusion::result_of::value_at_key<Data, Key>::type select_list;
-
-    select_result_if(const Data& data) : data_(data) { }
-    Data data_;
-
-    select_list exprs() const {
-      return fusion::at_key<Key>(data_);
-    }
-  };
 
   namespace result_of {
     template<class ExprList>
@@ -58,11 +39,13 @@ namespace boost { namespace rdb { namespace sql {
   }
     
   template<class Dialect, class State, class Data, class Subdialect>
-  struct select_statement :
-    select_result_if<Data, typename Subdialect::exprs>,
-    tag_if<fusion::result_of::has_key<Data, typename Subdialect::from>, select_statement_tag> {
+  struct select_statement {
 
-    select_statement(const Data& data) : select_result_if<Data, typename Subdialect::exprs>(data) { }
+    typedef select_statement_tag tag;
+
+    Data data_;
+
+    select_statement(const Data& data) : data_(data) { }
 
     void str(std::ostream& os) const {
       os << "select";
@@ -109,11 +92,26 @@ namespace boost { namespace rdb { namespace sql {
   };
 
   template<class Dialect, class State, class Data, class Subdialect>
+  typename fusion::result_of::value_at_key<Data, sql2003::exprs>::type
+  exprs(const select_statement<Dialect, State, Data, Subdialect>& st) {
+    return fusion::at_key<sql2003::exprs>(st.data_);
+  }
+
+  template<class Dialect, class State, class Data, class Subdialect>
   struct tag_of< select_statement<Dialect, State, Data, Subdialect> > {
     typedef typename select_statement<Dialect, State, Data, Subdialect>::tag type;
 
   };
 
 } } }
+
+namespace boost { namespace rdb {
+
+  template<class Dialect, class State, class Data, class Subdialect>
+  struct statement_result_type< sql::select_statement<Dialect, State, Data, Subdialect> > {
+    typedef typename fusion::result_of::value_at_key<Data, sql::sql2003::exprs>::type type;
+  };
+
+} }
 
 #endif

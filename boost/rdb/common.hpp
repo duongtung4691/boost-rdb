@@ -23,6 +23,11 @@ namespace boost { namespace rdb {
   struct select_statement_tag : statement_tag { };
   struct update_statement_tag : statement_tag { };
 
+  template<class Statement>
+  struct statement_result_type {
+    typedef void type;
+  };
+
   namespace type {
     // types as they exist independantly of any implementation
     // name `type` is already used in namespace `boost` but

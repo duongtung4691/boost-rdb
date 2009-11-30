@@ -396,14 +396,14 @@ namespace boost { namespace rdb { namespace odbc {
     template<class Select>
     struct discriminate<select_statement_tag, Select> {
 
-      typedef result_set<typename Select::select_list, false> execute_return_type;
+      typedef result_set<typename statement_result_type<Select>::type, false> execute_return_type;
 
       static execute_return_type execute(database& db, const Select& select) {
         HSTMT hstmt;
         sql_check(SQL_HANDLE_DBC, db.hdbc_, SQLAllocStmt(db.hdbc_, &hstmt));
         try {
           db.exec_str(hstmt, as_string(select));
-          return execute_return_type(hstmt, select.exprs());
+          return execute_return_type(hstmt, exprs(select));
         } catch (...) {
           SQLFreeHandle(SQL_HANDLE_STMT, &hstmt);
           throw;
@@ -635,11 +635,11 @@ namespace boost { namespace rdb { namespace odbc {
   class prepared_select_statement : public prepared_statement<Select> {
   
   public:
-    typedef typename Select::select_list select_list;
+    typedef typename statement_result_type<Select>::type select_list;
     typedef prepared_statement<Select> base;
 
     prepared_select_statement(const Select& select, SQLHSTMT hstmt) :
-      base(select, hstmt), exprs_(select.exprs()) { }
+      base(select, hstmt), exprs_(exprs(select)) { }
       
     select_list exprs_;
 
