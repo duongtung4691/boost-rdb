@@ -1,0 +1,30 @@
+
+# Boost rdb Library Build Jamfile
+
+# (C) Jean-Louis Leroy 2009.
+# Distributed under the Boost Software License, Version 1.0.
+# (See accompanying file LICENSE_1_0.txt or www.boost.org/LICENSE_1_0.txt)
+
+
+# See library home page at http://www.boost.org/libs/rdb
+
+#project boost/rdb_odbc
+#    : source-location ../../src/odbc
+#    ;
+
+SOURCES =
+    odbc ;
+
+project
+    : requirements
+    # <library>../../build//boost_rdb
+    <include>../../../..
+    : source-location ../../src/odbc
+    ;
+{
+  lib boost_rdb_odbc
+	  : $(SOURCES).cpp
+	    # ../../build//boost_rdb
+      : <include>../../../..
+      ;
+}

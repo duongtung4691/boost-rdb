@@ -1,0 +1,15 @@
+glob:Debug/*
+glob:bin.v2/*
+glob:*.orig
+glob:*.user
+glob:*.suo
+glob:*.ncb
+glob:*.rsp
+glob:bin/*
+glob:html/*
+glob:bjam.log
+glob:Jamroot
+glob:boost-build.jam
+glob:*~
+glob:Release/*
+glob:Fast Compilation/*
