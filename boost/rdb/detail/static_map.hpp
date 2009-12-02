@@ -67,6 +67,8 @@ namespace boost { namespace rdb {
       static_map_entry(const T& value) : value(value) { }
       typedef static_map_entry base;
       typedef T type;
+      typedef K key_type;
+      typedef T value_type;
       type value;
       static_map_entry& entry() { return *this; }
       const static_map_entry& entry() const { return *this; }
