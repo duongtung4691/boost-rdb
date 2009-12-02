@@ -290,11 +290,11 @@
 			</File>
 		</Filter>
 		<File
-			RelativePath="..\..\..\..\boost\rdb\common.hpp"
+			RelativePath="..\..\..\..\boost\rdb\sql\common.hpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\..\..\boost\rdb\sql\common.hpp"
+			RelativePath="..\..\..\..\boost\rdb\common.hpp"
 			>
 		</File>
 		<File
@@ -331,6 +331,10 @@
 		</File>
 		<File
 			RelativePath="..\..\..\..\boost\rdb\sql.hpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\..\boost\rdb\detail\static_map.hpp"
 			>
 		</File>
 		<File
