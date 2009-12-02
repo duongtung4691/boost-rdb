@@ -298,6 +298,14 @@
 		<File
 			RelativePath="..\..\test\odbc\test_odbc_static.cpp"
 			>
+			<FileConfiguration
+				Name="Fast Compilation|Win32"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					UsePrecompiledHeader="0"
+				/>
+			</FileConfiguration>
 		</File>
 	</Files>
 	<Globals>

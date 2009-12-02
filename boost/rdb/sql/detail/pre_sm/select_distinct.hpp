@@ -9,7 +9,11 @@
       fusion::vector<
         BOOST_PP_ENUM_PARAMS(n, Expr)
       >,
-      static_map<typename Subdialect::distinct, int, Data>
+      typename result_of::add_key<
+        Data,
+        typename Subdialect::distinct,
+        int
+      >::type
     >::type
     distinct(BOOST_PP_ENUM_BINARY_PARAMS(n, const Expr, &expr)) {
       return typename transition<
@@ -17,8 +21,14 @@
         fusion::vector<
           BOOST_PP_ENUM_PARAMS(n, Expr)
         >,
-        static_map<typename Subdialect::distinct, int, Data>
-      >::type(static_map_add_key<typename Subdialect::exprs>(
-          fusion::make_vector(BOOST_PP_ENUM_PARAMS(n, expr)),
-          static_map_add_key<typename Subdialect::distinct, int>(0, data_)));
+        typename result_of::add_key<
+          Data,
+          typename Subdialect::distinct,
+          int
+        >::type
+      >::type(add_key<typename Subdialect::exprs>(
+        add_key<typename Subdialect::distinct>(this->data_, 0),
+        fusion::vector<
+          BOOST_PP_ENUM_PARAMS(n, Expr)
+        >(BOOST_PP_ENUM_PARAMS(n, expr))));
     }

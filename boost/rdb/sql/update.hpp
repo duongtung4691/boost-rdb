@@ -90,7 +90,7 @@ namespace boost { namespace rdb { namespace sql {
     #define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/update_set.hpp>
     #include BOOST_PP_ITERATE()
     
-    #include "detail/select_where.hpp"
+    #include "detail/pre_sm/select_where.hpp"
 
     void str(std::ostream& os) const {
       fusion::for_each(data_, str_clause(os));
