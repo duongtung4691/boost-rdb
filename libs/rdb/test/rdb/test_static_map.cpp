@@ -37,16 +37,19 @@ struct accumulate_stutter {
   struct result {
     typedef typename fusion::result_of::as_vector<
       typename fusion::result_of::push_back<
-        typename fusion::result_of::push_back<Seq, const Entry>::type,
-        const Entry
+        typename fusion::result_of::push_back<
+          Seq,
+          const typename Entry::value_type
+        >::type,
+        const typename Entry::value_type
       >::type
     >::type type;
   };
   
   template<class Entry, class Seq>
   typename result<const Entry, const Seq>::type
-  operator ()(const Entry& val, const Seq& seq) const {
-    return fusion::as_vector(fusion::push_back(fusion::push_back(seq, val), val));
+  operator ()(const Entry& entry, const Seq& seq) const {
+    return fusion::as_vector(fusion::push_back(fusion::push_back(seq, entry.value), entry.value));
   }
 };
 
@@ -61,6 +64,10 @@ BOOST_AUTO_TEST_CASE(test_static_map) {
   BOOST_MPL_ASSERT((is_same<result_of::static_map_get<name, map1>::type, string>));
   BOOST_CHECK(str(m1.get<name>()) == "Homer");
   BOOST_CHECK(str(m1.transform(transform_stutter())) == "((Homer Homer))");
+  BOOST_MPL_ASSERT((is_same<
+    result_of::static_map_accumulate< map1, accumulate_stutter, fusion::vector<> >::type,
+    const fusion::vector<const string, const string>
+  >));
   
   typedef static_map<name, string>::with<age, int>::type map2;
   map2 m2(37, m1);
