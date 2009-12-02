@@ -2,6 +2,7 @@ namespace boost { namespace rdb {
 
     struct static_map0 {
       template<class F> void for_each(F f) { }
+      template<class F> void for_each(F f) const { }
       template<class F> fusion::vector<> transform(F f) { return fusion::vector<>(); }
       template<class F, class S> S accumulate(F, const S& s) const { return s; }
     };
@@ -67,8 +68,6 @@ namespace boost { namespace rdb {
       static_map_entry(const T& value) : value(value) { }
       typedef static_map_entry base;
       typedef T type;
-      typedef K key_type;
-      typedef T value_type;
       type value;
       static_map_entry& entry() { return *this; }
       const static_map_entry& entry() const { return *this; }
@@ -91,7 +90,8 @@ namespace boost { namespace rdb {
       explicit static_map(const V& value) : entry_type(value) { }
       static_map(const V& value, const Base& base) : entry_type(value), Base(base) { }
       
-      template<class F> void for_each(F f) { Base::for_each(f); f(entry_type::value); }
+      template<class F> void for_each(F f) { Base::for_each(f); f(entry_type::entry()); }
+      template<class F> void for_each(F f) const { Base::for_each(f); f(entry_type::entry()); }
       
       template<class Key>
       typename result_of::static_map_get<Key, static_map>::type

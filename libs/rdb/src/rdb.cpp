@@ -15,5 +15,5 @@ namespace boost { namespace rdb { namespace sql {
     os << "'";
   }
 
-  select_statement<sql2003, sql2003::select, fusion::map<>, sql2003> select = fusion::map<>();
+  select_statement<sql2003, sql2003::select, static_map0, sql2003> select = static_map0();
 } } }

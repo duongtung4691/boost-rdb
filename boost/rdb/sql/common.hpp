@@ -60,6 +60,8 @@
 
 #include <boost/rdb/common.hpp>
 
+#include <boost/rdb/detail/static_map.hpp>
+
 #define BOOST_RDB_PP_WITH(z, n, t) ::template with<t##n>::type
 #define BOOST_RDB_PP_CALL(z, n, t) (t##n)
 #define BOOST_RDB_PP_EXPRESSION(z, n, t) BOOST_PP_COMMA_IF(n) const expression<T##t##n>& t##n
@@ -180,6 +182,32 @@ namespace boost { namespace rdb { namespace sql {
       at_c<1>(p).str(os);
     }
   };
+
+  template<class ExprList>
+  void str(std::ostream& os, const static_map_entry<sql2003::exprs, ExprList>& p) {
+    os << " ";
+    fusion::for_each(p.value, comma_output(os));
+  }
+
+  inline void str(std::ostream& os, const static_map_entry<sql2003::distinct, int>& p) {
+    os << " distinct";
+  }
+
+  inline void str(std::ostream& os, const static_map_entry<sql2003::all, int>& p) {
+    os << " all";
+  }
+
+  template<class TableList>
+  void str(std::ostream& os, const static_map_entry<sql2003::from, TableList>& p) {
+    os << " from ";
+    fusion::for_each(p.value, comma_output(os));
+  }
+
+  template<class Predicate>
+  void str(std::ostream& os, const static_map_entry<sql2003::where, Predicate>& p) {
+    os << " where ";
+    p.value.str(os);
+  }
 
   template<class ExprList>
   void str(std::ostream& os, const fusion::pair<sql2003::exprs, ExprList>& p) {

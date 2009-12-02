@@ -164,6 +164,9 @@ BOOST_FIXTURE_TEST_CASE(prepared_insert, homer_marge_fixture) {
 BOOST_FIXTURE_TEST_CASE(prepared_select, homer_marge_fixture) {
   using boost::rdb::sql::select;
   person p;
+  typedef BOOST_TYPEOF(select(p.first_name).from(p).where(p.id == _)) S;
+  S::placeholder_vector v;
+  ++v;
   BOOST_AUTO(st, db.prepare(select(p.first_name).from(p).where(p.id == _)));
   BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(1), "((Homer))");
   BOOST_RDB_CHECK_SELECT_RESULTS(st.execute(2), "((Marge))");

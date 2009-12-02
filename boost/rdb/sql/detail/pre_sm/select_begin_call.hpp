@@ -16,11 +16,10 @@
         fusion::vector<
           BOOST_PP_ENUM_PARAMS(n, Expr)
         >
-      >::type(
-        static_map<
-          typename Subdialect::exprs,
-          fusion::vector<
-            BOOST_PP_ENUM_PARAMS(n, Expr)
-          >
-        >(fusion::make_vector(BOOST_PP_ENUM_PARAMS(n, expr)), data_));
+      >::type(add_key<typename Subdialect::exprs>(this->data_,
+        fusion::vector<
+          BOOST_PP_ENUM_PARAMS(n, Expr)
+        >(
+          BOOST_PP_ENUM_PARAMS(n, expr)
+        )));
     }
