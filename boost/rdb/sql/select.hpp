@@ -57,9 +57,11 @@ namespace boost { namespace rdb { namespace sql {
       };
       
       template<class Entry, class Seq>
-      typename result<const Entry, const Seq>::type
-      operator ()(const Entry& val, const Seq& seq) const {
-        return fusion::as_vector(fusion::join(seq, extract_placeholders_from_static_map_entry(val)));
+      typename result<Entry, Seq>::type
+      operator ()(const Entry& entry, const Seq& seq) const {
+        return fusion::as_vector(fusion::join(seq,
+          result_of::extract_placeholders_from_static_map_entry<Entry>::make(entry.value)));
+          //extract_placeholders_from_static_map_entry(val)));
       }
     };
 
@@ -147,9 +149,7 @@ namespace boost { namespace rdb { namespace sql {
 
     typedef typename result_of::placeholders_from_static_map<Data>::type placeholder_vector;
     
-    placeholder_vector placeholders() const {
-      return placeholders_from_static_map(this->data_);
-    }
+    placeholder_vector placeholders() const { return placeholders_from_static_map(data_); }
   };
 
   template<class Dialect, class State, class Data, class Subdialect>
