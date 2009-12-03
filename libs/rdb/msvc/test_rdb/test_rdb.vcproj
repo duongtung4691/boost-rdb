@@ -586,6 +586,14 @@
 		<File
 			RelativePath="..\..\test\rdb\test_placeholder.cpp"
 			>
+			<FileConfiguration
+				Name="Fast Compilation|Win32"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					UsePrecompiledHeader="2"
+				/>
+			</FileConfiguration>
 		</File>
 		<File
 			RelativePath="..\..\test\rdb\test_select.cpp"

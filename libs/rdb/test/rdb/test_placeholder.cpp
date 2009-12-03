@@ -15,7 +15,8 @@ struct same_placeholders : boost::is_same<
 };
 
 template<class Expected, class T>
-void check_placeholders(const T&) {
+void check_placeholders(const T& st) {
+  //st.placeholders();
   BOOST_MPL_ASSERT((same_placeholders<typename T::placeholder_vector, Expected>));
 }
 
@@ -56,6 +57,41 @@ BOOST_AUTO_TEST_CASE(test_placeholder) {
   check_placeholders<
     fusion::vector<placeholder<float_>, placeholder<float_>, placeholder< varchar<20> >, placeholder<float_> >
   >((p.age + _) == _ && p.name.like(_) && !(p.age < _));
+
+  {
+    BOOST_AUTO(s, select(p.id + _).from(p));
+    BOOST_AUTO(e_p, s.data_.get_entry<sql2003::exprs>());
+    BOOST_AUTO(ph, extract_placeholders_from_static_map_entry(e_p));
+    extract_placeholders_from_static_map f;
+    BOOST_AUTO(f1, f(e_p, fusion::make_vector()));
+    //++f1;
+  }
+  
+  select(p.id + _).placeholders();
+  
+  check_placeholders<
+    fusion::vector< placeholder<integer> >
+  >(select(p.id + _).from(p));
+
+  check_placeholders<
+    fusion::vector< placeholder<integer>, placeholder<float_> >
+  >(select(p.id + _, p.age + _).from(p));
+
+  check_placeholders<
+    fusion::vector< placeholder< varchar<20> > >
+  >(select(p.id).from(p).where(p.name == _));
+
+  check_placeholders<
+    fusion::vector< placeholder<integer>, placeholder< varchar<20> > >
+  >(select(p.id + _).from(p).where(p.name == _));
+
+  check_placeholders<
+    fusion::vector< placeholder<integer> >
+  >(exists(select(p.id + _).from(p)));
+  
+  check_placeholders<
+    fusion::vector< placeholder<integer>, placeholder< varchar<20> > >
+  >(select(p.id + _).from(p).where(p.name == _));
 
   check_placeholders<
     fusion::vector< placeholder<integer>, placeholder< varchar<20> > >

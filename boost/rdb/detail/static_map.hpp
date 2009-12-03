@@ -49,16 +49,19 @@ namespace boost { namespace rdb {
       template<class Key, class FirstKey, class Map>
       struct static_map_get_impl {
         typedef typename static_map_get<Key, typename Map::left>::type type;
+        typedef typename static_map_get<Key, typename Map::left>::entry_type entry_type;
       };
 
       template<class Key, class Map>
       struct static_map_get_impl<Key, Key, Map> {
         typedef typename Map::right_value_type type;
+        typedef typename Map::entry_type entry_type;
       };
 
       template<class Key, class Map>
       struct static_map_get {
         typedef typename static_map_get_impl<Key, typename Map::right_key_type, Map>::type type;
+        typedef typename static_map_get_impl<Key, typename Map::right_key_type, Map>::entry_type entry_type;
       };
 
     }
@@ -68,6 +71,7 @@ namespace boost { namespace rdb {
       static_map_entry(const T& value) : value(value) { }
       typedef static_map_entry base;
       typedef T type;
+      typedef T value_type;
       type value;
       static_map_entry& entry() { return *this; }
       const static_map_entry& entry() const { return *this; }
@@ -76,6 +80,11 @@ namespace boost { namespace rdb {
     template<class K, class T>
     inline const T& static_map_get(const static_map_entry<K, T>& entry) {
       return entry.value;
+    }
+
+    template<class K, class T>
+    inline const static_map_entry<K, T>& static_map_get_entry(const static_map_entry<K, T>& entry) {
+      return entry;
     }
 
     template<class K, class V, class Base = static_map0>
@@ -87,6 +96,8 @@ namespace boost { namespace rdb {
       typedef K right_key_type;
       typedef V right_value_type;
       
+      const Base& base() const { return *this; }
+      
       explicit static_map(const V& value) : entry_type(value) { }
       static_map(const V& value, const Base& base) : entry_type(value), Base(base) { }
       
@@ -96,6 +107,10 @@ namespace boost { namespace rdb {
       template<class Key>
       typename result_of::static_map_get<Key, static_map>::type
       get() const { return static_map_get<Key>(*this); }
+      
+      template<class Key>
+      typename result_of::static_map_get<Key, static_map>::entry_type
+      get_entry() const { return static_map_get_entry<Key>(*this); }
       
       template<class F>
       typename result_of::static_map_transform<static_map, F>::type
