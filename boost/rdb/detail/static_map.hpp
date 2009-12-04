@@ -1,6 +1,9 @@
-namespace boost { namespace rdb {
+namespace boost { namespace rdb { namespace ct {
+    
+    struct static_map_tag;
 
     struct static_map0 {
+      typedef static_map_tag tag;
       template<class F> void for_each(F f) { }
       template<class F> void for_each(F f) const { }
       template<class F> fusion::vector<> transform(F f) { return fusion::vector<>(); }
@@ -8,6 +11,32 @@ namespace boost { namespace rdb {
     };
       
     namespace result_of {
+
+      template<class S, class F, class Tag>
+      struct transform;
+
+      template<class F>
+      struct transform<static_map0, F, static_map_tag> {
+        typedef fusion::vector<> type;
+        
+        static type value(const static_map0&, F) {
+          return type();
+        }
+      };
+
+      template<class S, class F>
+      struct transform<S, F, static_map_tag> {
+        typedef typename fusion::result_of::as_vector<
+          typename fusion::result_of::push_back<
+            typename transform<typename S::left, F, static_map_tag>::type,
+            typename F::template result<typename S::right>::type
+          >::type
+        >::type type;
+        
+        static type value(const S& m, F f) {
+          return fusion::as_vector(fusion::push_back(ct::transform(m.base(), f), f(m.entry_type::value)));
+        }
+      };
 
       template<class S, class F>
       struct static_map_transform;
@@ -90,6 +119,7 @@ namespace boost { namespace rdb {
     template<class K, class V, class Base = static_map0>
     struct static_map : static_map_entry<K, V>, Base {
 
+      typedef static_map_tag tag;
       typedef Base left;
       typedef static_map_entry<K, V> entry_type;
       typedef entry_type right;
@@ -129,6 +159,12 @@ namespace boost { namespace rdb {
         typedef static_map<K2, V2, static_map> type;
       };
     };
+      
+    template<class C, class F>
+    inline typename result_of::transform<C, F, typename C::tag>::type
+    transform(const C& c, F f) {
+      return typename result_of::transform<C, F, typename C::tag>::value(c, f);
+    }
 
     template<class K, class T>
     inline std::ostream& operator <<(std::ostream& os, const static_map_entry<K, T>& wrapper) {
@@ -141,4 +177,4 @@ namespace boost { namespace rdb {
       return static_map<K, V, Map>(v, m);
     }
 
-} }
+} } }

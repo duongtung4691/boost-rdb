@@ -68,7 +68,7 @@ namespace boost { namespace rdb { namespace sql {
     namespace result_of {
       template<class Map>
       struct placeholders_from_static_map {
-        typedef typename rdb::result_of::static_map_accumulate<
+        typedef typename ct::result_of::static_map_accumulate<
           Map,
           extract_placeholders_from_static_map,
           fusion::vector<>
@@ -82,13 +82,13 @@ namespace boost { namespace rdb { namespace sql {
       return map.accumulate(extract_placeholders_from_static_map(), fusion::make_vector());
     }
   
-  extern select_statement<sql2003, sql2003::select, static_map0, sql2003> select;
+  extern select_statement<sql2003, sql2003::select, ct::static_map0, sql2003> select;
 
   namespace result_of {
     template<class ExprList>
-    struct extract_placeholders_from_static_map_entry< static_map_entry<sql2003::exprs, ExprList> > {
+    struct extract_placeholders_from_static_map_entry< ct::static_map_entry<sql2003::exprs, ExprList> > {
       typedef typename result_of::placeholders_from_list<ExprList>::type type;
-      static type make(const static_map_entry<sql2003::exprs, ExprList>& p) {
+      static type make(const ct::static_map_entry<sql2003::exprs, ExprList>& p) {
         return sql::placeholders_from_list(p.value);
       }
     };
@@ -96,9 +96,9 @@ namespace boost { namespace rdb { namespace sql {
   
   namespace result_of {
     template<class Predicate>
-    struct extract_placeholders_from_static_map_entry< static_map_entry<sql2003::where, Predicate> > {
+    struct extract_placeholders_from_static_map_entry< ct::static_map_entry<sql2003::where, Predicate> > {
       typedef typename Predicate::placeholder_vector type;
-      static type make(const static_map_entry<sql2003::where, Predicate>& p) {
+      static type make(const ct::static_map_entry<sql2003::where, Predicate>& p) {
         return p.value.placeholders();
       }
     };
@@ -124,7 +124,7 @@ namespace boost { namespace rdb { namespace sql {
       typedef select_statement<
         Subdialect,
         K,
-        static_map<K, T, D>,
+        ct::static_map<K, T, D>,
         Subdialect
       > type;
     };
@@ -153,7 +153,7 @@ namespace boost { namespace rdb { namespace sql {
   };
 
   template<class Dialect, class State, class Data, class Subdialect>
-  typename rdb::result_of::static_map_get<sql::sql2003::exprs, Data>::type
+  typename ct::result_of::static_map_get<sql::sql2003::exprs, Data>::type
   exprs(const select_statement<Dialect, State, Data, Subdialect>& st) {
     return st.data_.get<sql2003::exprs>();
   }
@@ -170,7 +170,7 @@ namespace boost { namespace rdb {
 
   template<class Dialect, class State, class Data, class Subdialect>
   struct statement_result_type< sql::select_statement<Dialect, State, Data, Subdialect> > {
-    typedef typename rdb::result_of::static_map_get<sql::sql2003::exprs, Data>::type type;
+    typedef typename ct::result_of::static_map_get<sql::sql2003::exprs, Data>::type type;
   };
 
 } }
