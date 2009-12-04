@@ -184,27 +184,27 @@ namespace boost { namespace rdb { namespace sql {
   };
 
   template<class ExprList>
-  void str(std::ostream& os, const static_map_entry<sql2003::exprs, ExprList>& p) {
+  void str(std::ostream& os, const ct::static_map_entry<sql2003::exprs, ExprList>& p) {
     os << " ";
     fusion::for_each(p.value, comma_output(os));
   }
 
-  inline void str(std::ostream& os, const static_map_entry<sql2003::distinct, int>& p) {
+  inline void str(std::ostream& os, const ct::static_map_entry<sql2003::distinct, int>& p) {
     os << " distinct";
   }
 
-  inline void str(std::ostream& os, const static_map_entry<sql2003::all, int>& p) {
+  inline void str(std::ostream& os, const ct::static_map_entry<sql2003::all, int>& p) {
     os << " all";
   }
 
   template<class TableList>
-  void str(std::ostream& os, const static_map_entry<sql2003::from, TableList>& p) {
+  void str(std::ostream& os, const ct::static_map_entry<sql2003::from, TableList>& p) {
     os << " from ";
     fusion::for_each(p.value, comma_output(os));
   }
 
   template<class Predicate>
-  void str(std::ostream& os, const static_map_entry<sql2003::where, Predicate>& p) {
+  void str(std::ostream& os, const ct::static_map_entry<sql2003::where, Predicate>& p) {
     os << " where ";
     p.value.str(os);
   }

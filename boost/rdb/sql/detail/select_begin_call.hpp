@@ -17,7 +17,7 @@
           BOOST_PP_ENUM_PARAMS(n, Expr)
         >
       >::type(
-        static_map<
+        ct::static_map<
           typename Subdialect::exprs,
           fusion::vector<
             BOOST_PP_ENUM_PARAMS(n, Expr)

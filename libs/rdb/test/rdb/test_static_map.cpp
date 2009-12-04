@@ -11,7 +11,7 @@
 
 using namespace std;
 using namespace boost;
-using namespace boost::rdb;
+using namespace boost::rdb::ct;
 
 namespace {
   template<class T>
@@ -63,11 +63,13 @@ BOOST_AUTO_TEST_CASE(test_static_map) {
   
   BOOST_MPL_ASSERT((is_same<result_of::static_map_get<name, map1>::type, string>));
   BOOST_CHECK(str(m1.get<name>()) == "Homer");
-  BOOST_CHECK(str(m1.transform(transform_stutter())) == "((Homer Homer))");
+  BOOST_CHECK(str(transform(m1, transform_stutter())) == "((Homer Homer))");
   BOOST_MPL_ASSERT((is_same<
     result_of::static_map_accumulate< map1, accumulate_stutter, fusion::vector<> >::type,
     const fusion::vector<const string, const string>
   >));
+  
+  BOOST_CHECK(str(transform(m1, transform_stutter())) == "((Homer Homer))");
   
   typedef static_map<name, string>::with<age, int>::type map2;
   map2 m2(37, m1);
@@ -76,7 +78,7 @@ BOOST_AUTO_TEST_CASE(test_static_map) {
   BOOST_CHECK(str(m1.get<name>()) == "Homer");
   BOOST_MPL_ASSERT((is_same<result_of::static_map_get<age, map2>::type, int>));
   BOOST_CHECK(m2.get<age>() == 37);
-  BOOST_CHECK(str(m2.transform(transform_stutter())) == "((Homer Homer) (37 37))");
+  BOOST_CHECK(str(transform(m2, transform_stutter())) == "((Homer Homer) (37 37))");
   BOOST_CHECK(str(m2.accumulate(accumulate_stutter(), fusion::make_vector())) == "(Homer Homer 37 37)");
   
 }
