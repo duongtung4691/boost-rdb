@@ -29,7 +29,7 @@ struct transform_stutter {
   };
   
   template<class T>
-  fusion::vector<T, T> operator ()(const T& val) { return fusion::make_vector(val, val); }
+  fusion::vector<T, T> operator ()(const T& val) const { return fusion::make_vector(val, val); }
 };
 
 struct accumulate_stutter {
@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_CASE(test_static_map) {
   typedef static_map<name, string> map1;
   map1 m1("Homer");
   
-  BOOST_MPL_ASSERT((is_same<result_of::value_at_key<name, map1>::type, string>));
+  BOOST_MPL_ASSERT((is_same<result_of::value_at_key<map1, name>::type, string>));
   BOOST_CHECK(str(at_key<name>(m1)) == "Homer");
   BOOST_CHECK(str(transform(m1, transform_stutter())) == "((Homer Homer))");
   BOOST_MPL_ASSERT((is_same<
@@ -74,9 +74,9 @@ BOOST_AUTO_TEST_CASE(test_static_map) {
   typedef static_map<name, string>::with<age, int>::type map2;
   map2 m2(37, m1);
   
-  BOOST_MPL_ASSERT((is_same<result_of::value_at_key<name, map2>::type, string>));
+  BOOST_MPL_ASSERT((is_same<result_of::value_at_key<map2, name>::type, string>));
   BOOST_CHECK(str(at_key<name>(m1)) == "Homer");
-  BOOST_MPL_ASSERT((is_same<result_of::value_at_key<age, map2>::type, int>));
+  BOOST_MPL_ASSERT((is_same<result_of::value_at_key<map2, age>::type, int>));
   BOOST_CHECK(at_key<age>(m2) == 37);
   BOOST_CHECK(str(transform(m2, transform_stutter())) == "((Homer Homer) (37 37))");
   BOOST_CHECK(str(accumulate(m2, accumulate_stutter(), fusion::make_vector())) == "(Homer Homer 37 37)");

@@ -4,9 +4,9 @@ namespace boost { namespace rdb { namespace ct {
 
     struct static_map0 {
       typedef static_map_tag tag;
-      template<class F> void for_each(F f) { }
-      template<class F> void for_each(F f) const { }
-      template<class F> fusion::vector<> transform(F f) { return fusion::vector<>(); }
+      template<class F> void for_each(const F& f) { }
+      template<class F> void for_each(const F& f) const { }
+      template<class F> fusion::vector<> transform(const F& f) { return fusion::vector<>(); }
       template<class F, class S> S accumulate(F, const S& s) const { return s; }
     };
       
@@ -30,7 +30,7 @@ namespace boost { namespace rdb { namespace ct {
           >::type
         >::type type;
         
-        static type value(const S& m, F f) {
+        static type value(const S& m, const F& f) {
           return fusion::as_vector(fusion::push_back(ct::transform(m.base(), f), f(m.entry_type::value)));
         }
       };
@@ -54,32 +54,32 @@ namespace boost { namespace rdb { namespace ct {
           typename accumulate<typename M::left, F, S, static_map_tag>::type
         >::type type;
         
-        static type value(const M& m, F f, const S& s) {
+        static type value(const M& m, const F& f, const S& s) {
           return f(m.right::entry(), ct::accumulate(m.base(), f, s));
         }
       };
 
-      template<class Key, class Map>
+      template<class Map, class Key>
       struct entry_at_key;
 
-      template<class Key, class FirstKey, class Map>
+      template<class Map, class Key, class FirstKey>
       struct entry_at_key_impl {
-        typedef typename entry_at_key<Key, typename Map::left>::type type;
+        typedef typename entry_at_key<typename Map::left, Key>::type type;
       };
 
-      template<class Key, class Map>
-      struct entry_at_key_impl<Key, Key, Map> {
+      template<class Map, class Key>
+      struct entry_at_key_impl<Map, Key, Key> {
         typedef typename Map::entry_type type;
       };
 
-      template<class Key, class Map>
+      template<class Map, class Key>
       struct entry_at_key {
-        typedef typename entry_at_key_impl<Key, typename Map::right_key_type, Map>::type type;
+        typedef typename entry_at_key_impl<Map, Key, typename Map::right_key_type>::type type;
       };
 
-      template<class Key, class Map>
+      template<class Map, class Key>
       struct value_at_key {
-        typedef typename entry_at_key<Key, Map>::type::value_type type;
+        typedef typename entry_at_key<Map, Key>::type::value_type type;
       };
 
     }
@@ -120,12 +120,8 @@ namespace boost { namespace rdb { namespace ct {
       explicit static_map(const V& value) : entry_type(value) { }
       static_map(const V& value, const Base& base) : entry_type(value), Base(base) { }
       
-      template<class F> void for_each(F f) { Base::for_each(f); f(entry_type::entry()); }
-      template<class F> void for_each(F f) const { Base::for_each(f); f(entry_type::entry()); }
-      
-      template<class Key>
-      typename result_of::entry_at_key<Key, static_map>::type
-      get_entry() const { return entry_at_key<Key>(*this); }
+      template<class F> void for_each(const F& f) { Base::for_each(f); f(entry_type::entry()); }
+      template<class F> void for_each(const F& f) const { Base::for_each(f); f(entry_type::entry()); }
      
       template<class K2, class V2>
       struct with {
@@ -134,18 +130,18 @@ namespace boost { namespace rdb { namespace ct {
     };
       
     template<class Key, class M>
-    typename result_of::value_at_key<Key, M>::type
+    typename result_of::value_at_key<M, Key>::type
     at_key(const M& m) { return entry_at_key<Key>(m).value; }
       
     template<class C, class F>
     inline typename result_of::transform<C, F, typename C::tag>::type
-    transform(const C& c, F f) {
+    transform(const C& c, const F& f) {
       return typename result_of::transform<C, F, typename C::tag>::value(c, f);
     }
       
     template<class C, class F, class S>
     typename result_of::accumulate<C, F, const S, typename C::tag>::type
-    accumulate(const C& c, F f, const S& s) {
+    accumulate(const C& c, const F& f, const S& s) {
       return result_of::accumulate<C, F, const S, typename C::tag>::value(c, f, s);
     }
 
