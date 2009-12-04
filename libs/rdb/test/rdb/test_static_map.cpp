@@ -61,11 +61,11 @@ BOOST_AUTO_TEST_CASE(test_static_map) {
   typedef static_map<name, string> map1;
   map1 m1("Homer");
   
-  BOOST_MPL_ASSERT((is_same<result_of::static_map_get<name, map1>::type, string>));
-  BOOST_CHECK(str(m1.get<name>()) == "Homer");
+  BOOST_MPL_ASSERT((is_same<result_of::value_at_key<name, map1>::type, string>));
+  BOOST_CHECK(str(at_key<name>(m1)) == "Homer");
   BOOST_CHECK(str(transform(m1, transform_stutter())) == "((Homer Homer))");
   BOOST_MPL_ASSERT((is_same<
-    result_of::static_map_accumulate< map1, accumulate_stutter, fusion::vector<> >::type,
+    result_of::accumulate< map1, accumulate_stutter, fusion::vector<> >::type,
     const fusion::vector<const string, const string>
   >));
   
@@ -74,11 +74,11 @@ BOOST_AUTO_TEST_CASE(test_static_map) {
   typedef static_map<name, string>::with<age, int>::type map2;
   map2 m2(37, m1);
   
-  BOOST_MPL_ASSERT((is_same<result_of::static_map_get<name, map2>::type, string>));
-  BOOST_CHECK(str(m1.get<name>()) == "Homer");
-  BOOST_MPL_ASSERT((is_same<result_of::static_map_get<age, map2>::type, int>));
-  BOOST_CHECK(m2.get<age>() == 37);
+  BOOST_MPL_ASSERT((is_same<result_of::value_at_key<name, map2>::type, string>));
+  BOOST_CHECK(str(at_key<name>(m1)) == "Homer");
+  BOOST_MPL_ASSERT((is_same<result_of::value_at_key<age, map2>::type, int>));
+  BOOST_CHECK(at_key<age>(m2) == 37);
   BOOST_CHECK(str(transform(m2, transform_stutter())) == "((Homer Homer) (37 37))");
-  BOOST_CHECK(str(m2.accumulate(accumulate_stutter(), fusion::make_vector())) == "(Homer Homer 37 37)");
+  BOOST_CHECK(str(accumulate(m2, accumulate_stutter(), fusion::make_vector())) == "(Homer Homer 37 37)");
   
 }
