@@ -477,6 +477,58 @@ namespace boost { namespace rdb { namespace sql {
   placeholders_from_pair_list(const Map& map) {
     return fusion::as_vector(fusion::accumulate(map, fusion::make_vector(), extract_placeholders_from_pair_list()));
   }
+
+  namespace result_of {
+    template<class Entry>
+    struct extract_placeholders_from_map_entry {
+      typedef fusion::vector<> type;
+      static type make(const Entry&) { return type(); }
+    };
+  }
+    
+  template<class Entry>
+  typename result_of::extract_placeholders_from_map_entry<Entry>::type
+  extract_placeholders_from_map_entry(const Entry& p) {
+    return result_of::extract_placeholders_from_map_entry<Entry>::make(p);
+  }
+    
+  struct extract_placeholders_from_map {
+
+    template<class Entry, class Seq>
+    struct result {
+      typedef typename fusion::result_of::as_vector<
+        typename fusion::result_of::join<
+          Seq,
+          typename result_of::extract_placeholders_from_map_entry<Entry>::type
+        >::type
+      >::type type;
+    };
+    
+    template<class Entry, class Seq>
+    typename result<Entry, Seq>::type
+    operator ()(const Entry& entry, const Seq& seq) const {
+      return fusion::as_vector(fusion::join(seq,
+        result_of::extract_placeholders_from_map_entry<Entry>::make(entry.value)));
+        //extract_placeholders_from_map_entry(val)));
+    }
+  };
+
+  namespace result_of {
+    template<class Map>
+    struct placeholders_from_map {
+      typedef typename ct::result_of::accumulate<
+        Map,
+        extract_placeholders_from_map,
+        fusion::vector<>
+      >::type type;
+    };
+  }
+
+  template<class Map>
+  typename result_of::placeholders_from_map<Map>::type
+  placeholders_from_map(const Map& map) {
+    return ct::accumulate(map, extract_placeholders_from_map(), fusion::make_vector());
+  }
   
   template<class T>
   struct is_column_container< expression<T> > : is_column_container<T> {

@@ -10,29 +10,29 @@
 namespace boost { namespace rdb { namespace sql {
 
   template<class Table>
-  inline void str(std::ostream& os, const fusion::pair<sql2003::insert, const Table*>& p) {
+  inline void str(std::ostream& os, const ct::map_entry<sql2003::insert, const Table*>& p) {
     os << "insert into ";
-    os << p.second->table();
+    os << p.value->table();
   }
 
   template<class ColList>
-  inline void str(std::ostream& os, const fusion::pair<sql2003::cols, ColList>& p) {
+  inline void str(std::ostream& os, const ct::map_entry<sql2003::cols, ColList>& p) {
     os << " (";
-    fusion::for_each(p.second, comma_output(os));
+    fusion::for_each(p.value, comma_output(os));
     os << ")";
   }
 
   template<class ValueList>
-  inline void str(std::ostream& os, const fusion::pair<sql2003::values, ValueList>& p) {
+  inline void str(std::ostream& os, const ct::map_entry<sql2003::values, ValueList>& p) {
     os << " values (";
-    fusion::for_each(p.second, comma_output(os));
+    fusion::for_each(p.value, comma_output(os));
     os << ")";
   }
 
   template<class ExprList>
-  inline void str(std::ostream& os, const fusion::pair<sql2003::select, ExprList>& p) {
+  inline void str(std::ostream& os, const ct::map_entry<sql2003::select, ExprList>& p) {
     os << " select ";
-    fusion::for_each(p.second, comma_output(os));
+    fusion::for_each(p.value, comma_output(os));
   }
 
   template<class Data, class HasValues, class HasSelect, class Subdialect>
@@ -89,16 +89,16 @@ namespace boost { namespace rdb { namespace sql {
   template<class Data, class Subdialect>
   struct insert_impl<Data, mpl::true_, mpl::false_, Subdialect> {
     typedef insert_statement_tag tag;
-    typedef typename fusion::result_of::value_at_key<Data, typename Subdialect::cols>::type cols_type;
-    typedef typename fusion::result_of::value_at_key<Data, typename Subdialect::values>::type values_type;
+    typedef typename ct::result_of::value_at_key<Data, typename Subdialect::cols>::type cols_type;
+    typedef typename ct::result_of::value_at_key<Data, typename Subdialect::values>::type values_type;
 
     insert_impl(const Data& data) : data_(data) { }
     typedef insert_impl inherited;
 
     Data data_;
 
-    const cols_type& cols() const { return fusion::at_key<typename Subdialect::cols>(data_); }
-    const values_type& values() const { return fusion::at_key<typename Subdialect::values>(data_); }
+    const cols_type& cols() const { return ct::at_key<typename Subdialect::cols>(data_); }
+    const values_type& values() const { return ct::at_key<typename Subdialect::values>(data_); }
 
     typedef fusion::vector<const cols_type&, const values_type&> zip;
     typedef fusion::zip_view<zip> zip_view;
@@ -121,7 +121,7 @@ namespace boost { namespace rdb { namespace sql {
   template<class Data, class Subdialect>
   struct insert_impl<Data, mpl::false_, mpl::true_, Subdialect> {
     typedef insert_statement_tag tag;
-    typedef typename result_of::placeholders_from_pair_list<Data>::type placeholder_vector;
+    typedef typename result_of::placeholders_from_map<Data>::type placeholder_vector;
     insert_impl(const Data& data) : data_(data) { }
     Data data_;
     typedef insert_impl inherited;
@@ -129,14 +129,14 @@ namespace boost { namespace rdb { namespace sql {
 
   template<class Dialect, class State, class Data, class Subdialect>
   struct insert_statement : insert_impl<Data,
-    typename fusion::result_of::has_key<Data, typename Subdialect::values>::type,
-    typename fusion::result_of::has_key<Data, typename Subdialect::select>::type,
+    typename ct::result_of::has_key<Data, typename Subdialect::values>::type,
+    typename ct::result_of::has_key<Data, typename Subdialect::select>::type,
     Subdialect
   > {
 
     explicit insert_statement(const Data& data) : insert_impl<Data,
-      typename fusion::result_of::has_key<Data, typename Subdialect::values>::type,
-      typename fusion::result_of::has_key<Data, typename Subdialect::select>::type,
+      typename ct::result_of::has_key<Data, typename Subdialect::values>::type,
+      typename ct::result_of::has_key<Data, typename Subdialect::select>::type,
       Subdialect
     >(data) { }
 
@@ -147,11 +147,7 @@ namespace boost { namespace rdb { namespace sql {
       typedef insert_statement<
         Subdialect,
         K,
-        typename result_of::add_key<
-          D,
-          K,
-          T
-        >::type,
+        ct::map<K, T, D>,
         Subdialect
       > type;
     };
@@ -208,7 +204,7 @@ namespace boost { namespace rdb { namespace sql {
     template<class Exprs>
     struct with_values {
 
-      typedef typename fusion::result_of::value_at_key<Data, typename Subdialect::cols>::type cols;
+      typedef typename ct::result_of::value_at_key<Data, typename Subdialect::cols>::type cols;
       typedef typename fusion::result_of::end<cols>::type col_last;
 
       // If this assertion fails the insert list and the value list have different sizes
@@ -231,7 +227,7 @@ namespace boost { namespace rdb { namespace sql {
       >::type type;
 
       static type make(const Data& data, const Exprs& exprs) {
-        return type(add_key<typename Subdialect::values>(
+        return type(ct::add_key<typename Subdialect::values>(
           data, fusion::as_vector(final_value_list::make(fusion::begin(exprs)))));
       }
     };
@@ -245,21 +241,22 @@ namespace boost { namespace rdb { namespace sql {
     #include BOOST_PP_ITERATE()
 
     #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
-    #define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/pre_sm/select_distinct.hpp>
+    #define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/select_distinct.hpp>
     #include BOOST_PP_ITERATE()
 
     #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
-    #define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/pre_sm/select_all.hpp>
+    #define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/select_all.hpp>
     #include BOOST_PP_ITERATE()
 
     #define BOOST_PP_ITERATION_LIMITS (1, BOOST_RDB_MAX_SIZE - 1)
-    #define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/pre_sm/select_from.hpp>
+    #define BOOST_PP_FILENAME_1       <boost/rdb/sql/detail/select_from.hpp>
     #include BOOST_PP_ITERATE()
     
-    #include <boost/rdb/sql/detail/pre_sm/select_where.hpp>
+    #include <boost/rdb/sql/detail/select_where.hpp>
 
     void str(std::ostream& os) const {
-      fusion::for_each(this->data_, str_clause(os));
+      ct::for_each(this->data_, str_clause(os));
+      //this->data_.for_each(str_clause(os));
     }
 
   };
@@ -270,24 +267,16 @@ namespace boost { namespace rdb { namespace sql {
   insert_statement<
     sql2003,
     sql2003::insert,
-    fusion::map<
-      fusion::pair<
-      sql2003::insert, const Table*
-      >
-    >,
+    ct::map<sql2003::insert, const Table*>,
     sql2003
   >
   insert_into(const Table& table) {
     return insert_statement<
       sql2003,
       sql2003::insert,
-      fusion::map<
-        fusion::pair<
-        sql2003::insert, const Table*
-        >
-      >,
+      ct::map<sql2003::insert, const Table*>,
       sql2003
-    >(fusion::make_pair<sql2003::insert>(&table));
+    >(ct::map<sql2003::insert, const Table*>(&table));
   }
 
 } } }

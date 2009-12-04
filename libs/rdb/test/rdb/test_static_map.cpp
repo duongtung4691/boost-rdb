@@ -58,7 +58,7 @@ BOOST_AUTO_TEST_CASE(test_static_map) {
   struct name;
   struct age;
 
-  typedef static_map<name, string> map1;
+  typedef map<name, string> map1;
   map1 m1("Homer");
   
   BOOST_MPL_ASSERT((is_same<result_of::value_at_key<map1, name>::type, string>));
@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE(test_static_map) {
   
   BOOST_CHECK(str(transform(m1, transform_stutter())) == "((Homer Homer))");
   
-  typedef static_map<name, string>::with<age, int>::type map2;
+  typedef map<name, string>::with<age, int>::type map2;
   map2 m2(37, m1);
   
   BOOST_MPL_ASSERT((is_same<result_of::value_at_key<map2, name>::type, string>));
@@ -80,5 +80,8 @@ BOOST_AUTO_TEST_CASE(test_static_map) {
   BOOST_CHECK(at_key<age>(m2) == 37);
   BOOST_CHECK(str(transform(m2, transform_stutter())) == "((Homer Homer) (37 37))");
   BOOST_CHECK(str(accumulate(m2, accumulate_stutter(), fusion::make_vector())) == "(Homer Homer 37 37)");
+  
+  BOOST_MPL_ASSERT((is_same<result_of::has_key<map1, age>::type, mpl::false_>));
+  BOOST_MPL_ASSERT((is_same<result_of::has_key<map2, age>::type, mpl::true_>));
   
 }
