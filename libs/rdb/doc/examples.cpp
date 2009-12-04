@@ -40,13 +40,13 @@ namespace boost { namespace rdb { namespace sql {
       BOOST_MPL_ASSERT((allow<Subdialect, State, Subdialect::limit>));
       return typename inherited::template transition<
         typename Subdialect::limit, int
-      >::type(add_key<typename Subdialect::limit>(data_, n));
+      >::type(ct::add_key<typename Subdialect::limit>(data_, n));
     }
   };
 
   // tell how to print the clause
-  inline void str(std::ostream& os, const fusion::pair<mysql5::limit, int>& p) {
-    os << " limit " << p.second;
+  inline void str(std::ostream& os, const ct::map_entry<mysql5::limit, int>& p) {
+    os << " limit " << p.value;
   }
   
   // declare legal transitions
@@ -55,7 +55,7 @@ namespace boost { namespace rdb { namespace sql {
 
   // grammar entry point
   namespace mysql {
-    select_statement<mysql5, mysql5::select, fusion::map<>, mysql5> select = fusion::map<>();
+    select_statement<mysql5, mysql5::select, ct::map0, mysql5> select = ct::map0();
   }
 
   // that's it !
@@ -137,7 +137,7 @@ void select_size() {
 
   cout << sizeof(select(p.id).from(p).where(p.age > 18 && p.age < 65)) << endl;
   // 28 with msvc9
-  cout << sizeof(select(p.id).from(p).where(p.age > 18 && p.age < 65).exprs()) << endl;
+  cout << sizeof(exprs(select(p.id).from(p).where(p.age > 18 && p.age < 65))) << endl;
   // 28 with msvc9
 }
 
