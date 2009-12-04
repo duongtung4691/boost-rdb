@@ -576,31 +576,7 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\test\rdb\test_dynamic.cpp"
-			>
-		</File>
-		<File
-			RelativePath="..\..\test\rdb\test_insert.cpp"
-			>
-		</File>
-		<File
-			RelativePath="..\..\test\rdb\test_placeholder.cpp"
-			>
-			<FileConfiguration
-				Name="Fast Compilation|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="2"
-				/>
-			</FileConfiguration>
-		</File>
-		<File
-			RelativePath="..\..\test\rdb\test_select.cpp"
-			>
-		</File>
-		<File
-			RelativePath="..\..\test\rdb\test_static_map.cpp"
+			RelativePath="..\..\test\rdb\test_compile_time_collections.cpp"
 			>
 			<FileConfiguration
 				Name="Debug|Win32"
@@ -626,6 +602,30 @@
 					UsePrecompiledHeader="0"
 				/>
 			</FileConfiguration>
+		</File>
+		<File
+			RelativePath="..\..\test\rdb\test_dynamic.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\test\rdb\test_insert.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\test\rdb\test_placeholder.cpp"
+			>
+			<FileConfiguration
+				Name="Fast Compilation|Win32"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					UsePrecompiledHeader="2"
+				/>
+			</FileConfiguration>
+		</File>
+		<File
+			RelativePath="..\..\test\rdb\test_select.cpp"
+			>
 		</File>
 		<File
 			RelativePath="..\..\test\rdb\test_tables.hpp"

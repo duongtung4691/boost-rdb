@@ -85,3 +85,7 @@ BOOST_AUTO_TEST_CASE(test_static_map) {
   BOOST_MPL_ASSERT((is_same<result_of::has_key<map2, age>::type, mpl::true_>));
   
 }
+
+BOOST_AUTO_TEST_CASE(test_static_list) {
+  
+}
