@@ -18,10 +18,7 @@ namespace boost { namespace rdb { namespace ct {
       template<class F>
       struct transform<static_map0, F, static_map_tag> {
         typedef fusion::vector<> type;
-        
-        static type value(const static_map0&, F) {
-          return type();
-        }
+        static type value(const static_map0&, F) { return type(); }
       };
 
       template<class S, class F>
@@ -38,59 +35,51 @@ namespace boost { namespace rdb { namespace ct {
         }
       };
 
-      template<class S, class F>
-      struct static_map_transform;
-
-      template<class F>
-      struct static_map_transform<static_map0, F> {
-        typedef fusion::vector<> type;
-      };
-
-      template<class S, class F>
-      struct static_map_transform {
-        typedef typename fusion::result_of::as_vector<
-          typename fusion::result_of::push_back<
-            typename static_map_transform<typename S::left, F>::type,
-            typename F::template result<typename S::right>::type
-          >::type
-        >::type type;
-      };
-
-      template<class M, class F, class S>
-      struct static_map_accumulate;
+      template<class M, class F, class S, class Tag = typename M::tag>
+      struct accumulate;
 
       template<class F, class S>
-      struct static_map_accumulate<static_map0, F, S> {
+      struct accumulate<static_map0, F, S, static_map_tag> {
         typedef S type;
+        
+        static type value(const static_map0&, F, const S& s) {
+          return s;
+        }
       };
 
       template<class M, class F, class S>
-      struct static_map_accumulate {
+      struct accumulate<M, F, S, static_map_tag> {
         typedef const typename F::template result<
           typename M::right,
-          typename static_map_accumulate<typename M::left, F, S>::type
+          typename accumulate<typename M::left, F, S, static_map_tag>::type
         >::type type;
+        
+        static type value(const M& m, F f, const S& s) {
+          return f(m.right::entry(), ct::accumulate(m.base(), f, s));
+        }
       };
 
       template<class Key, class Map>
-      struct static_map_get;
+      struct entry_at_key;
 
       template<class Key, class FirstKey, class Map>
-      struct static_map_get_impl {
-        typedef typename static_map_get<Key, typename Map::left>::type type;
-        typedef typename static_map_get<Key, typename Map::left>::entry_type entry_type;
+      struct entry_at_key_impl {
+        typedef typename entry_at_key<Key, typename Map::left>::type type;
       };
 
       template<class Key, class Map>
-      struct static_map_get_impl<Key, Key, Map> {
-        typedef typename Map::right_value_type type;
-        typedef typename Map::entry_type entry_type;
+      struct entry_at_key_impl<Key, Key, Map> {
+        typedef typename Map::entry_type type;
       };
 
       template<class Key, class Map>
-      struct static_map_get {
-        typedef typename static_map_get_impl<Key, typename Map::right_key_type, Map>::type type;
-        typedef typename static_map_get_impl<Key, typename Map::right_key_type, Map>::entry_type entry_type;
+      struct entry_at_key {
+        typedef typename entry_at_key_impl<Key, typename Map::right_key_type, Map>::type type;
+      };
+
+      template<class Key, class Map>
+      struct value_at_key {
+        typedef typename entry_at_key<Key, Map>::type::value_type type;
       };
 
     }
@@ -106,13 +95,13 @@ namespace boost { namespace rdb { namespace ct {
       const static_map_entry& entry() const { return *this; }
     };
 
-    template<class K, class T>
-    inline const T& static_map_get(const static_map_entry<K, T>& entry) {
-      return entry.value;
-    }
+    //template<class K, class T>
+    //inline const T& value_at_key(const static_map_entry<K, T>& entry) {
+    //  return entry.value;
+    //}
 
     template<class K, class T>
-    inline const static_map_entry<K, T>& static_map_get_entry(const static_map_entry<K, T>& entry) {
+    inline const static_map_entry<K, T>& entry_at_key(const static_map_entry<K, T>& entry) {
       return entry;
     }
 
@@ -135,24 +124,8 @@ namespace boost { namespace rdb { namespace ct {
       template<class F> void for_each(F f) const { Base::for_each(f); f(entry_type::entry()); }
       
       template<class Key>
-      typename result_of::static_map_get<Key, static_map>::type
-      get() const { return static_map_get<Key>(*this); }
-      
-      template<class Key>
-      typename result_of::static_map_get<Key, static_map>::entry_type
-      get_entry() const { return static_map_get_entry<Key>(*this); }
-      
-      template<class F>
-      typename result_of::static_map_transform<static_map, F>::type
-      transform(F f) {
-        return fusion::as_vector(fusion::push_back(Base::transform(f), f(entry_type::value)));
-      }
-      
-      template<class F, class S>
-      typename result_of::static_map_accumulate<static_map, F, const S>::type
-      accumulate(F f, const S& s) const {
-        return f(right::entry(), left::accumulate(f, s));
-      }
+      typename result_of::entry_at_key<Key, static_map>::type
+      get_entry() const { return entry_at_key<Key>(*this); }
      
       template<class K2, class V2>
       struct with {
@@ -160,10 +133,20 @@ namespace boost { namespace rdb { namespace ct {
       };
     };
       
+    template<class Key, class M>
+    typename result_of::value_at_key<Key, M>::type
+    at_key(const M& m) { return entry_at_key<Key>(m).value; }
+      
     template<class C, class F>
     inline typename result_of::transform<C, F, typename C::tag>::type
     transform(const C& c, F f) {
       return typename result_of::transform<C, F, typename C::tag>::value(c, f);
+    }
+      
+    template<class C, class F, class S>
+    typename result_of::accumulate<C, F, const S, typename C::tag>::type
+    accumulate(const C& c, F f, const S& s) {
+      return result_of::accumulate<C, F, const S, typename C::tag>::value(c, f, s);
     }
 
     template<class K, class T>
