@@ -41,10 +41,10 @@
 #include <boost/fusion/include/push_back.hpp>
 #include <boost/fusion/include/join.hpp>
 #include <boost/fusion/include/replace_if.hpp>
-#include <boost/fusion/include/begin.hpp>
-#include <boost/fusion/include/end.hpp>
-#include <boost/fusion/include/next.hpp>
-#include <boost/fusion/include/deref.hpp>
+//#include <boost/fusion/include/begin.hpp>
+//#include <boost/fusion/include/end.hpp>
+//#include <boost/fusion/include/next.hpp>
+//#include <boost/fusion/include/deref.hpp>
 #include <boost/fusion/include/front.hpp>
 #include <boost/fusion/include/transform.hpp>
 #include <boost/fusion/include/zip_view.hpp>
@@ -487,23 +487,23 @@ namespace boost { namespace rdb { namespace sql {
   > {
   };
 
-  template<class Iter1, class Last, class Iter2>
-  struct _sql_lists_compatible<Iter1, Last, Iter2, 
-    typename fusion::result_of::equal_to<Last, Last>::type
-  > : mpl::true_ {
-  };
+  //template<class Iter1, class Last, class Iter2>
+  //struct _sql_lists_compatible<Iter1, Last, Iter2, 
+  //  typename fusion::result_of::equal_to<Last, Last>::type
+  //> : mpl::true_ {
+  //};
 
-  template<class ExprList1, class ExprList2>
-  struct sql_lists_compatible : _sql_lists_compatible<
-    typename fusion::result_of::begin<ExprList1>::type,
-    typename fusion::result_of::end<ExprList1>::type,
-    typename fusion::result_of::begin<ExprList2>::type,
-    typename fusion::result_of::equal_to<
-      typename fusion::result_of::begin<ExprList1>::type,
-      typename fusion::result_of::end<ExprList1>::type
-    >::type
-  > {
-  };
+  //template<class ExprList1, class ExprList2>
+  //struct sql_lists_compatible : _sql_lists_compatible<
+  //  typename fusion::result_of::begin<ExprList1>::type,
+  //  typename fusion::result_of::end<ExprList1>::type,
+  //  typename fusion::result_of::begin<ExprList2>::type,
+  //  typename fusion::result_of::equal_to<
+  //    typename fusion::result_of::begin<ExprList1>::type,
+  //    typename fusion::result_of::end<ExprList1>::type
+  //  >::type
+  //> {
+  //};
 
   // This is /not/ the placeholder type. It's just the marks' type, i.e.
   // the type of `_`, `_1`, etc. Placeholders are typed things, marks are not.
