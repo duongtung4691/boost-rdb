@@ -9,26 +9,6 @@
 #include <deque>
 
 namespace boost { namespace rdb { namespace sql {
-
-  namespace result_of {
-    template<class ExprList>
-    struct extract_placeholders_from_pair<sql2003::exprs, ExprList> {
-      typedef typename result_of::placeholders_from_list<ExprList>::type type;
-      static type make(const fusion::pair<sql2003::exprs, ExprList>& p) {
-        return sql::placeholders_from_list(p.second);
-      }
-    };
-  }
-  
-  namespace result_of {
-    template<class Predicate>
-    struct extract_placeholders_from_pair<sql2003::where, Predicate> {
-      typedef typename Predicate::placeholder_vector type;
-      static type make(const fusion::pair<sql2003::where, Predicate>& p) {
-        return p.second.placeholders();
-      }
-    };
-  }
   
   extern select_statement<sql2003, sql2003::select, ct::map0, sql2003> select;
 

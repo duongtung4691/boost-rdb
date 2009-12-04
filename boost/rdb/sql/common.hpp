@@ -30,21 +30,11 @@
 
 #include <boost/fusion/include/make_vector.hpp>
 #include <boost/fusion/include/at.hpp>
-#include <boost/fusion/include/map.hpp>
-#include <boost/fusion/include/make_map.hpp>
-#include <boost/fusion/include/as_map.hpp>
-#include <boost/fusion/include/at_key.hpp>
-#include <boost/fusion/include/value_at_key.hpp>
-#include <boost/fusion/include/erase_key.hpp>
 #include <boost/fusion/include/size.hpp>
 #include <boost/fusion/include/accumulate.hpp>
 #include <boost/fusion/include/push_back.hpp>
 #include <boost/fusion/include/join.hpp>
 #include <boost/fusion/include/replace_if.hpp>
-//#include <boost/fusion/include/begin.hpp>
-//#include <boost/fusion/include/end.hpp>
-//#include <boost/fusion/include/next.hpp>
-//#include <boost/fusion/include/deref.hpp>
 #include <boost/fusion/include/front.hpp>
 #include <boost/fusion/include/transform.hpp>
 #include <boost/fusion/include/zip_view.hpp>
@@ -208,32 +198,6 @@ namespace boost { namespace rdb { namespace sql {
     p.value.str(os);
   }
 
-  template<class ExprList>
-  void str(std::ostream& os, const fusion::pair<sql2003::exprs, ExprList>& p) {
-    os << " ";
-    fusion::for_each(p.second, comma_output(os));
-  }
-
-  inline void str(std::ostream& os, const fusion::pair<sql2003::distinct, int>& p) {
-    os << " distinct";
-  }
-
-  inline void str(std::ostream& os, const fusion::pair<sql2003::all, int>& p) {
-    os << " all";
-  }
-
-  template<class TableList>
-  void str(std::ostream& os, const fusion::pair<sql2003::from, TableList>& p) {
-    os << " from ";
-    fusion::for_each(p.second, comma_output(os));
-  }
-
-  template<class Predicate>
-  void str(std::ostream& os, const fusion::pair<sql2003::where, Predicate>& p) {
-    os << " where ";
-    p.second.str(os);
-  }
-
   template<class St>
   struct Statement
   {
@@ -378,51 +342,6 @@ namespace boost { namespace rdb { namespace sql {
     std::ostringstream os;
     statement.str(os);
     return os.str();
-  }
-
-  namespace result_of {
-    template<class Map, class Key, class Value>
-    struct add_key {
-      typedef typename fusion::result_of::as_map<
-        typename fusion::result_of::push_back<
-          Map,
-          typename fusion::result_of::make_pair<
-            Key,
-            Value
-          >::type
-        >::type
-      >::type type;
-    };
-  }
-  
-  template<class Key, class Map, class Value>
-  typename result_of::add_key<Map, Key, Value>::type
-  add_key(const Map& m, const Value& value) {
-    return fusion::as_map(fusion::push_back(m, fusion::make_pair<Key>(value)));
-  }
-
-  namespace result_of {
-    template<class Map, class Key, class Value>
-    struct replace_value_at_key {
-      typedef typename fusion::result_of::as_map<
-        typename fusion::result_of::push_back<
-          typename fusion::result_of::erase_key<
-            Map,
-            Key
-          >::type,
-          typename fusion::result_of::make_pair<
-            Key,
-            Value
-          >::type
-        >::type
-      >::type type;
-    };
-  }
-  
-  template<class Key, class Map, class Value>
-  typename result_of::replace_value_at_key<Map, Key, Value>::type
-  replace_value_at_key(const Map& m, const Value& value) {
-    return fusion::as_map(fusion::push_back(fusion::erase_key<Key>(m), fusion::make_pair<Key>(value)));
   }
 
   struct extract_sql_kind {
