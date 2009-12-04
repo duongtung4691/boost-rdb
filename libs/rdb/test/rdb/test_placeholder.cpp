@@ -4,6 +4,7 @@
 
 #include <boost/rdb/sql.hpp>
 
+using namespace boost::rdb;
 using namespace boost::rdb::sql;
 using namespace boost::rdb::sql::test::springfield;
 
@@ -57,15 +58,6 @@ BOOST_AUTO_TEST_CASE(test_placeholder) {
   check_placeholders<
     fusion::vector<placeholder<float_>, placeholder<float_>, placeholder< varchar<20> >, placeholder<float_> >
   >((p.age + _) == _ && p.name.like(_) && !(p.age < _));
-
-  {
-    BOOST_AUTO(s, select(p.id + _).from(p));
-    BOOST_AUTO(e_p, s.data_.get_entry<sql2003::exprs>());
-    BOOST_AUTO(ph, extract_placeholders_from_static_map_entry(e_p));
-    extract_placeholders_from_static_map f;
-    BOOST_AUTO(f1, f(e_p, fusion::make_vector()));
-    //++f1;
-  }
   
   select(p.id + _).placeholders();
   
