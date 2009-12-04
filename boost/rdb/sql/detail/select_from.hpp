@@ -7,11 +7,10 @@
       return typename transition<
         typename Subdialect::from,
         fusion::vector<BOOST_PP_REPEAT(n, BOOST_RDB_PP_REFERENCE, const Table)>
-      >::type(ct::static_map_add_key<typename Subdialect::from>(
+      >::type(ct::add_key<typename Subdialect::from>(data_,
         fusion::vector<
           BOOST_PP_REPEAT(n, BOOST_RDB_PP_REFERENCE, const Table)
-        >(BOOST_PP_ENUM_PARAMS(n, table)),
-        data_)
+        >(BOOST_PP_ENUM_PARAMS(n, table)))
         
         //static_map<
         //  typename Subdialect::from,

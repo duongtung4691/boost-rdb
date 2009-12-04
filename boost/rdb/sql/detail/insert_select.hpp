@@ -17,7 +17,7 @@
         fusion::vector<
           BOOST_PP_ENUM_PARAMS(n, Expr)
         >
-      >::type(add_key<typename Subdialect::select>(this->data_,
+      >::type(ct::add_key<typename Subdialect::select>(this->data_,
         fusion::vector<
           BOOST_PP_ENUM_PARAMS(n, Expr)
         >(
