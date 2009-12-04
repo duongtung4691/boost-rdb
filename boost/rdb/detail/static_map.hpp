@@ -96,13 +96,11 @@ namespace boost { namespace rdb { namespace ct {
       };
 
       template<class Map, class Key>
-      struct has_key {
-        typedef typename has_key_impl<Map, Key, typename Map::right_key_type>::type type;
+      struct has_key : has_key_impl<Map, Key, typename Map::right_key_type>::type {
       };
 
       template<class Key>
-      struct has_key<map0, Key> {
-        typedef mpl::false_ type;
+      struct has_key<map0, Key> : mpl::false_ {
       };
     }
 
