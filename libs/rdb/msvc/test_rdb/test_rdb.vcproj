@@ -635,10 +635,6 @@
 			RelativePath="..\..\test\rdb\test_update.cpp"
 			>
 		</File>
-		<File
-			RelativePath="..\..\test\rdb\test_utils.cpp"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>

@@ -422,61 +422,6 @@ namespace boost { namespace rdb { namespace sql {
   const expression<null_expr> null = expression<null_expr>();
 
   const expression< placeholder_mark<0> > _;
-  
-  namespace result_of {
-    template<class Key, class Value>
-    struct extract_placeholders_from_pair {
-      typedef fusion::vector<> type;
-      static type make(const fusion::pair<Key, Value>&) { return type(); }
-    };
-  }
-  
-  template<class Key, class Value>
-  typename result_of::extract_placeholders_from_pair<Key, Value>::type
-  extract_placeholders_from_pair(const fusion::pair<Key, Value>& p) {
-    return result_of::extract_placeholders_from_pair<Key, Value>::make(p);
-  }
-    
-  struct extract_placeholders_from_pair_list {
-
-    template<typename Sig>
-    struct result;
-
-    template<class Self, class Key, class Value, class Placeholders>
-    struct result<Self(const fusion::pair<Key, Value>&, const Placeholders&)> {
-      typedef typename fusion::result_of::as_vector<
-        typename fusion::result_of::join<
-          const Placeholders,
-          const typename result_of::extract_placeholders_from_pair<Key, Value>::type
-        >::type
-      >::type type;
-    };
-    
-    template<class Key, class Value, class Placeholders>
-    typename result<extract_placeholders_from_pair_list(const fusion::pair<Key, Value>&, const Placeholders&)>::type
-    operator ()(const fusion::pair<Key, Value>& p, const Placeholders& placeholders) {
-      return fusion::as_vector(fusion::join(placeholders, extract_placeholders_from_pair(p)));
-    }
-  };
-
-  namespace result_of {
-    template<class PairList>
-    struct placeholders_from_pair_list {
-      typedef typename fusion::result_of::as_vector<
-        typename fusion::result_of::accumulate<
-          const PairList,
-          fusion::vector<>,
-          extract_placeholders_from_pair_list
-        >::type
-      >::type type;
-    };
-  }
-  
-  template<class Map>
-  typename result_of::placeholders_from_pair_list<Map>::type
-  placeholders_from_pair_list(const Map& map) {
-    return fusion::as_vector(fusion::accumulate(map, fusion::make_vector(), extract_placeholders_from_pair_list()));
-  }
 
   namespace result_of {
     template<class Entry>
