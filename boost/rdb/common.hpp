@@ -58,6 +58,11 @@ namespace boost { namespace rdb {
       BOOST_STATIC_CONSTANT(size_t, length = N);
     };
     
+    struct datetime {
+      BOOST_STATIC_CONSTANT(int, id = 6);
+      BOOST_STATIC_CONSTANT(size_t, length = 1);
+    };
+    
     struct dynamic_expressions;
 
     // metafunction that returns a type for holding a value of a given (rdb) type
