@@ -19,6 +19,6 @@
         >,
         ct::map<typename Subdialect::distinct, int, Data>
       >::type(ct::add_key<typename Subdialect::exprs>(
-          ct::add_key<typename Subdialect::distinct, int>(data_, 0),
+          ct::add_key<typename Subdialect::distinct, int>(this->data_, 0),
           fusion::make_vector(BOOST_PP_ENUM_PARAMS(n, expr))));
     }

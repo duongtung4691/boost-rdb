@@ -31,7 +31,8 @@ namespace boost { namespace rdb { namespace ct {
         >::type type;
         
         static type value(const S& m, const F& f) {
-          return fusion::as_vector(fusion::push_back(ct::transform(m.base(), f), f(m.entry_type::value)));
+	        typedef typename S::entry_type entry_type;
+          return fusion::as_vector(fusion::push_back(transform<typename S::left, F, map_tag>::value(m.base(), f), f(m.entry_type::value)));
         }
       };
 
@@ -55,7 +56,9 @@ namespace boost { namespace rdb { namespace ct {
         >::type type;
         
         static type value(const M& m, const F& f, const S& s) {
-          return f(m.right::entry(), ct::accumulate(m.base(), f, s));
+          typedef typename M::right right;
+          typedef typename M::left left;
+          return f(m.right::entry(), accumulate<left, F, S, map_tag>::value(m.base(), f, s));
         }
       };
 
@@ -160,6 +163,8 @@ namespace boost { namespace rdb { namespace ct {
     struct for_each_impl<C, map_tag> {
       template<class F>
       static void run(const C& c, const F& f) {
+	typedef typename C::left left;
+	typedef typename C::right right;
         for_each_impl<typename C::left, map_tag>::run(c, f);
         f(c.right::entry());
       }
