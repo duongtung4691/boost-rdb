@@ -261,7 +261,7 @@ namespace boost { namespace rdb { namespace sql {
     template<class Expr1, class Expr2>
     struct binary_operation_placeholders_impl<Expr1, false_type, Expr2, true_type> {
       typedef typename fusion::result_of::as_vector<
-        typedef typename fusion::result_of::push_back<
+        typename fusion::result_of::push_back<
           const typename Expr1::placeholder_vector,
           type::placeholder<typename Expr1::sql_type>
         >::type
@@ -274,7 +274,7 @@ namespace boost { namespace rdb { namespace sql {
     template<class Expr1, class Expr2>
     struct binary_operation_placeholders_impl<Expr1, true_type, Expr2, false_type> {
       typedef typename fusion::result_of::as_vector<
-        typedef typename fusion::result_of::push_front<
+        typename fusion::result_of::push_front<
           typename Expr2::placeholder_vector,
           type::placeholder<typename Expr2::sql_type>
         >::type
