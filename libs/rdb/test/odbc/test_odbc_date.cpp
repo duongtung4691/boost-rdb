@@ -12,7 +12,7 @@ namespace {
 
 BOOST_RDB_BEGIN_TABLE(test1)
   BOOST_RDB_COLUMN(id, integer)
-  BOOST_RDB_COLUMN(value, datetime)
+  BOOST_RDB_COLUMN(val, datetime)
 BOOST_RDB_END_TABLE(test1)
 
 }
