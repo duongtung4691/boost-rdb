@@ -1,0 +1,36 @@
+  # Boost rdb Library test Jamfile
+
+#  (C) Copyright Jean-Louis Leroy 2009.
+#  Use, modification, and distribution are subject to the 
+#  Boost Software License, Version 1.0. (See accompanying file 
+#  LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+#
+
+import testing ;
+
+rule compile_fail_test_all
+{
+   #ECHO executing test_all rule ;
+   local all_rules = ;
+   for local file in [ glob compile_fail/*.cpp ]
+   {
+      all_rules += [ compile-fail $(file) ] ;
+   }
+   #ECHO $(all_rules) ;
+   return $(all_rules) ;
+}
+
+project
+    : requirements
+    <include>../../../..
+    ;
+{
+    test-suite "rdb"
+      : [ run test.cpp test_insert.cpp test_select.cpp test_placeholder.cpp test_update.cpp test_dynamic.cpp ../../build//boost_rdb/<link>static /boost/test//boost_test_exec_monitor 
+        ]
+      :
+      ;
+
+    test-suite syntax_checks : [ compile_fail_test_all ] ; 
+
+}
