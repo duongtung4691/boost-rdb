@@ -20,6 +20,8 @@
 #include <boost/fusion/include/begin.hpp>
 #include <boost/fusion/include/end.hpp>
 
+#include "boost/date_time/posix_time/posix_time_types.hpp"
+
 #include <deque>
 #include <stdexcept>
 
@@ -65,6 +67,10 @@ namespace boost { namespace rdb { namespace odbc {
     template<class CliType>
     struct bind;
   }
+
+  template<class SqlType, class CliType>
+  struct can_bind : is_same<SqlType, typename CliType::rdb_type> {
+  };
 
   class dynamic_value : public abstract_dynamic_value {
   public:
@@ -185,7 +191,7 @@ namespace boost { namespace rdb { namespace odbc {
 
     operator std::string() const { return std::string(chars_, chars_ + length()); }
     std::string cpp_value() const { return std::string(chars_, chars_ + length()); }
-    const SQLCHAR* value() const { return static_cast<const char*>(chars_); }
+    const char* value() const { return reinterpret_cast<const char*>(chars_); }
     size_t length() const { return length_; }
 
     template<int Length>
@@ -269,6 +275,14 @@ namespace boost { namespace rdb { namespace odbc {
   private:
     varchar<N>& var_;
   };
+  
+  struct datetime {
+    typedef boost::posix_time::ptime cpp_type;
+  };
+
+  template<int N>
+  struct can_bind< type::datetime, odbc::varchar<N> > : mpl::true_ {
+  };
 
 } } }
 
@@ -287,6 +301,11 @@ namespace boost { namespace rdb { namespace type {
   template<>
   struct cli_type<float_, odbc::odbc_tag> {
     typedef odbc::float_ type;
+  };
+
+  template<>
+  struct cli_type<datetime, odbc::odbc_tag> {
+    typedef odbc::datetime type;
   };
 
   template<>
@@ -608,12 +627,8 @@ namespace boost { namespace rdb { namespace odbc {
     SQLHSTMT hstmt_;    
   };
 
-  template<class Expr, class CliType>
-  struct can_bind : is_same<typename Expr::sql_type, typename CliType::rdb_type> {
-  };
-
   template<>
-  struct can_bind<dynamic_expressions, dynamic_values> : mpl::true_ {
+  struct can_bind<type::dynamic_expressions, dynamic_values> : mpl::true_ {
   };
   
   struct results_binder {
@@ -623,7 +638,7 @@ namespace boost { namespace rdb { namespace odbc {
 
     template<class Expr, class CliType>
     void operator ()(const fusion::vector<const Expr&, CliType&>& zip) const {
-      BOOST_MPL_ASSERT((can_bind<Expr, CliType>));
+      BOOST_MPL_ASSERT((can_bind<typename Expr::sql_type, CliType>));
       detail::bind<CliType>::result(hstmt_, i_, fusion::at_c<1>(zip));
       ++i_;
     }

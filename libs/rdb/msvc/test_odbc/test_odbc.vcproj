@@ -248,7 +248,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="&quot;$(TargetPath)&quot;  --log_level=test_suite"
+				CommandLine="&quot;$(TargetPath)&quot;  --log_level=test_suite --run_test=date_type"
 			/>
 		</Configuration>
 	</Configurations>
@@ -298,6 +298,14 @@
 		<File
 			RelativePath="..\..\test\odbc\test_odbc_date.cpp"
 			>
+			<FileConfiguration
+				Name="Fast Compilation|Win32"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					UsePrecompiledHeader="0"
+				/>
+			</FileConfiguration>
 		</File>
 		<File
 			RelativePath="..\..\test\odbc\test_odbc_dynamic.cpp"

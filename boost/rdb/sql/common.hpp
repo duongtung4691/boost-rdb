@@ -328,6 +328,15 @@ namespace boost { namespace rdb { namespace sql {
     typedef num_comparable_type comparable_type;
     typedef numeric_type kind;
   };
+  
+  template<>
+  struct make_literal<type::datetime, const char*> {
+    typedef literal<std::string, type::datetime> type;
+    static type value(const std::string& val) { return type(val); }
+  };
+  
+  template<int N>
+  struct make_literal<type::datetime, char[N]> : make_literal<type::datetime, const char*> { };
 
   template<>
   struct type_traits<type::boolean> {
