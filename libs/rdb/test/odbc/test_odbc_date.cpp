@@ -22,18 +22,16 @@ BOOST_AUTO_TEST_CASE(date_type) {
   using sql::select;
   
   database db("boost", "boost", "boost");
-  test1 t;
+  test1 test;
 
   try {
-    db.execute(create_table(t));
+    db.execute(create_table(test));
   } catch (odbc_error) {
     try {
-      db.execute(drop_table(t));
+      db.execute(drop_table(test));
     } catch (...) {
     }
-    db.execute(create_table(t));
+    db.execute(create_table(test));
   }
-  
-  //db.execute(insert_into(t)(t.id, t.val).values(1, "1963-08-13"));
   
 }

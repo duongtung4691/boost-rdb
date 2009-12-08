@@ -49,12 +49,6 @@ namespace boost { namespace rdb { namespace sql {
   
   template<class Expr>
   struct expression;
-  
-  template<class T>
-  struct is_expression : mpl::false_ { };
-  
-  template<class Expr>
-  struct is_expression< expression<Expr> > : mpl::true_ { };
 
   template<class Expr>
   struct Expression
@@ -106,10 +100,10 @@ namespace boost { namespace rdb { namespace sql {
   namespace result_of {
     template<class Expr, typename T>
     struct make_expression_ {
-      typedef typename make_literal<typename Expr::sql_type, T>::type type;
+      typedef typename type_traits<typename Expr::sql_type>::literal_type type;
       // TODO improve compile error when T is not compatible
-      static const type make(const T& val) {
-        return make_literal<typename Expr::sql_type, T>::value(val);
+      static const type make(const T& value) {
+        return type_traits<typename Expr::sql_type>::make_literal(value);
       }
     };
   
