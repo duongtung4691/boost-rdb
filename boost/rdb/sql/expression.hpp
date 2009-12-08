@@ -87,9 +87,9 @@ namespace boost { namespace rdb { namespace sql {
   template<class Expr, typename T>
   struct CompatibleLiteral
   {
-    const T& value;
+    const T& val;
     BOOST_CONCEPT_USAGE(CompatibleLiteral) {
-      type_traits<typename Expr::sql_type>::make_literal(value);
+      make_literal<typename Expr::sql_type, T>::value(val);
     }
   };
 
@@ -100,10 +100,10 @@ namespace boost { namespace rdb { namespace sql {
   namespace result_of {
     template<class Expr, typename T>
     struct make_expression_ {
-      typedef typename type_traits<typename Expr::sql_type>::literal_type type;
+      typedef typename make_literal<typename Expr::sql_type, T>::type type;
       // TODO improve compile error when T is not compatible
-      static const type make(const T& value) {
-        return type_traits<typename Expr::sql_type>::make_literal(value);
+      static const type make(const T& val) {
+        return make_literal<typename Expr::sql_type, T>::value(val);
       }
     };
   
