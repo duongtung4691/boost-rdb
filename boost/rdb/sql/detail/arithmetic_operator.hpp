@@ -15,17 +15,17 @@ struct BOOST_RDB_OPERATOR_CLASS : binary_operation<Expr1, Expr2, BOOST_RDB_OPERA
 template<class Expr, typename T>
 BOOST_CONCEPT_REQUIRES(
   ((NumericExpression<Expr>)),
-  (expression< BOOST_RDB_OPERATOR_CLASS<Expr, typename type_traits<typename Expr::sql_type>::literal_type, typename Expr::sql_type> >))
+  (expression< BOOST_RDB_OPERATOR_CLASS<Expr, typename make_literal<typename Expr::sql_type, T>::type, typename Expr::sql_type> >))
 operator BOOST_RDB_OPERATOR(const expression<Expr>& expr, const T& val) {
-  return expression< BOOST_RDB_OPERATOR_CLASS<Expr, typename type_traits<typename Expr::sql_type>::literal_type, typename Expr::sql_type> >(expr, type_traits<typename Expr::sql_type>::make_literal(val));
+  return expression< BOOST_RDB_OPERATOR_CLASS<Expr, typename make_literal<typename Expr::sql_type, T>::type, typename Expr::sql_type> >(expr, make_literal<typename Expr::sql_type, T>::value(val));
 }
 
 template<class Expr, typename T>
 BOOST_CONCEPT_REQUIRES(
   ((NumericExpression<Expr>)),
-  (expression< BOOST_RDB_OPERATOR_CLASS<typename type_traits<typename Expr::sql_type>::literal_type, Expr, typename Expr::sql_type> >))
+  (expression< BOOST_RDB_OPERATOR_CLASS<typename make_literal<typename Expr::sql_type, T>::type, Expr, typename Expr::sql_type> >))
 operator BOOST_RDB_OPERATOR(const T& val, const expression<Expr>& expr) {
-  return expression< BOOST_RDB_OPERATOR_CLASS<typename type_traits<typename Expr::sql_type>::literal_type, Expr, typename Expr::sql_type> >(type_traits<typename Expr::sql_type>::make_literal(val), expr);
+  return expression< BOOST_RDB_OPERATOR_CLASS<typename make_literal<typename Expr::sql_type, T>::type, Expr, typename Expr::sql_type> >(make_literal<typename Expr::sql_type, T>::value(val), expr);
 }
 
 template<class Expr1, class Expr2>

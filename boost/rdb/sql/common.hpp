@@ -271,12 +271,22 @@ namespace boost { namespace rdb { namespace sql {
   struct char_type;
   struct boolean_type;
   struct placeholder_type;
+  
+  template<class RdbType, class CppType>
+  struct make_literal;
+  
+  template<>
+  struct make_literal<type::integer, long> {
+    typedef literal<long, type::integer> type;
+    static type value(long val) { return type(val); }
+  };
+  
+  template<>
+  struct make_literal<type::integer, int> : make_literal<type::integer, long> { };
 
   template<>
   struct type_traits<type::integer> {
     static void str(std::ostream& os) { os << "integer"; }
-    typedef literal<long, type::integer> literal_type;
-    static literal_type make_literal(long val) { return literal_type(val); }
     typedef boost::mpl::true_::type is_numeric;
     typedef num_comparable_type comparable_type;
     typedef numeric_type kind;
@@ -301,6 +311,12 @@ namespace boost { namespace rdb { namespace sql {
     typedef boost::mpl::true_::type is_numeric;
     typedef num_comparable_type comparable_type;
     typedef numeric_type kind;
+  };
+  
+  template<class T>
+  struct make_literal<type::float_, T> {
+    typedef literal<double, type::float_> type;
+    static type value(double val) { BOOST_MPL_ASSERT((is_arithmetic<T>)); return type(val); }
   };
 
   template<>
@@ -330,6 +346,24 @@ namespace boost { namespace rdb { namespace sql {
     static literal_type make_literal(const char* str) { return literal_type(str); }
     typedef char_comparable_type comparable_type;
     typedef char_type kind;
+  };
+  
+  template<size_t N>
+  struct make_literal<type::varchar<N>, const char*> {
+    typedef literal<std::string, type::varchar<N>> type;
+    static type value(const std::string& val) { return type(val); }
+  };
+  
+  template<size_t N, int M>
+  struct make_literal<type::varchar<N>, const char[M]> {
+    typedef literal<std::string, type::varchar<N>> type;
+    static type value(const std::string& val) { BOOST_STATIC_ASSERT(N >= M); return type(val); }
+  };
+  
+  template<size_t N, int M>
+  struct make_literal<type::varchar<N>, char[M]> {
+    typedef literal<std::string, type::varchar<N>> type;
+    static type value(const std::string& val) { BOOST_STATIC_ASSERT(N >= M); return type(val); }
   };
 
   struct comparison {
