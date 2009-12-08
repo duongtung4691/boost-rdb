@@ -271,25 +271,15 @@ namespace boost { namespace rdb { namespace sql {
   struct char_type;
   struct boolean_type;
   struct placeholder_type;
-  
-  template<class RdbType, class CppType>
-  struct make_literal {
-    typedef typename type_traits<RdbType>::literal_type type;
-    static type value(const CppType& val) { return type(val); }
-  };
 
   template<>
   struct type_traits<type::integer> {
     static void str(std::ostream& os) { os << "integer"; }
+    typedef literal<long, type::integer> literal_type;
+    static literal_type make_literal(long val) { return literal_type(val); }
     typedef boost::mpl::true_::type is_numeric;
     typedef num_comparable_type comparable_type;
     typedef numeric_type kind;
-  };
-  
-  template<>
-  struct make_literal<type::integer, int> {
-    typedef literal<long, rdb::type::integer> type;
-    static type value(const long& val) { return type(val); }
   };
 
   template<>

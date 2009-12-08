@@ -13,36 +13,27 @@ struct BOOST_RDB_OPERATOR_CLASS : binary_operation<Expr1, Expr2, BOOST_RDB_OPERA
 };
 
 template<class Expr, typename T>
-typename disable_if<
-  is_expression<T>,
-  expression< BOOST_RDB_OPERATOR_CLASS<Expr, typename make_literal<typename Expr::sql_type, T>::type> >
->::type
+BOOST_CONCEPT_REQUIRES(
+  ((ComparableExpression<Expr>)),
+  (expression< BOOST_RDB_OPERATOR_CLASS<Expr, typename type_traits<typename Expr::sql_type>::literal_type> >))
 operator BOOST_RDB_OPERATOR(const expression<Expr>& expr, const T& val) {
-  //BOOST_CONCEPT_ASSERT((ComparableExpression<Expr>));
-  return expression< BOOST_RDB_OPERATOR_CLASS<
-    Expr,
-    typename make_literal<typename Expr::sql_type, T>::type
-  > >(expr, make_literal<typename Expr::sql_type, T>::value(val));
+  return expression< BOOST_RDB_OPERATOR_CLASS<Expr, typename type_traits<typename Expr::sql_type>::literal_type> >(expr, type_traits<typename Expr::sql_type>::make_literal(val));
 }
 
 template<class Expr, typename T>
-typename disable_if<
-  is_expression<T>,
-  expression< BOOST_RDB_OPERATOR_CLASS<typename make_literal<typename Expr::sql_type, T>::type, Expr> >
->::type
+BOOST_CONCEPT_REQUIRES(
+  ((ComparableExpression<Expr>)),
+  (expression< BOOST_RDB_OPERATOR_CLASS<typename type_traits<typename Expr::sql_type>::literal_type, Expr> >))
 operator BOOST_RDB_OPERATOR(const T& val, const expression<Expr>& expr) {
-  //BOOST_CONCEPT_ASSERT((ComparableExpression<Expr>));
-  return expression< BOOST_RDB_OPERATOR_CLASS<
-    typename make_literal<typename Expr::sql_type, T>::type,
-    Expr
-  > >(make_literal<typename Expr::sql_type, T>::value(val), expr);
+  return expression< BOOST_RDB_OPERATOR_CLASS<typename type_traits<typename Expr::sql_type>::literal_type, Expr> >(type_traits<typename Expr::sql_type>::make_literal(val), expr);
 }
 
 template<class Expr1, class Expr2>
-expression< BOOST_RDB_OPERATOR_CLASS<Expr1, Expr2> >
+BOOST_CONCEPT_REQUIRES(
+  ((ComparableExpression<Expr1>))
+  ((ComparableExpression<Expr2>)),
+  (expression< BOOST_RDB_OPERATOR_CLASS<Expr1, Expr2> >))
 operator BOOST_RDB_OPERATOR(const expression<Expr1>& expr1, const expression<Expr2>& expr2) {
-  //BOOST_CONCEPT_ASSERT((ComparableExpression<Expr1>));
-  //BOOST_CONCEPT_ASSERT((ComparableExpression<Expr2>));
   BOOST_MPL_ASSERT((is_sql_compatible<Expr1, Expr2>));
   return expression< BOOST_RDB_OPERATOR_CLASS<Expr1, Expr2> >(expr1, expr2);
 }
