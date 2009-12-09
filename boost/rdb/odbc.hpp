@@ -275,14 +275,6 @@ namespace boost { namespace rdb { namespace odbc {
   private:
     varchar<N>& var_;
   };
-  
-  struct datetime {
-    typedef boost::posix_time::ptime cpp_type;
-  };
-
-  template<int N>
-  struct can_bind< type::datetime, odbc::varchar<N> > : mpl::true_ {
-  };
 
 } } }
 
@@ -301,11 +293,6 @@ namespace boost { namespace rdb { namespace type {
   template<>
   struct cli_type<float_, odbc::odbc_tag> {
     typedef odbc::float_ type;
-  };
-
-  template<>
-  struct cli_type<datetime, odbc::odbc_tag> {
-    typedef odbc::datetime type;
   };
 
   template<>

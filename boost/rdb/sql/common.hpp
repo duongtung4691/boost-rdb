@@ -293,21 +293,8 @@ namespace boost { namespace rdb { namespace sql {
   };
 
   template<>
-  struct type_traits<type::real> {
-    static void str(std::ostream& os) { os << "real"; }
-    typedef literal<float, type::real> literal_type;
-    template<class T>
-    static literal_type make_literal(float val) { return literal_type(val); }
-    typedef boost::mpl::true_::type is_numeric;
-    typedef num_comparable_type comparable_type;
-    typedef numeric_type kind;
-  };
-
-  template<>
   struct type_traits<type::float_> {
     static void str(std::ostream& os) { os << "float"; }
-    typedef literal<double, type::float_> literal_type;
-    static literal_type make_literal(double val) { return literal_type(val); }
     typedef boost::mpl::true_::type is_numeric;
     typedef num_comparable_type comparable_type;
     typedef numeric_type kind;
@@ -322,8 +309,6 @@ namespace boost { namespace rdb { namespace sql {
   template<>
   struct type_traits<type::datetime> {
     static void str(std::ostream& os) { os << "datetime"; }
-    typedef literal<double, type::datetime> literal_type;
-    static literal_type make_literal(double val) { return literal_type(val); }
     typedef boost::mpl::true_::type is_numeric;
     typedef num_comparable_type comparable_type;
     typedef numeric_type kind;
@@ -351,8 +336,6 @@ namespace boost { namespace rdb { namespace sql {
   template<size_t N>
   struct type_traits< type::varchar<N> > {
     static void str(std::ostream& os) { os << "varchar(" << N << ")"; }
-    typedef literal< std::string, type::varchar<N> > literal_type;
-    static literal_type make_literal(const char* str) { return literal_type(str); }
     typedef char_comparable_type comparable_type;
     typedef char_type kind;
   };

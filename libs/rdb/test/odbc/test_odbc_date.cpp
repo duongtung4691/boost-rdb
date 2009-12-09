@@ -1,5 +1,6 @@
 #include "test_odbc.hpp"
 #include <boost/test/unit_test.hpp>
+#include <boost/rdb/odbc/datetime.hpp>
 
 using namespace std;
 using namespace boost;
