@@ -10,6 +10,7 @@
 #include <sqlext.h>
 
 #include <boost/rdb/core.hpp>
+#include <boost/rdb/dynamic.hpp>
 
 #include <boost/fusion/include/make_vector.hpp>
 #include <boost/fusion/include/at.hpp>
@@ -72,7 +73,7 @@ namespace boost { namespace rdb { namespace odbc {
   struct can_bind : is_same<SqlType, typename CliType::rdb_type> {
   };
 
-  class dynamic_value : public core::abstract_dynamic_value {
+  class dynamic_value : public dynamic::abstract_dynamic_value {
   public:
     dynamic_value(int type, int length) : abstract_dynamic_value(type, length) { }
     virtual void bind_result(SQLHSTMT hstmt, SQLUSMALLINT i) = 0;
@@ -301,7 +302,7 @@ namespace boost { namespace rdb { namespace core {
   };
 
   template<>
-  struct cli_type<dynamic_expressions, odbc::odbc_tag> {
+  struct cli_type<dynamic::dynamic_expressions, odbc::odbc_tag> {
     typedef odbc::dynamic_values type;
   };
 
@@ -486,7 +487,7 @@ namespace boost { namespace rdb { namespace odbc {
       ++i_;
     }
     
-    void operator ()(const fusion::vector<const core::dynamic_placeholders&, dynamic_values&>& zip) const;
+    void operator ()(const fusion::vector<const dynamic::dynamic_placeholders&, dynamic_values&>& zip) const;
   };
   
   template<class Tag>    
@@ -615,7 +616,7 @@ namespace boost { namespace rdb { namespace odbc {
   };
 
   template<>
-  struct can_bind<core::dynamic_expressions, dynamic_values> : mpl::true_ {
+  struct can_bind<dynamic::dynamic_expressions, dynamic_values> : mpl::true_ {
   };
   
   struct results_binder {
@@ -630,7 +631,7 @@ namespace boost { namespace rdb { namespace odbc {
       ++i_;
     }
 
-    void operator ()(const fusion::vector<const core::dynamic_expressions&, dynamic_values&>& zip) const;
+    void operator ()(const fusion::vector<const dynamic::dynamic_expressions&, dynamic_values&>& zip) const;
   };
 
   template<class Select>
@@ -671,7 +672,7 @@ namespace boost { namespace rdb { namespace odbc {
   
     struct is_dynamic_expression_lambda {
       template<class Expr>
-      struct apply : is_same<Expr, core::dynamic_expressions> { };
+      struct apply : is_same<Expr, dynamic::dynamic_expressions> { };
     };
       
     template<class ExprList>

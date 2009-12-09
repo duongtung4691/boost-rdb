@@ -6,8 +6,8 @@
 #include <boost/rdb/sql/dynamic.hpp>
 
 using namespace boost;
-using namespace boost::rdb;
 using namespace boost::rdb::core;
+using namespace boost::rdb::dynamic;
 using namespace boost::rdb::sql;
 using namespace boost::rdb::sql::test::springfield;
 
@@ -16,7 +16,7 @@ struct ptr { void* p; };
 
 BOOST_AUTO_TEST_CASE(test_dynamic_expression_in_predicate) {
 
-  using sql::select;
+  using rdb::sql::select;
 
   person p("p");
 
@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_CASE(test_dynamic_expression_in_predicate) {
 }
 
 BOOST_AUTO_TEST_CASE(test_dynamic_integer_placeholder) {
-  using sql::select;
+  using rdb::sql::select;
   person p("p");
   dynamic_boolean predicate = make_dynamic(p.age > _);
   fusion::vector< std::vector<dynamic_placeholder> > placeholders = (select(p.id).from(p).where(predicate)).placeholders();
@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE(test_dynamic_integer_placeholder) {
 }
 
 BOOST_AUTO_TEST_CASE(test_dynamic_varchar_placeholder) {
-  using sql::select;
+  using rdb::sql::select;
   person p("p");
   dynamic_boolean predicate = make_dynamic(p.name == _);
   fusion::vector< std::vector<dynamic_placeholder> > placeholders = (select(p.id).from(p).where(predicate)).placeholders();
