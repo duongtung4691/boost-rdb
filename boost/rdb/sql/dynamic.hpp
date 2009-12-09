@@ -1,8 +1,8 @@
 //  Copyright Jean-Louis Leroy 2009.
 // Use, modification, and distribution are subject to the Boost Software License, Version 1.0.
 
-#ifndef BOOST_RDB_SQL_DYNAMIC_EXPRESSION_HPP
-#define BOOST_RDB_SQL_DYNAMIC_EXPRESSION_HPP
+#ifndef BOOST_RDB_SQL_DYNAMIC_HPP
+#define BOOST_RDB_SQL_DYNAMIC_HPP
 
 #include <boost/rdb/sql/common.hpp>
 #include <boost/rdb/dynamic.hpp>
@@ -11,13 +11,6 @@
 
 #include <numeric>
 #include <functional>
-
-namespace boost { namespace rdb { namespace dynamic {
-
-  inline void dynamic_expressions::str(std::ostream& os) const {
-    std::for_each(begin(), end(), sql::comma_output(os));
-  }
-} } }
 
 namespace boost { namespace rdb { namespace sql {
 
@@ -127,7 +120,7 @@ namespace boost { namespace rdb { namespace sql {
     typedef void sql_type;
     
     void str(std::ostream& os) const {
-      std::for_each(cols_.begin(), cols_.end(), comma_output(os));
+      std::for_each(cols_.begin(), cols_.end(), rdb::detail::comma_output(os));
     }
   };
 
@@ -232,7 +225,7 @@ namespace boost { namespace rdb { namespace sql {
     typedef void sql_type;
     
     void str(std::ostream& os) const {
-      std::for_each(updates_.begin(), updates_.end(), comma_output(os));
+      std::for_each(updates_.begin(), updates_.end(), rdb::detail::comma_output(os));
     }
   };
 
@@ -295,7 +288,7 @@ namespace boost { namespace rdb { namespace sql {
     }
     
     void str(std::ostream& os) const {
-      std::for_each(tables_.begin(), tables_.end(), comma_output(os));
+      std::for_each(tables_.begin(), tables_.end(), rdb::detail::comma_output(os));
     }
   };
   

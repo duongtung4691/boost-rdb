@@ -358,6 +358,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\..\..\boost\rdb\detail\output.hpp"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\..\boost\rdb\detail\static_map.hpp"
 			>
 		</File>

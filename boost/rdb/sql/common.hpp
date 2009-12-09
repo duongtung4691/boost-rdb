@@ -7,6 +7,8 @@
 #include <sstream>
 #include <string>
 
+#include <boost/rdb/detail/output.hpp>
+
 #include <boost/format.hpp>
 #include <boost/ref.hpp>
 #include <boost/typeof/typeof.hpp>
@@ -145,21 +147,7 @@ namespace boost { namespace rdb { namespace sql {
   
   void quote_text(std::ostream& os, const char* str);
 
-  struct comma_output {
-    comma_output(std::ostream& os) : os_(os), comma_("") { }
-    std::ostream& os_;
-    mutable const char* comma_;
-    std::ostream& item() const {
-      os_ << comma_;
-      comma_ = ", ";
-      return os_;
-    }
-    template<typename Item> void operator ()(const Item& i) const {
-      i.str(item());
-    }
-  };
-
-  struct assign_output : comma_output {
+  struct assign_output : rdb::detail::comma_output {
     assign_output(std::ostream& os) : comma_output(os) { }
 
     template<typename First, typename Second>
@@ -175,7 +163,7 @@ namespace boost { namespace rdb { namespace sql {
   template<class ExprList>
   void str(std::ostream& os, const ct::map_entry<sql2003::exprs, ExprList>& p) {
     os << " ";
-    fusion::for_each(p.value, comma_output(os));
+    fusion::for_each(p.value, rdb::detail::comma_output(os));
   }
 
   inline void str(std::ostream& os, const ct::map_entry<sql2003::distinct, int>& p) {
@@ -189,7 +177,7 @@ namespace boost { namespace rdb { namespace sql {
   template<class TableList>
   void str(std::ostream& os, const ct::map_entry<sql2003::from, TableList>& p) {
     os << " from ";
-    fusion::for_each(p.value, comma_output(os));
+    fusion::for_each(p.value, rdb::detail::comma_output(os));
   }
 
   template<class Predicate>

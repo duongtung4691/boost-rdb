@@ -171,7 +171,7 @@ namespace boost { namespace rdb { namespace sql {
   typedef typename boost::mpl::push_back<members_before_##NAME, NAME##_member>::type
 
   template<typename Table>
-  struct table_column_output : comma_output {
+  struct table_column_output : rdb::detail::comma_output {
     table_column_output(std::ostream& os, const Table& table) : comma_output(os), table_(table) { }
     
     template<typename Column> void operator ()(Column) {
