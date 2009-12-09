@@ -4,6 +4,8 @@
 #ifndef BOOST_RDB_DYNAMIC_HPP
 #define BOOST_RDB_DYNAMIC_HPP
 
+#include <boost/rdb/detail/output.hpp>
+
 #include <boost/intrusive_ptr.hpp>
 
 #include <boost/fusion/include/vector.hpp>
@@ -12,6 +14,7 @@
 
 #include <bitset>
 #include <ostream>
+#include <algorithm>
 
 #define BOOST_RDB_MAX_SIZE FUSION_MAX_VECTOR_SIZE
 #define BOOST_RDB_MAX_ARG_COUNT 10
@@ -89,7 +92,9 @@ namespace boost { namespace rdb { namespace dynamic {
 
     typedef dynamic_expressions sql_type;
     
-    void str(std::ostream& os) const;
+    void str(std::ostream& os) const {
+      std::for_each(begin(), end(), detail::comma_output(os));
+    }    
   };
 
   struct dynamic_column : dynamic_expression {

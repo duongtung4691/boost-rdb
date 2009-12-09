@@ -104,7 +104,7 @@ namespace boost { namespace rdb { namespace sql {
   template<class AssignList>
   inline void str(std::ostream& os, const ct::map_entry<sql2003::set, AssignList>& p) {
     os << " set ";
-    fusion::for_each(p.value, comma_output(os));
+    fusion::for_each(p.value, rdb::detail::comma_output(os));
   }
   
   template<class Table>
