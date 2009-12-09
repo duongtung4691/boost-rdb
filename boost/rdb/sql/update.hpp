@@ -58,7 +58,7 @@ namespace boost { namespace rdb { namespace sql {
 
   template<class Dialect, class State, class Data, class Subdialect>
   struct update_statement :
-    tag_if<ct::result_of::has_key<Data, typename Subdialect::set>, update_statement_tag> {
+    tag_if<ct::result_of::has_key<Data, typename Subdialect::set>, core::update_statement_tag> {
 
     explicit update_statement(const Data& data) : data_(data) { }
 

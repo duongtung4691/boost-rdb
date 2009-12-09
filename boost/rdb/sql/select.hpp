@@ -35,7 +35,7 @@ namespace boost { namespace rdb { namespace sql {
   template<class Dialect, class State, class Data, class Subdialect>
   struct select_statement {
 
-    typedef select_statement_tag tag;
+    typedef core::tabular_result_tag tag;
 
     typedef Data data_type;
     Data data_;
@@ -97,7 +97,7 @@ namespace boost { namespace rdb { namespace sql {
 namespace boost { namespace rdb {
 
   template<class Dialect, class State, class Data, class Subdialect>
-  struct statement_result_type< sql::select_statement<Dialect, State, Data, Subdialect> > {
+  struct core::statement_result_type< sql::select_statement<Dialect, State, Data, Subdialect> > {
     typedef typename ct::result_of::value_at_key<Data, sql::sql2003::exprs>::type type;
   };
 

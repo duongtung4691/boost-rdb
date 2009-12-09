@@ -35,7 +35,7 @@ BOOST_AUTO_TEST_CASE(delete_from_table) {
 BOOST_AUTO_TEST_CASE(test_verbatim) {
 
   person p;
-  using namespace boost::rdb::type;
+  using namespace boost::rdb::core;
   BOOST_RDB_CHECK_SQL(
     sql::select(verbatim<integer>("count(*)")).from(p),
     "select count(*) from person");

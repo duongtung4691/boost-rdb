@@ -80,7 +80,7 @@ namespace boost { namespace rdb { namespace sql {
   template<class Expr>
   struct BooleanExpression : Expression<Expr> {
     BOOST_CONCEPT_USAGE(BooleanExpression) {
-      BOOST_MPL_ASSERT((boost::is_same<typename Expr::sql_type, type::boolean>));
+      BOOST_MPL_ASSERT((boost::is_same<typename Expr::sql_type, core::boolean>));
     }
   };
 
@@ -128,7 +128,7 @@ namespace boost { namespace rdb { namespace sql {
     in_subquery(const Expr& expr, const Subquery& subquery) : expr_(expr), subquery_(subquery) { }
     const Expr& expr_;
     const Subquery& subquery_;
-    typedef type::boolean sql_type;
+    typedef core::boolean sql_type;
     BOOST_STATIC_CONSTANT(int, precedence = precedence_level::highest);
     
     typedef typename fusion::result_of::join<
@@ -165,7 +165,7 @@ namespace boost { namespace rdb { namespace sql {
     template<class Value, class Placeholders>
     struct discriminate<Value, true_type, Placeholders> {
       typedef typename fusion::result_of::push_back<
-        Placeholders, type::placeholder<typename Expr::sql_type>
+        Placeholders, core::placeholder<typename Expr::sql_type>
       >::type type;
       
       static type make(Value& value, Placeholders& placeholders) {
@@ -199,7 +199,7 @@ namespace boost { namespace rdb { namespace sql {
     in_values(const Expr& expr, const ExprList& alt) : expr_(expr), alt_(alt) { }
     Expr expr_;
     ExprList alt_;
-    typedef type::boolean sql_type;
+    typedef core::boolean sql_type;
     BOOST_STATIC_CONSTANT(int, precedence = precedence_level::highest);
 
     typedef typename fusion::result_of::join<
@@ -263,11 +263,11 @@ namespace boost { namespace rdb { namespace sql {
       typedef typename fusion::result_of::as_vector<
         typename fusion::result_of::push_back<
           const typename Expr1::placeholder_vector,
-          type::placeholder<typename Expr1::sql_type>
+          core::placeholder<typename Expr1::sql_type>
         >::type
       >::type type;
       static type make(const Expr1& expr1, const Expr2& expr2) {
-        return fusion::push_back(expr1.placeholders(), rdb::type::placeholder<typename Expr1::sql_type>());
+        return fusion::push_back(expr1.placeholders(), rdb::core::placeholder<typename Expr1::sql_type>());
       }
     };
 
@@ -276,11 +276,11 @@ namespace boost { namespace rdb { namespace sql {
       typedef typename fusion::result_of::as_vector<
         typename fusion::result_of::push_front<
           typename Expr2::placeholder_vector,
-          type::placeholder<typename Expr2::sql_type>
+          core::placeholder<typename Expr2::sql_type>
         >::type
       >::type type;
       static type make(const Expr1& expr1, const Expr2& expr2) {
-        return fusion::push_front(expr2.placeholders(), rdb::type::placeholder<typename Expr2::sql_type>());
+        return fusion::push_front(expr2.placeholders(), rdb::core::placeholder<typename Expr2::sql_type>());
       }
     };
   }
@@ -317,13 +317,13 @@ namespace boost { namespace rdb { namespace sql {
     //  is_placeholder_mark<Expr1>,
     //  typename fusion::result_of::push_front<
     //    typename Expr2::placeholder_vector,
-    //    type::placeholder<typename Expr2::sql_type>
+    //    core::placeholder<typename Expr2::sql_type>
     //  >::type,
     //  typename mpl::if_<
     //    is_placeholder_mark<Expr2>,
     //    typename fusion::result_of::push_back<
     //      typename Expr1::placeholder_vector,
-    //      type::placeholder<typename Expr1::sql_type>
+    //      core::placeholder<typename Expr1::sql_type>
     //    >::type,
     //    typename fusion::result_of::join<
     //      typename Expr1::placeholder_vector,
@@ -343,7 +343,7 @@ namespace boost { namespace rdb { namespace sql {
   struct like : binary_operation<Expr1, Expr2, precedence_level::compare> {
     like(const Expr1& expr1, const Expr2& expr2) :
       binary_operation<Expr1, Expr2, precedence_level::compare>(expr1, expr2) { }
-    typedef type::boolean sql_type;
+    typedef core::boolean sql_type;
     void str(std::ostream& os) const {
       this->expr1_.str(os);
       os << " like ";
@@ -383,7 +383,7 @@ namespace boost { namespace rdb { namespace sql {
     };
 
     template<class Subquery>
-    struct dispatch_in<select_statement_tag, Subquery> {
+    struct dispatch_in<core::tabular_result_tag, Subquery> {
       typedef expression< sql::in_subquery<Expr, Subquery> > return_type;
       static return_type make(const Expr& expr, const Subquery& subquery) { return return_type(expr, subquery); }
     };

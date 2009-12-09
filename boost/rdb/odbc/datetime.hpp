@@ -12,12 +12,12 @@ namespace boost { namespace rdb { namespace odbc {
   };
 
   template<int N>
-  struct can_bind< type::datetime, odbc::varchar<N> > : mpl::true_ {
+  struct can_bind< core::datetime, odbc::varchar<N> > : mpl::true_ {
   };
 
 } } }
 
-namespace boost { namespace rdb { namespace type {
+namespace boost { namespace rdb { namespace core {
 
   template<>
   struct cli_type<datetime, odbc::odbc_tag> {

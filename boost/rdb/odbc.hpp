@@ -9,7 +9,7 @@
 #include <sql.h>
 #include <sqlext.h>
 
-#include <boost/rdb/common.hpp>
+#include <boost/rdb/core.hpp>
 
 #include <boost/fusion/include/make_vector.hpp>
 #include <boost/fusion/include/at.hpp>
@@ -72,7 +72,7 @@ namespace boost { namespace rdb { namespace odbc {
   struct can_bind : is_same<SqlType, typename CliType::rdb_type> {
   };
 
-  class dynamic_value : public abstract_dynamic_value {
+  class dynamic_value : public core::abstract_dynamic_value {
   public:
     dynamic_value(int type, int length) : abstract_dynamic_value(type, length) { }
     virtual void bind_result(SQLHSTMT hstmt, SQLUSMALLINT i) = 0;
@@ -109,7 +109,7 @@ namespace boost { namespace rdb { namespace odbc {
     SQLLEN length_;
   };
   
-  typedef simple_numeric_type<type::integer, SQLINTEGER> integer;
+  typedef simple_numeric_type<core::integer, SQLINTEGER> integer;
   
   namespace detail {
     
@@ -151,7 +151,7 @@ namespace boost { namespace rdb { namespace odbc {
     return new generic_dynamic_value< simple_numeric_type<RdbType, CliType> >(lvalue);
   }
   
-  typedef simple_numeric_type<type::float_, double> float_;
+  typedef simple_numeric_type<core::float_, double> float_;
     
   namespace detail {
     
@@ -175,7 +175,7 @@ namespace boost { namespace rdb { namespace odbc {
   public:
     BOOST_STATIC_CONSTANT(size_t, size = N);
 
-    typedef type::varchar<N> rdb_type;
+    typedef core::varchar<N> rdb_type;
     typedef std::string cpp_type;
 
     varchar() : length_(0) {
@@ -278,10 +278,10 @@ namespace boost { namespace rdb { namespace odbc {
 
 } } }
 
-namespace boost { namespace rdb { namespace type {
+namespace boost { namespace rdb { namespace core {
 
   template<size_t N>
-  struct cli_type<type::varchar<N>, odbc::odbc_tag> {
+  struct cli_type<varchar<N>, odbc::odbc_tag> {
     typedef odbc::varchar<N> type;
   };
 
@@ -400,9 +400,9 @@ namespace boost { namespace rdb { namespace odbc {
     };
 
     template<class Select>
-    struct discriminate<select_statement_tag, Select> {
+    struct discriminate<core::tabular_result_tag, Select> {
 
-      typedef result_set<typename statement_result_type<Select>::type, false> execute_return_type;
+      typedef result_set<typename core::statement_result_type<Select>::type, false> execute_return_type;
 
       static execute_return_type execute(database& db, const Select& select) {
         HSTMT hstmt;
@@ -486,7 +486,7 @@ namespace boost { namespace rdb { namespace odbc {
       ++i_;
     }
     
-    void operator ()(const fusion::vector<const dynamic_placeholders&, dynamic_values&>& zip) const;
+    void operator ()(const fusion::vector<const core::dynamic_placeholders&, dynamic_values&>& zip) const;
   };
   
   template<class Tag>    
@@ -500,7 +500,7 @@ namespace boost { namespace rdb { namespace odbc {
     struct result<Self(Expr, const CliVector&)> {
       typedef typename fusion::result_of::push_back<
         CliVector,
-        typename type::cli_type<
+        typename core::cli_type<
           typename remove_reference<Expr>::type::sql_type,
           Tag
         >::type
@@ -544,7 +544,7 @@ namespace boost { namespace rdb { namespace odbc {
     struct result<Self(Placeholder, const CliVector&)> {
       typedef typename fusion::result_of::push_back<
         CliVector,
-        typename type::cli_type<
+        typename core::cli_type<
           typename remove_reference<Placeholder>::type::rdb_type,
           Tag
         >::type
@@ -615,7 +615,7 @@ namespace boost { namespace rdb { namespace odbc {
   };
 
   template<>
-  struct can_bind<type::dynamic_expressions, dynamic_values> : mpl::true_ {
+  struct can_bind<core::dynamic_expressions, dynamic_values> : mpl::true_ {
   };
   
   struct results_binder {
@@ -630,14 +630,14 @@ namespace boost { namespace rdb { namespace odbc {
       ++i_;
     }
 
-    void operator ()(const fusion::vector<const dynamic_expressions&, dynamic_values&>& zip) const;
+    void operator ()(const fusion::vector<const core::dynamic_expressions&, dynamic_values&>& zip) const;
   };
 
   template<class Select>
   class prepared_select_statement : public prepared_statement<Select> {
   
   public:
-    typedef typename statement_result_type<Select>::type select_list;
+    typedef typename core::statement_result_type<Select>::type select_list;
     typedef prepared_statement<Select> base;
 
     prepared_select_statement(const Select& select, SQLHSTMT hstmt) :
@@ -671,7 +671,7 @@ namespace boost { namespace rdb { namespace odbc {
   
     struct is_dynamic_expression_lambda {
       template<class Expr>
-      struct apply : is_same<Expr, dynamic_expressions> { };
+      struct apply : is_same<Expr, core::dynamic_expressions> { };
     };
       
     template<class ExprList>
@@ -702,7 +702,7 @@ namespace boost { namespace rdb { namespace odbc {
     
     result_vector results_;
     
-    typedef nullable<
+    typedef core::nullable<
       typename fusion::result_of::as_vector<
         typename fusion::result_of::accumulate<
           result_vector,

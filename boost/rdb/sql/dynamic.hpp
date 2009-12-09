@@ -11,31 +11,31 @@
 #include <numeric>
 #include <functional>
 
-namespace boost { namespace rdb {
+namespace boost { namespace rdb { namespace core {
 
   inline void dynamic_expressions::str(std::ostream& os) const {
     std::for_each(begin(), end(), sql::comma_output(os));
   }
-} }
+} } }
 
 namespace boost { namespace rdb { namespace sql {
 
   struct make_dynamic_placeholders {
-    make_dynamic_placeholders(std::vector<dynamic_placeholder>& placeholders) : placeholders_(placeholders) { }
+    make_dynamic_placeholders(std::vector<core::dynamic_placeholder>& placeholders) : placeholders_(placeholders) { }
     
-    mutable std::vector<dynamic_placeholder>& placeholders_;
+    mutable std::vector<core::dynamic_placeholder>& placeholders_;
     
     template<class Placeholder>
     void operator ()(const Placeholder& p) const {
-      placeholders_.push_back(dynamic_placeholder(Placeholder::rdb_type::id, Placeholder::rdb_type::length));
+      placeholders_.push_back(core::dynamic_placeholder(Placeholder::rdb_type::id, Placeholder::rdb_type::length));
     }
   };
 
   template<class SqlType>
-  struct dynamic_expression_wrapper : dynamic_expression {
+  struct dynamic_expression_wrapper : core::dynamic_expression {
     typedef SqlType sql_type;
     
-    typedef fusion::vector< const std::vector<dynamic_placeholder> > placeholder_vector;
+    typedef fusion::vector< const std::vector<core::dynamic_placeholder> > placeholder_vector;
     
     placeholder_vector placeholders() const {
       return fusion::make_vector(impl_->placeholders_);
@@ -43,13 +43,13 @@ namespace boost { namespace rdb { namespace sql {
 
     BOOST_STATIC_CONSTANT(int, precedence = precedence_level::lowest);
 
-    dynamic_expression_wrapper(root* p) : dynamic_expression(p) { }
+    dynamic_expression_wrapper(root* p) : core::dynamic_expression(p) { }
   };
 
   template<class Expr>
-  struct dynamic_expression_impl : dynamic_expression::root {
+  struct dynamic_expression_impl : core::dynamic_expression::root {
 
-    dynamic_expression_impl(const Expr& expr) : dynamic_expression::root(Expr::sql_type::id, Expr::sql_type::length), expr_(expr) {
+    dynamic_expression_impl(const Expr& expr) : core::dynamic_expression::root(Expr::sql_type::id, Expr::sql_type::length), expr_(expr) {
       fusion::for_each(expr.placeholders(), make_dynamic_placeholders(this->placeholders_));
     }
 
@@ -68,18 +68,18 @@ namespace boost { namespace rdb { namespace sql {
 
   // alas no templatized typedefs yet
   // template<class Expr> typedef expression< dynamic_expression_wrapper<typename Expr::sql_type> > dynamic_expression<Expr>;
-  typedef expression< dynamic_expression_wrapper<type::integer> > dynamic_integer;
-  typedef expression< dynamic_expression_wrapper<type::boolean> > dynamic_boolean;
+  typedef expression< dynamic_expression_wrapper<core::integer> > dynamic_integer;
+  typedef expression< dynamic_expression_wrapper<core::boolean> > dynamic_boolean;
 
   template<>
-  struct type_traits<type::dynamic_expressions> {
+  struct type_traits<core::dynamic_expressions> {
     typedef std::vector<any> cpp_type;
   };
 
-  struct dynamic_placeholder_impl : dynamic_expression::root {
+  struct dynamic_placeholder_impl : core::dynamic_expression::root {
 
-    dynamic_placeholder_impl(int type, int length) : dynamic_expression::root(type, length) {
-      placeholders_.push_back(dynamic_placeholder(type, length));
+    dynamic_placeholder_impl(int type, int length) : core::dynamic_expression::root(type, length) {
+      placeholders_.push_back(core::dynamic_placeholder(type, length));
     }
 
     virtual void str(std::ostream& os) const {
@@ -108,7 +108,7 @@ namespace boost { namespace rdb { namespace sql {
   class dynamic_columns {
   
   private:
-    std::vector<dynamic_expression> cols_;
+    std::vector<core::dynamic_expression> cols_;
   
   public:
   
@@ -137,25 +137,26 @@ namespace boost { namespace rdb { namespace sql {
   namespace result_of {
   
     template<>
-    struct make_expression<dynamic_columns, dynamic_expressions> {
-      typedef dynamic_expressions type;
-      static const dynamic_expressions& make(const dynamic_expressions& exprs) { return exprs; }
+    struct make_expression<dynamic_columns, core::dynamic_expressions> {
+      typedef core::dynamic_expressions type;
+      static const type& make(const core::dynamic_expressions& exprs) { return exprs; }
     };
 
     template<>
-    struct make_expression<dynamic_expressions, dynamic_expressions> {
-      typedef dynamic_expressions type;
-      static const dynamic_expressions& make(const dynamic_expressions& exprs) { return exprs; }
+    struct make_expression<core::dynamic_expressions, core::dynamic_expressions> {
+      typedef core::dynamic_expressions type;
+      static const core::dynamic_expressions& make(const core::dynamic_expressions& exprs) { return exprs; }
     };
   }
 
   template<>
-  struct is_placeholder_mark<dynamic_expressions> : false_type {
+  struct is_placeholder_mark<core::dynamic_expressions> : false_type {
   };
+  
   struct dynamic_update {
 
     struct root : rdb::detail::ref_counted {
-      dynamic_placeholders placeholders_;
+      core::dynamic_placeholders placeholders_;
       virtual void str(std::ostream& os) const = 0;
     };
     
@@ -163,7 +164,7 @@ namespace boost { namespace rdb { namespace sql {
 
     //typedef fusion::vector< const std::vector<dynamic_placeholder> > placeholder_vector;
     
-    const dynamic_placeholders& placeholders() const {
+    const core::dynamic_placeholders& placeholders() const {
       return impl_->placeholders_;
     }
     
@@ -200,7 +201,7 @@ namespace boost { namespace rdb { namespace sql {
   
   public:
   
-    typedef fusion::vector< const std::vector<dynamic_placeholder> > placeholder_vector;
+    typedef fusion::vector< const std::vector<core::dynamic_placeholder> > placeholder_vector;
 
     placeholder_vector placeholders() const {
       int size = 0;
@@ -211,8 +212,8 @@ namespace boost { namespace rdb { namespace sql {
         size += in++->placeholders().size();
       }
 
-      std::vector<dynamic_placeholder> result(size);
-      std::vector<dynamic_placeholder>::iterator out = result.begin();
+      std::vector<core::dynamic_placeholder> result(size);
+      std::vector<core::dynamic_placeholder>::iterator out = result.begin();
       in = updates_.begin();
 
       while (in != updates_.end()) {

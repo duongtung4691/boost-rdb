@@ -5,6 +5,7 @@
 using namespace std;
 using namespace boost;
 using namespace boost::rdb;
+using boost::rdb::core::dynamic_expressions;
 using namespace boost::rdb::sql;
 using namespace boost::rdb::odbc;
 using namespace boost::rdb::sql::test::springfield;
