@@ -160,7 +160,7 @@ namespace boost { namespace rdb { namespace sql {
   members_before_##NAME;  \
   enum { NAME##_index = boost::mpl::size<members_before_##NAME>::value }; \
   struct NAME##_base : any_column { static const char* name() { return #NAME; } }; \
-  typedef expression< column<this_table, boost::rdb::type::sql_type, NAME##_base> > NAME##_type;  \
+  typedef expression< column<this_table, boost::rdb::core::sql_type, NAME##_base> > NAME##_type;  \
   NAME##_type NAME;  \
   struct NAME##_member {  \
     typedef std::string type;  \
@@ -183,7 +183,7 @@ namespace boost { namespace rdb { namespace sql {
     const Table& table_;
   };
 
-  struct create_table_statement_tag : statement_tag { };
+  struct create_table_statement_tag : core::statement_tag { };
 
   template<typename Table>
   struct create_table_statement {
@@ -202,7 +202,7 @@ namespace boost { namespace rdb { namespace sql {
     return create_table_statement<Table>();
   }
 
-  struct drop_table_statement_tag : statement_tag { };
+  struct drop_table_statement_tag : core::statement_tag { };
 
   template<typename Table>
   struct drop_table_statement {

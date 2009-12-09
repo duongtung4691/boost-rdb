@@ -48,7 +48,7 @@
 #include <boost/preprocessor/arithmetic/sub.hpp>
 #include <boost/preprocessor/punctuation/comma_if.hpp>
 
-#include <boost/rdb/common.hpp>
+#include <boost/rdb/core.hpp>
 #include <boost/rdb/detail/static_map.hpp>
 
 #define BOOST_RDB_PP_WITH(z, n, t) ::template with<t##n>::type
@@ -259,8 +259,8 @@ namespace boost { namespace rdb { namespace sql {
   //struct type_traits< literal<T, SqlType> > : type_traits<SqlType> { };
 
   template<>
-  struct literal<long, type::integer> : any_literal  {
-  typedef type::integer sql_type;
+  struct literal<long, core::integer> : any_literal  {
+  typedef core::integer sql_type;
     literal(long value) : value_(value) { }
     void str(std::ostream& os) const { os << value_; }
     int value_;
@@ -276,16 +276,16 @@ namespace boost { namespace rdb { namespace sql {
   struct make_literal;
   
   template<>
-  struct make_literal<type::integer, long> {
-    typedef literal<long, type::integer> type;
+  struct make_literal<core::integer, long> {
+    typedef literal<long, core::integer> type;
     static type value(long val) { return type(val); }
   };
   
   template<>
-  struct make_literal<type::integer, int> : make_literal<type::integer, long> { };
+  struct make_literal<core::integer, int> : make_literal<core::integer, long> { };
 
   template<>
-  struct type_traits<type::integer> {
+  struct type_traits<core::integer> {
     static void str(std::ostream& os) { os << "integer"; }
     typedef boost::mpl::true_::type is_numeric;
     typedef num_comparable_type comparable_type;
@@ -293,7 +293,7 @@ namespace boost { namespace rdb { namespace sql {
   };
 
   template<>
-  struct type_traits<type::float_> {
+  struct type_traits<core::float_> {
     static void str(std::ostream& os) { os << "float"; }
     typedef boost::mpl::true_::type is_numeric;
     typedef num_comparable_type comparable_type;
@@ -301,13 +301,13 @@ namespace boost { namespace rdb { namespace sql {
   };
   
   template<class T>
-  struct make_literal<type::float_, T> {
-    typedef literal<double, type::float_> type;
+  struct make_literal<core::float_, T> {
+    typedef literal<double, core::float_> type;
     static type value(double val) { BOOST_MPL_ASSERT((is_arithmetic<T>)); return type(val); }
   };
 
   template<>
-  struct type_traits<type::datetime> {
+  struct type_traits<core::datetime> {
     static void str(std::ostream& os) { os << "datetime"; }
     typedef boost::mpl::true_::type is_numeric;
     typedef num_comparable_type comparable_type;
@@ -315,18 +315,18 @@ namespace boost { namespace rdb { namespace sql {
   };
   
   template<>
-  struct make_literal<type::datetime, const char*> {
-    typedef literal<std::string, type::datetime> type;
+  struct make_literal<core::datetime, const char*> {
+    typedef literal<std::string, core::datetime> type;
     static type value(const std::string& val) { return type(val); }
   };
   
   template<int N>
-  struct make_literal<type::datetime, char[N]> : make_literal<type::datetime, const char*> { };
+  struct make_literal<core::datetime, char[N]> : make_literal<core::datetime, const char*> { };
 
   template<>
-  struct type_traits<type::boolean> {
+  struct type_traits<core::boolean> {
     static void str(std::ostream& os) { os << "boolean"; }
-    typedef literal<bool, type::boolean> literal_type;
+    typedef literal<bool, core::boolean> literal_type;
     static literal_type make_literal(bool val) { return literal_type(val); }
     typedef boolean_type kind;
   };
@@ -334,32 +334,32 @@ namespace boost { namespace rdb { namespace sql {
   struct char_comparable_type;
 
   template<size_t N>
-  struct type_traits< type::varchar<N> > {
+  struct type_traits< core::varchar<N> > {
     static void str(std::ostream& os) { os << "varchar(" << N << ")"; }
     typedef char_comparable_type comparable_type;
     typedef char_type kind;
   };
   
   template<size_t N>
-  struct make_literal<type::varchar<N>, const char*> {
-    typedef literal<std::string, type::varchar<N>> type;
+  struct make_literal<core::varchar<N>, const char*> {
+    typedef literal<std::string, core::varchar<N>> type;
     static type value(const std::string& val) { return type(val); }
   };
   
   template<size_t N, int M>
-  struct make_literal<type::varchar<N>, const char[M]> {
-    typedef literal<std::string, type::varchar<N>> type;
+  struct make_literal<core::varchar<N>, const char[M]> {
+    typedef literal<std::string, core::varchar<N>> type;
     static type value(const std::string& val) { BOOST_STATIC_ASSERT(N >= M); return type(val); }
   };
   
   template<size_t N, int M>
-  struct make_literal<type::varchar<N>, char[M]> {
-    typedef literal<std::string, type::varchar<N>> type;
+  struct make_literal<core::varchar<N>, char[M]> {
+    typedef literal<std::string, core::varchar<N>> type;
     static type value(const std::string& val) { BOOST_STATIC_ASSERT(N >= M); return type(val); }
   };
 
   struct comparison {
-    typedef type::boolean sql_type;
+    typedef core::boolean sql_type;
     BOOST_STATIC_CONSTANT(int, precedence = precedence_level::compare);
   };
 
@@ -490,9 +490,9 @@ namespace boost { namespace rdb { namespace sql {
     
     template<int N>
     struct placeholders_for< placeholder_mark<N> > {
-      typedef fusion::vector< type::placeholder<typename Col::sql_type> > placeholder_vector;
+      typedef fusion::vector< core::placeholder<typename Col::sql_type> > placeholder_vector;
       static placeholder_vector make(const set_clause& update) {
-        return fusion::make_vector(type::placeholder<typename Col::sql_type>());
+        return fusion::make_vector(core::placeholder<typename Col::sql_type>());
       }
     };
     

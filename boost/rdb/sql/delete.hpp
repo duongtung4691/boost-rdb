@@ -8,7 +8,7 @@
 
 namespace boost { namespace rdb { namespace sql {
 
-  struct delete_statement_tag : statement_tag { };
+  struct delete_statement_tag : core::statement_tag { };
 
   template<class Predicate>
   struct delete_impl {

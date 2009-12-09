@@ -5,7 +5,7 @@ struct BOOST_RDB_OPERATOR_CLASS : binary_operation<Expr1, Expr2, BOOST_RDB_OPERA
   BOOST_RDB_OPERATOR_CLASS(const Expr1& expr1, const Expr2& expr2) :
     binary_operation<Expr1, Expr2, BOOST_RDB_OPERATOR_PRECEDENCE>(expr1, expr2) { }
 
-  typedef type::boolean sql_type;
+  typedef core::boolean sql_type;
   
   void str(std::ostream& os) const {
     this->write(os, this->expr1_, BOOST_RDB_OPERATOR_STRING, this->expr2_);

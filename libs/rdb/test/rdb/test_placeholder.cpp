@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(test_placeholder) {
 
   using namespace boost;
   using rdb::sql::select;
-  using namespace rdb::type;
+  using namespace rdb::core;
 
   check_placeholders<
     fusion::vector< placeholder<float_> >

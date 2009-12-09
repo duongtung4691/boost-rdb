@@ -51,7 +51,7 @@ namespace boost { namespace rdb { namespace sql {
 
     //template<class Expr, int N>
     //struct make_placeholder_from_mark< expression<Expr>, expression< placeholder_mark<N> > > {
-    //  typedef typename fusion::result_of::vector< type::placeholder<typename Expr::sql_type> >::type type;
+    //  typedef typename fusion::result_of::vector< core::placeholder<typename Expr::sql_type> >::type type;
     //};
 
     //template<class Expr1, class Expr2>
@@ -88,7 +88,7 @@ namespace boost { namespace rdb { namespace sql {
 
   template<class Data, class Subdialect>
   struct insert_impl<Data, mpl::true_, mpl::false_, Subdialect> {
-    typedef insert_statement_tag tag;
+    typedef core::insert_statement_tag tag;
     typedef typename ct::result_of::value_at_key<Data, typename Subdialect::cols>::type cols_type;
     typedef typename ct::result_of::value_at_key<Data, typename Subdialect::values>::type values_type;
 
@@ -120,7 +120,7 @@ namespace boost { namespace rdb { namespace sql {
 
   template<class Data, class Subdialect>
   struct insert_impl<Data, mpl::false_, mpl::true_, Subdialect> {
-    typedef insert_statement_tag tag;
+    typedef core::insert_statement_tag tag;
     typedef typename result_of::placeholders_from_map<Data>::type placeholder_vector;
     insert_impl(const Data& data) : data_(data) { }
     Data data_;
