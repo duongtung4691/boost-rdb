@@ -92,9 +92,9 @@ namespace boost { namespace rdb { namespace dynamic {
 
     typedef dynamic_expressions sql_type;
     
-    void str(std::ostream& os) const {
-      std::for_each(begin(), end(), detail::comma_output(os));
-    }    
+    //void str(std::ostream& os) const {
+    //  std::for_each(begin(), end(), detail::comma_output(os));
+    //}    
   };
 
   struct dynamic_column : dynamic_expression {

@@ -9,37 +9,6 @@
 
 namespace boost { namespace rdb { namespace sql {
 
-  struct any_table : boost::noncopyable {
-    any_table() { }
-    any_table(const std::string& alias) : alias_(alias) { }
-    std::string alias_;
-    const std::string& alias() const { return alias_; }
-    bool has_alias() const { return !alias_.empty(); }
-    typedef fusion::vector<> placeholder_vector;
-    placeholder_vector placeholders() const { return fusion::make_vector(); }
-    typedef void table_container_tag;
-  };
-
-  template<class T, class Enable = void>
-  struct is_table_container : mpl::false_ {
-  };
-
-  template<class T>
-  struct is_table_container<T, typename T::table_container_tag> : mpl::true_ {
-  };
-  
-  struct any_column /*: boost::noncopyable*/ {
-    const any_table* table_;
-    BOOST_STATIC_CONSTANT(int, precedence = precedence_level::highest);
-
-    void initialize(const any_table* table) {
-      table_ = table;
-    }
-
-    typedef fusion::vector<> placeholder_vector;
-    placeholder_vector placeholders() const { return fusion::make_vector(); }
-  };
-
   template<class Table, class SqlType, class Base>
   struct column : Base {
     enum { precedence = precedence_level::highest };
@@ -90,7 +59,39 @@ namespace boost { namespace rdb { namespace sql {
     }
   };
 
+  template<class T, class Enable = void>
+  struct is_table_container : mpl::false_ {
+  };
+
+  template<class T>
+  struct is_table_container<T, typename T::table_container_tag> : mpl::true_ {
+  };
+
   namespace detail {
+
+    struct any_table : boost::noncopyable {
+      any_table() { }
+      any_table(const std::string& alias) : alias_(alias) { }
+      std::string alias_;
+      const std::string& alias() const { return alias_; }
+      bool has_alias() const { return !alias_.empty(); }
+      typedef fusion::vector<> placeholder_vector;
+      placeholder_vector placeholders() const { return fusion::make_vector(); }
+      typedef void table_container_tag;
+    };
+    
+    struct any_column /*: boost::noncopyable*/ {
+      const any_table* table_;
+      BOOST_STATIC_CONSTANT(int, precedence = precedence_level::highest);
+
+      void initialize(const any_table* table) {
+        table_ = table;
+      }
+
+      typedef fusion::vector<> placeholder_vector;
+      placeholder_vector placeholders() const { return fusion::make_vector(); }
+    };
+    
     template<class Table>
     struct initialize_columns {
       initialize_columns(Table* pt) : pt(pt) { }
@@ -99,49 +100,49 @@ namespace boost { namespace rdb { namespace sql {
       }
       Table* pt;
     };
-  }
   
-  template<typename T>
-  struct singleton {
-    static T _;
-  };
+    template<typename T>
+    struct singleton {
+      static T _;
+    };
 
-  template<class T>
-  T singleton<T>::_;
-  
-  template<class Base, bool IsSelfQualified>
-  struct table_;
-  
-  template<class Base>
-  struct table_<Base, false> : Base, any_table {
-    table_() { }
-    table_(const std::string& alias) : any_table(alias) { }
+    template<class T>
+    T singleton<T>::_;
     
-    void str(std::ostream& os) const {
-      if (has_alias())
-        os << Base::name() << " as " << alias_;
-      else
+    template<class Base, bool IsSelfQualified>
+    struct table_;
+    
+    template<class Base>
+    struct table_<Base, false> : Base, any_table {
+      table_() { }
+      table_(const std::string& alias) : any_table(alias) { }
+      
+      void str(std::ostream& os) const {
+        if (has_alias())
+          os << Base::name() << " as " << alias_;
+        else
+          os << Base::name();
+      }
+
+      // following function name chosen because it won't conflict with column names :-P
+      static const char* table() { return Base::name(); }
+    };
+    
+    template<class Base>
+    struct table_<Base, true> : Base, any_table {
+
+      table_() : any_table(Base::name()) { }
+      
+      void str(std::ostream& os) const {
         os << Base::name();
-    }
-
-    // following function name chosen because it won't conflict with column names :-P
-    static const char* table() { return Base::name(); }
-  };
-  
-  template<class Base>
-  struct table_<Base, true> : Base, any_table {
-
-    table_() : any_table(Base::name()) { }
-    
-    void str(std::ostream& os) const {
-      os << Base::name();
-    }
-  };
+      }
+    };
+  }
   
   #define BOOST_RDB_BEGIN_TABLE(NAME)  \
   struct NAME##_base { static const char* name() { return #NAME; } }; \
   template<int Alias> \
-  struct NAME##_ : ::boost::rdb::sql::table_<NAME##_base, Alias == -1>, ::boost::rdb::sql::singleton< NAME##_<Alias> > {  \
+  struct NAME##_ : ::boost::rdb::sql::detail::table_<NAME##_base, Alias == -1>, ::boost::rdb::sql::detail::singleton< NAME##_<Alias> > {  \
     typedef NAME##_<Alias> this_table;  \
     typedef NAME##_<1> _1; typedef NAME##_<2> _2; typedef NAME##_<3> _3;  \
     NAME##_() { initialize(); }  \
@@ -161,7 +162,7 @@ namespace boost { namespace rdb { namespace sql {
   #define BOOST_RDB_COLUMN(NAME, sql_type) \
   members_before_##NAME;  \
   enum { NAME##_index = boost::mpl::size<members_before_##NAME>::value }; \
-  struct NAME##_base : ::boost::rdb::sql::any_column { static const char* name() { return #NAME; } }; \
+  struct NAME##_base : ::boost::rdb::sql::detail::any_column { static const char* name() { return #NAME; } }; \
   typedef ::boost::rdb::sql::expression< ::boost::rdb::sql::column<this_table, ::boost::rdb::core::sql_type, NAME##_base> > NAME##_type;  \
   NAME##_type NAME;  \
   struct NAME##_member {  \

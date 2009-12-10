@@ -7,6 +7,7 @@ namespace boost { namespace rdb { namespace detail {
     comma_output(std::ostream& os) : os_(os), comma_("") { }
     std::ostream& os_;
     mutable const char* comma_;
+    
     std::ostream& item() const {
       os_ << comma_;
       comma_ = ", ";
