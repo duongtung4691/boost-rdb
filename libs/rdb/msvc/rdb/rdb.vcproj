@@ -293,6 +293,10 @@
 			Name="sql"
 			>
 			<File
+				RelativePath="..\..\..\..\boost\rdb\sql\detail\comma_output.hpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\boost\rdb\sql\common.hpp"
 				>
 			</File>
@@ -355,10 +359,6 @@
 		</File>
 		<File
 			RelativePath="..\..\build\Jamfile.v2"
-			>
-		</File>
-		<File
-			RelativePath="..\..\..\..\boost\rdb\detail\output.hpp"
 			>
 		</File>
 		<File

@@ -18,21 +18,21 @@ namespace boost { namespace rdb { namespace sql {
   template<class ColList>
   inline void str(std::ostream& os, const ct::map_entry<sql2003::cols, ColList>& p) {
     os << " (";
-    fusion::for_each(p.value, rdb::detail::comma_output(os));
+    fusion::for_each(p.value, detail::comma_output(os));
     os << ")";
   }
 
   template<class ValueList>
   inline void str(std::ostream& os, const ct::map_entry<sql2003::values, ValueList>& p) {
     os << " values (";
-    fusion::for_each(p.value, rdb::detail::comma_output(os));
+    fusion::for_each(p.value, detail::comma_output(os));
     os << ")";
   }
 
   template<class ExprList>
   inline void str(std::ostream& os, const ct::map_entry<sql2003::select, ExprList>& p) {
     os << " select ";
-    fusion::for_each(p.value, rdb::detail::comma_output(os));
+    fusion::for_each(p.value, detail::comma_output(os));
   }
 
   template<class Data, class HasValues, class HasSelect, class Subdialect>
