@@ -38,6 +38,56 @@ namespace boost { namespace rdb {
 } }
 
 namespace boost { namespace rdb { namespace odbc {
+  
+  template<class Seq>
+  struct nullable {
+    Seq values_;
+    typedef std::bitset<fusion::result_of::size<Seq>::value> status_vector_type;
+    typedef Seq value_vector_type;
+    status_vector_type status_;
+    bool is_null(int pos) const { return !status_[pos]; }
+    template<int I> bool is_null() const { return !status_[I]; }
+    void set_null(int pos, bool to_null) { status_[pos] = !to_null; }
+    template<int I> typename fusion::result_of::at_c<const Seq, I>::type get() const {
+      return fusion::at_c<I>(values_);
+    }
+    template<int I> typename fusion::result_of::at_c<Seq, I>::type ref() {
+      return fusion::at_c<I>(values_);
+    }
+    const Seq& values() const { return values_; }
+    Seq& values() { return values_; }
+    const status_vector_type& status() const { return status_; }
+    status_vector_type& status() { return status_; }
+    nullable& operator =(const Seq& values) { values_ = values; return *this; }
+  };
+
+  template<class Row>
+  struct print_row_element {
+
+    print_row_element(std::ostream& os, const Row& r) : os_(os), r_(r), bit_(0) { }
+    
+    std::ostream& os_;
+    const Row& r_;
+    mutable int bit_;
+    
+    template<class T>
+    void operator ()(const T& value) const {
+      if (bit_)
+        os_ << " ";
+      if (r_.is_null(bit_++))
+        os_ << "null";
+      else
+        os_ << value;
+    }
+  };
+
+  template<class Seq>
+  std::ostream& operator <<(std::ostream& os, const nullable<Seq>& r) {
+    os << "(";
+    fusion::for_each(r.values(), print_row_element< nullable<Seq> >(os, r));
+    os << ")";
+    return os;
+  }
 
   extern std::ostream* trace_stream;
 
@@ -703,7 +753,7 @@ namespace boost { namespace rdb { namespace odbc {
     
     result_vector results_;
     
-    typedef core::nullable<
+    typedef nullable<
       typename fusion::result_of::as_vector<
         typename fusion::result_of::accumulate<
           result_vector,
