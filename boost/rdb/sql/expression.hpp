@@ -74,7 +74,7 @@ namespace boost { namespace rdb { namespace sql {
   template<class Expr>
   struct ComparableExpression : Expression<Expr>
   {
-    typedef typename type_traits<typename Expr::sql_type>::comparable_type comparable_type;
+    typedef typename Expr::sql_type::comparable_type comparable_type;
   };
 
   template<class Expr>
@@ -94,7 +94,7 @@ namespace boost { namespace rdb { namespace sql {
   };
 
   template<class Expr>
-  struct is_placeholder_mark : is_same<typename Expr::sql_type, placeholder_type> {
+  struct is_placeholder_mark : is_same<typename Expr::sql_type, core::placeholder_type> {
   };
     
   namespace result_of {
@@ -368,7 +368,7 @@ namespace boost { namespace rdb { namespace sql {
     template<class Pattern>
     expression< sql::like<Expr, typename result_of::make_expression<Expr, Pattern>::type> >
     like(const Pattern& pattern) const {
-      BOOST_MPL_ASSERT((boost::is_same<typename type_traits<typename Expr::sql_type>::kind, char_type>));
+      BOOST_MPL_ASSERT((boost::is_same<typename Expr::sql_type::kind, core::char_type>));
       return expression< sql::like<Expr, typename result_of::make_expression<Expr, Pattern>::type> >(*this, make_expression(pattern));
     }
     
@@ -401,16 +401,8 @@ namespace boost { namespace rdb { namespace sql {
     using Expr::operator =; // for set col = value
   };
   
-  struct null_type { };
-
-  template<>
-  struct type_traits<null_type> {
-    typedef null_type comparable_type;
-    typedef universal kind;
-  };
-  
   struct null_expr {
-    typedef null_type sql_type;
+    typedef core::null_type sql_type;
     typedef fusion::vector<> placeholder_vector;
     placeholder_vector placeholders() const { return fusion::make_vector(); }
     BOOST_STATIC_CONSTANT(int, precedence = precedence_level::highest);

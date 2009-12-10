@@ -253,17 +253,11 @@ namespace boost { namespace rdb { namespace sql {
 
   template<>
   struct literal<long, core::integer> : any_literal  {
-  typedef core::integer sql_type;
+    typedef core::integer sql_type;
     literal(long value) : value_(value) { }
     void str(std::ostream& os) const { os << value_; }
     int value_;
   };
-
-  struct num_comparable_type;
-  struct numeric_type;
-  struct char_type;
-  struct boolean_type;
-  struct placeholder_type;
   
   template<class RdbType, class CppType>
   struct make_literal;
@@ -280,17 +274,11 @@ namespace boost { namespace rdb { namespace sql {
   template<>
   struct type_traits<core::integer> {
     static void str(std::ostream& os) { os << "integer"; }
-    typedef boost::mpl::true_::type is_numeric;
-    typedef num_comparable_type comparable_type;
-    typedef numeric_type kind;
   };
 
   template<>
   struct type_traits<core::float_> {
     static void str(std::ostream& os) { os << "float"; }
-    typedef boost::mpl::true_::type is_numeric;
-    typedef num_comparable_type comparable_type;
-    typedef numeric_type kind;
   };
   
   template<class T>
@@ -302,9 +290,6 @@ namespace boost { namespace rdb { namespace sql {
   template<>
   struct type_traits<core::datetime> {
     static void str(std::ostream& os) { os << "datetime"; }
-    typedef boost::mpl::true_::type is_numeric;
-    typedef num_comparable_type comparable_type;
-    typedef numeric_type kind;
   };
   
   template<>
@@ -321,16 +306,11 @@ namespace boost { namespace rdb { namespace sql {
     static void str(std::ostream& os) { os << "boolean"; }
     typedef literal<bool, core::boolean> literal_type;
     static literal_type make_literal(bool val) { return literal_type(val); }
-    typedef boolean_type kind;
   };
-
-  struct char_comparable_type;
 
   template<size_t N>
   struct type_traits< core::varchar<N> > {
     static void str(std::ostream& os) { os << "varchar(" << N << ")"; }
-    typedef char_comparable_type comparable_type;
-    typedef char_type kind;
   };
   
   template<size_t N>
@@ -383,27 +363,15 @@ namespace boost { namespace rdb { namespace sql {
       str(os_, clause);
     }
   };
-  
-  struct universal;
-
-  struct placeholder_type {
-  };
-  
-  template<>
-  struct type_traits<placeholder_type> {
-    typedef boost::mpl::true_::type is_numeric;
-    typedef placeholder_type comparable_type;
-    typedef sql::universal kind;
-  };
 
   template<class Expr1, class Expr2>
   struct is_sql_compatible : mpl::or_<
     is_same<
-      typename type_traits<typename remove_reference<Expr1>::type::sql_type>::kind,
-      typename type_traits<typename remove_reference<Expr2>::type::sql_type>::kind
+      typename remove_reference<Expr1>::type::sql_type::kind,
+      typename remove_reference<Expr2>::type::sql_type::kind
     >,
-    is_same<typename type_traits<typename remove_reference<Expr1>::type::sql_type>::kind, universal>,
-    is_same<typename type_traits<typename remove_reference<Expr2>::type::sql_type>::kind, universal>
+    is_same<typename remove_reference<Expr1>::type::sql_type::kind, core::universal>,
+    is_same<typename remove_reference<Expr2>::type::sql_type::kind, core::universal>
   > {
   };
 
@@ -449,7 +417,7 @@ namespace boost { namespace rdb { namespace sql {
   // it is used.
   template<int N>
   struct placeholder_mark {
-    typedef placeholder_type sql_type;
+    typedef core::placeholder_type sql_type;
     typedef fusion::vector<> placeholder_vector; // not really used; exists to please mpl::if_ which is not lazy
     placeholder_vector placeholders() const { return fusion::make_vector(); }
     BOOST_STATIC_CONSTANT(int, precedence = precedence_level::highest);
