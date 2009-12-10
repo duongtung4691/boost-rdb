@@ -7,7 +7,7 @@
 #include <sstream>
 #include <string>
 
-#include <boost/rdb/detail/output.hpp>
+#include <boost/rdb/sql/detail/comma_output.hpp>
 
 #include <boost/format.hpp>
 #include <boost/ref.hpp>
@@ -147,7 +147,7 @@ namespace boost { namespace rdb { namespace sql {
   
   void quote_text(std::ostream& os, const char* str);
 
-  struct assign_output : rdb::detail::comma_output {
+  struct assign_output : detail::comma_output {
     assign_output(std::ostream& os) : comma_output(os) { }
 
     template<typename First, typename Second>
@@ -160,10 +160,15 @@ namespace boost { namespace rdb { namespace sql {
     }
   };
 
+  template<class T>
+  void str(std::ostream& os, const T& obj) {
+    obj.str(os);
+  }
+
   template<class ExprList>
   void str(std::ostream& os, const ct::map_entry<sql2003::exprs, ExprList>& p) {
     os << " ";
-    fusion::for_each(p.value, rdb::detail::comma_output(os));
+    fusion::for_each(p.value, detail::comma_output(os));
   }
 
   inline void str(std::ostream& os, const ct::map_entry<sql2003::distinct, int>& p) {
@@ -177,7 +182,7 @@ namespace boost { namespace rdb { namespace sql {
   template<class TableList>
   void str(std::ostream& os, const ct::map_entry<sql2003::from, TableList>& p) {
     os << " from ";
-    fusion::for_each(p.value, rdb::detail::comma_output(os));
+    fusion::for_each(p.value, detail::comma_output(os));
   }
 
   template<class Predicate>

@@ -228,7 +228,7 @@ namespace boost { namespace rdb { namespace sql {
         expr_.str(os);
       }
       os << " in (";
-      fusion::for_each(alt_, rdb::detail::comma_output(os));
+      fusion::for_each(alt_, detail::comma_output(os));
       os << ")";
     }
   };

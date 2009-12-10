@@ -15,6 +15,10 @@
 namespace boost { namespace rdb { namespace sql {
 
   using namespace dynamic;
+    
+  inline void str(std::ostream& os, const dynamic_expressions& exprs) {
+    std::for_each(exprs.begin(), exprs.end(), detail::comma_output(os));
+  }    
 
   struct make_dynamic_placeholders {
     make_dynamic_placeholders(std::vector<dynamic::dynamic_placeholder>& placeholders) : placeholders_(placeholders) { }
@@ -122,7 +126,7 @@ namespace boost { namespace rdb { namespace sql {
     typedef void sql_type;
     
     void str(std::ostream& os) const {
-      std::for_each(cols_.begin(), cols_.end(), rdb::detail::comma_output(os));
+      std::for_each(cols_.begin(), cols_.end(), detail::comma_output(os));
     }
   };
 
@@ -227,7 +231,7 @@ namespace boost { namespace rdb { namespace sql {
     typedef void sql_type;
     
     void str(std::ostream& os) const {
-      std::for_each(updates_.begin(), updates_.end(), rdb::detail::comma_output(os));
+      std::for_each(updates_.begin(), updates_.end(), detail::comma_output(os));
     }
   };
 
@@ -290,7 +294,7 @@ namespace boost { namespace rdb { namespace sql {
     }
     
     void str(std::ostream& os) const {
-      std::for_each(tables_.begin(), tables_.end(), rdb::detail::comma_output(os));
+      std::for_each(tables_.begin(), tables_.end(), detail::comma_output(os));
     }
   };
   
