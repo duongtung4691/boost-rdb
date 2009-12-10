@@ -2,13 +2,12 @@
 #include <boost/rdb/sql/dynamic.hpp>
 #include <boost/test/unit_test.hpp>
 
-using namespace std;
-using namespace boost;
-using namespace boost::rdb;
-using boost::rdb::dynamic::dynamic_expressions;
 using namespace boost::rdb::sql;
 using namespace boost::rdb::odbc;
-using namespace boost::rdb::sql::test::springfield;
+
+using namespace boost::rdb::test::springfield;
+namespace sql = boost::rdb::sql;
+using std::string;
 
 BOOST_FIXTURE_TEST_CASE(prepared_select_bind_dynamic_integer_param, homer_marge_fixture) {
   

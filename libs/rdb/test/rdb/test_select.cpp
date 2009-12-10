@@ -5,7 +5,7 @@
 #include <boost/rdb/sql/select.hpp>
 
 using namespace boost::rdb::sql;
-using namespace boost::rdb::sql::test::springfield;
+using namespace boost::rdb::test::springfield;
 
 BOOST_AUTO_TEST_CASE(test_select_temp) {
 

@@ -7,9 +7,8 @@
 
 using namespace boost;
 using namespace boost::rdb::core;
-using namespace boost::rdb::dynamic;
 using namespace boost::rdb::sql;
-using namespace boost::rdb::sql::test::springfield;
+using namespace boost::rdb::test::springfield;
 
 struct empty { };
 struct ptr { void* p; };

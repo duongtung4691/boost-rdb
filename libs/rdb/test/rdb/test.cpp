@@ -10,7 +10,7 @@
 
 namespace sql = boost::rdb::sql;
 using namespace boost::rdb::sql;
-using namespace boost::rdb::sql::test::springfield;
+using namespace boost::rdb::test::springfield;
 
 BOOST_AUTO_TEST_CASE(create_statement) {
 

@@ -4,7 +4,7 @@
 #ifndef BOOST_RDB_TEST_TABLES_HPP
 #define BOOST_RDB_TEST_TABLES_HPP
 
-namespace boost { namespace rdb { namespace sql { namespace test {
+namespace boost { namespace rdb { namespace test {
 
   namespace springfield {
 //[ schema
@@ -41,6 +41,6 @@ namespace boost { namespace rdb { namespace sql { namespace test {
     BOOST_RDB_END_TABLE(legal_person) 
   }
 
-} } } }
+} } }
 
 #endif

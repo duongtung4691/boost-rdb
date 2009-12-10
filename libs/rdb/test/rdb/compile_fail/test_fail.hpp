@@ -2,7 +2,7 @@
 #include <boost/rdb/sql.hpp>
 
 using namespace boost::rdb::sql;
-using namespace boost::rdb::sql::test::springfield;
+using namespace boost::rdb::test::springfield;
 
 template<class T>
 void check_incomplete(const T&) {

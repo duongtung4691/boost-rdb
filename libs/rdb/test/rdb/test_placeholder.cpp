@@ -6,7 +6,7 @@
 
 using namespace boost::rdb;
 using namespace boost::rdb::sql;
-using namespace boost::rdb::sql::test::springfield;
+using namespace boost::rdb::test::springfield;
 
 template<class Actual, class Expected>
 struct same_placeholders : boost::is_same<
