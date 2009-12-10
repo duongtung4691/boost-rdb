@@ -33,7 +33,7 @@ struct fixture {
   }
 
   ~fixture() {
-    using namespace boost::rdb::sql::test::springfield;
+    using namespace boost::rdb::test::springfield;
     db.execute(drop_table(test1::_));
   }
 };

@@ -23,7 +23,7 @@ struct schema_fixture {
 
   schema_fixture() : db("boost", "boost", "boost") {
     using namespace boost::rdb::odbc;
-    using namespace boost::rdb::sql::test::springfield;
+    using namespace boost::rdb::test::springfield;
     try {
       db.execute(create_table(person::_));
     } catch (odbc_error) {
@@ -40,7 +40,7 @@ struct schema_fixture {
   }
 
   ~schema_fixture() {
-    using namespace boost::rdb::sql::test::springfield;
+    using namespace boost::rdb::test::springfield;
     db.execute(drop_table(person::_));
     db.execute(drop_table(partner::_));
   }
@@ -50,7 +50,7 @@ struct homer_marge_fixture : schema_fixture {
 
   homer_marge_fixture() {
     using namespace boost::rdb::odbc;
-    using namespace boost::rdb::sql::test::springfield;
+    using namespace boost::rdb::test::springfield;
     
     person p;
     partner l;
@@ -68,7 +68,7 @@ struct object_model_fixture {
   object_model_fixture() : db("boost", "boost", "boost") {
 
     using namespace boost::rdb::odbc;
-    using namespace boost::rdb::sql::test::object_model;
+    using namespace boost::rdb::test::object_model;
 
     try {
       db.execute(create_table(person::_));
@@ -93,7 +93,7 @@ struct object_model_fixture {
   }
 
   ~object_model_fixture() {
-    using namespace boost::rdb::sql::test::object_model;
+    using namespace boost::rdb::test::object_model;
     db.execute(drop_table(person::_));
     db.execute(drop_table(natural_person::_));
     db.execute(drop_table(legal_person::_));

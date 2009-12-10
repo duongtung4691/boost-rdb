@@ -14,6 +14,8 @@
 
 namespace boost { namespace rdb { namespace sql {
 
+  using namespace dynamic;
+
   struct make_dynamic_placeholders {
     make_dynamic_placeholders(std::vector<dynamic::dynamic_placeholder>& placeholders) : placeholders_(placeholders) { }
     

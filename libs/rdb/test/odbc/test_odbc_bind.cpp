@@ -6,7 +6,7 @@ using namespace boost;
 using namespace boost::rdb;
 using namespace boost::rdb::sql;
 using namespace boost::rdb::odbc;
-using namespace boost::rdb::sql::test::springfield;
+using namespace boost::rdb::test::springfield;
 
 BOOST_FIXTURE_TEST_CASE(prepared_select_bind_integer_param, homer_marge_fixture) {
   using boost::rdb::sql::select;

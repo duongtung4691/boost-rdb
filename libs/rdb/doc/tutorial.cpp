@@ -16,7 +16,7 @@ using namespace std;
 
 #include "test_tables.hpp"
 
-using namespace boost::rdb::sql::test::springfield;
+using namespace boost::rdb::test::springfield;
 
 ofstream file("output.txt");
 ofstream osql("sql.txt");

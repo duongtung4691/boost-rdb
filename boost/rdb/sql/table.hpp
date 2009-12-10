@@ -90,15 +90,17 @@ namespace boost { namespace rdb { namespace sql {
     }
   };
 
-  template<class Table>
-  struct initialize_columns {
-    initialize_columns(Table* pt) : pt(pt) { }
-    template<typename T> void operator ()(T) {
-      T::initialize(pt);
-    }
-    Table* pt;
-  };
-
+  namespace detail {
+    template<class Table>
+    struct initialize_columns {
+      initialize_columns(Table* pt) : pt(pt) { }
+      template<typename T> void operator ()(T) {
+        T::initialize(pt);
+      }
+      Table* pt;
+    };
+  }
+  
   template<typename T>
   struct singleton {
     static T _;
@@ -139,19 +141,19 @@ namespace boost { namespace rdb { namespace sql {
   #define BOOST_RDB_BEGIN_TABLE(NAME)  \
   struct NAME##_base { static const char* name() { return #NAME; } }; \
   template<int Alias> \
-  struct NAME##_ : table_<NAME##_base, Alias == -1>, singleton< NAME##_<Alias> > {  \
+  struct NAME##_ : ::boost::rdb::sql::table_<NAME##_base, Alias == -1>, ::boost::rdb::sql::singleton< NAME##_<Alias> > {  \
     typedef NAME##_<Alias> this_table;  \
     typedef NAME##_<1> _1; typedef NAME##_<2> _2; typedef NAME##_<3> _3;  \
     NAME##_() { initialize(); }  \
     NAME##_(const std::string& alias) : table_<NAME##_base, Alias == -1>(alias) { initialize(); }  \
     NAME##_(const this_table& other) { initialize(); }  \
     typedef NAME##_<-1> qualified;  \
-    typedef boost::mpl::vector0<>
+    typedef ::boost::mpl::vector0<>
 
   #define BOOST_RDB_END_TABLE(NAME)  \
     column_members; \
     void initialize() { \
-      boost::mpl::for_each<this_table::column_members>(initialize_columns<this_table>(this)); \
+      ::boost::mpl::for_each<this_table::column_members>(::boost::rdb::sql::detail::initialize_columns<this_table>(this)); \
     } \
   }; \
   typedef NAME##_<0> NAME;
@@ -159,8 +161,8 @@ namespace boost { namespace rdb { namespace sql {
   #define BOOST_RDB_COLUMN(NAME, sql_type) \
   members_before_##NAME;  \
   enum { NAME##_index = boost::mpl::size<members_before_##NAME>::value }; \
-  struct NAME##_base : any_column { static const char* name() { return #NAME; } }; \
-  typedef expression< column<this_table, boost::rdb::core::sql_type, NAME##_base> > NAME##_type;  \
+  struct NAME##_base : ::boost::rdb::sql::any_column { static const char* name() { return #NAME; } }; \
+  typedef ::boost::rdb::sql::expression< ::boost::rdb::sql::column<this_table, ::boost::rdb::core::sql_type, NAME##_base> > NAME##_type;  \
   NAME##_type NAME;  \
   struct NAME##_member {  \
     typedef std::string type;  \
@@ -168,7 +170,7 @@ namespace boost { namespace rdb { namespace sql {
     static const NAME##_type& ref(const this_table& obj) { return obj.NAME; }  \
     static void initialize(this_table* table) { table->NAME.initialize(table); }  \
   };  \
-  typedef typename boost::mpl::push_back<members_before_##NAME, NAME##_member>::type
+  typedef typename ::boost::mpl::push_back<members_before_##NAME, NAME##_member>::type
 
   template<typename Table>
   struct table_column_output : rdb::detail::comma_output {
