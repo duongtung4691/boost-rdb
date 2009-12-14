@@ -71,11 +71,6 @@ namespace boost { namespace rdb { namespace sql {
   typedef expression< dynamic_expression_wrapper<core::integer> > dynamic_integer;
   typedef expression< dynamic_expression_wrapper<core::boolean> > dynamic_boolean;
 
-  template<>
-  struct type_traits<dynamic::dynamic_expressions> {
-    typedef std::vector<any> cpp_type;
-  };
-
   struct dynamic_placeholder_impl : dynamic::dynamic_expression::root {
 
     dynamic_placeholder_impl(int type, int length) : dynamic::dynamic_expression::root(type, length) {

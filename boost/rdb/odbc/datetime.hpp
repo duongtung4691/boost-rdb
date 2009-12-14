@@ -2,6 +2,7 @@
 #define BOOST_ODBC_DATETIME_HPP
 
 #include <boost/rdb/odbc.hpp>
+#include <boost/rdb/core/datetime.hpp>
 
 #include "boost/date_time/posix_time/posix_time_types.hpp"
 

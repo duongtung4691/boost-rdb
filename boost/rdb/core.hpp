@@ -80,6 +80,7 @@ namespace boost { namespace rdb { namespace core {
     typedef boost::mpl::true_::type is_numeric;
     typedef num_comparable_type comparable_type;
     typedef numeric_type kind;
+    static void str(std::ostream& os) { os << "integer"; }
   };
 
   struct float_ {
@@ -88,6 +89,7 @@ namespace boost { namespace rdb { namespace core {
     typedef boost::mpl::true_::type is_numeric;
     typedef num_comparable_type comparable_type;
     typedef numeric_type kind;
+    static void str(std::ostream& os) { os << "float"; }
   };
   
   struct boolean {
@@ -95,6 +97,7 @@ namespace boost { namespace rdb { namespace core {
     BOOST_STATIC_CONSTANT(int, length = 1);
     typedef boost::mpl::false_::type is_numeric;
     typedef boolean_type kind;
+    static void str(std::ostream& os) { os << "boolean"; }
   };
   
   template<size_t N> struct varchar {
@@ -103,14 +106,7 @@ namespace boost { namespace rdb { namespace core {
     typedef boost::mpl::false_::type is_numeric;
     typedef char_comparable_type comparable_type;
     typedef char_type kind;
-  };
-  
-  struct datetime {
-    BOOST_STATIC_CONSTANT(int, id = 6);
-    BOOST_STATIC_CONSTANT(size_t, length = 1);
-    typedef boost::mpl::true_::type is_numeric;
-    typedef num_comparable_type comparable_type;
-    typedef numeric_type kind;
+    static void str(std::ostream& os) { os << "varchar(" << N << ")"; }
   };
 
   // metafunction that returns a type for holding a value of a given (rdb) type

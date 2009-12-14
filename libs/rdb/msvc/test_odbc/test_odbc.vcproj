@@ -296,16 +296,8 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\test\odbc\test_odbc_date.cpp"
+			RelativePath="..\..\test\odbc\test_odbc_datetime.cpp"
 			>
-			<FileConfiguration
-				Name="Fast Compilation|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="0"
-				/>
-			</FileConfiguration>
 		</File>
 		<File
 			RelativePath="..\..\test\odbc\test_odbc_dynamic.cpp"

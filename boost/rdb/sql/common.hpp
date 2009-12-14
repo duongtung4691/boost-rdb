@@ -101,9 +101,6 @@ namespace boost { namespace rdb { namespace sql {
     typedef Tag tag;
   };
 
-  template<class T>
-  struct type_traits;
-
   struct sql2003 {
     struct select;
     struct distinct;
@@ -247,9 +244,6 @@ namespace boost { namespace rdb { namespace sql {
     void str(std::ostream& os) const { quote_text(os, value_.begin(), value_.end()); }
     std::string value_;
   };
-  
-  //template<class T, class SqlType>
-  //struct type_traits< literal<T, SqlType> > : type_traits<SqlType> { };
 
   template<>
   struct literal<long, core::integer> : any_literal  {
@@ -270,47 +264,11 @@ namespace boost { namespace rdb { namespace sql {
   
   template<>
   struct make_literal<core::integer, int> : make_literal<core::integer, long> { };
-
-  template<>
-  struct type_traits<core::integer> {
-    static void str(std::ostream& os) { os << "integer"; }
-  };
-
-  template<>
-  struct type_traits<core::float_> {
-    static void str(std::ostream& os) { os << "float"; }
-  };
   
   template<class T>
   struct make_literal<core::float_, T> {
     typedef literal<double, core::float_> type;
     static type value(double val) { BOOST_MPL_ASSERT((is_arithmetic<T>)); return type(val); }
-  };
-
-  template<>
-  struct type_traits<core::datetime> {
-    static void str(std::ostream& os) { os << "datetime"; }
-  };
-  
-  template<>
-  struct make_literal<core::datetime, const char*> {
-    typedef literal<std::string, core::datetime> type;
-    static type value(const std::string& val) { return type(val); }
-  };
-  
-  template<int N>
-  struct make_literal<core::datetime, char[N]> : make_literal<core::datetime, const char*> { };
-
-  template<>
-  struct type_traits<core::boolean> {
-    static void str(std::ostream& os) { os << "boolean"; }
-    typedef literal<bool, core::boolean> literal_type;
-    static literal_type make_literal(bool val) { return literal_type(val); }
-  };
-
-  template<size_t N>
-  struct type_traits< core::varchar<N> > {
-    static void str(std::ostream& os) { os << "varchar(" << N << ")"; }
   };
   
   template<size_t N>
