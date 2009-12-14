@@ -13,7 +13,7 @@ namespace boost { namespace rdb { namespace sql {
   struct column : Base {
     enum { precedence = precedence_level::highest };
     typedef SqlType sql_type;
-    static void str_type(std::ostream& os) { type_traits<SqlType>::str(os); }
+    static void str_type(std::ostream& os) { SqlType::str(os); }
     
     template<class T>
     set_clause<column, typename result_of::make_expression<column, T>::type>

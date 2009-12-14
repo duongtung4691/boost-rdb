@@ -301,6 +301,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\boost\rdb\sql\datetime.hpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\boost\rdb\sql\delete.hpp"
 				>
 			</File>
@@ -349,10 +353,18 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath="..\..\..\..\boost\rdb\core.hpp"
+		<Filter
+			Name="core"
 			>
-		</File>
+			<File
+				RelativePath="..\..\..\..\boost\rdb\core.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\boost\rdb\core\datetime.hpp"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath="..\..\..\..\boost\rdb\dynamic.hpp"
 			>
