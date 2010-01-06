@@ -35,7 +35,7 @@ struct fixture {
 
   ~fixture() {
     using namespace boost::rdb::test::springfield;
-    db.execute(drop_table(test1::_));
+    //db.execute(drop_table(test1::_));
   }
 };
 
@@ -57,31 +57,31 @@ BOOST_FIXTURE_TEST_CASE(test_datetime_varchar_result, fixture) {
   BOOST_CHECK(!val.is_null());
   BOOST_CHECK_EQUAL(val.value(), "1963-08-13 03:11:17");
 }
-#if 0
-BOOST_FIXTURE_TEST_CASE(test_datetime_datetime, fixture) {
+
+BOOST_FIXTURE_TEST_CASE(test_datetime_insert_datetime, fixture) {
+  using sql::select;
+  test1 t;
+  datetime write(1963, 8, 13, 3, 11, 17);
+  db.execute(insert_into(t)(t.id, t.val).values(1, write));
+  BOOST_RDB_CHECK_SELECT_RESULTS(db.execute(select(t.id).from(t)), "((1))");
+}
+
+BOOST_FIXTURE_TEST_CASE(test_datetime_bind_datetime, fixture) {
 
   using sql::select;
 
   test1 t;
   
-  datetime write;
-  write.value().year = 1963;
-  write.value().month = 8;
-  write.value().day = 13;
-  write.value().hour = 3;
-  write.value().minute = 11;
-  write.value().second = 17;
-  write.value().fraction = 201;
-
-  db.execute(insert_into(t)(t.id, t.val).values(1, write));
+  datetime write(1963, 8, 13, 3, 11, 17, 201);
+  db.prepare(insert_into(t)(t.id, t.val).values(1, _)).bind_parameters(write).execute();
   BOOST_RDB_CHECK_SELECT_RESULTS(db.execute(select(t.id).from(t)), "((1))");
 
   BOOST_AUTO(st, db.prepare(select(t.val).from(t)));
-  datetime val;
-  st.bind_results(val);
+  datetime read;
+  st.bind_results(read);
   st.execute().fetch();
   
-  BOOST_CHECK(!val.is_null());
+  BOOST_CHECK(!read.is_null());
   BOOST_CHECK_EQUAL(read.value().year, 1963);
   BOOST_CHECK_EQUAL(read.value().month, 8);
   BOOST_CHECK_EQUAL(read.value().day, 13);
@@ -90,4 +90,3 @@ BOOST_FIXTURE_TEST_CASE(test_datetime_datetime, fixture) {
   BOOST_CHECK_EQUAL(read.value().second, 17);
   BOOST_CHECK_EQUAL(read.value().fraction, 201);
 }
-#endif

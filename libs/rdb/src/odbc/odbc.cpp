@@ -4,8 +4,10 @@
 
 #include <cstdio>
 #include <vector>
+#include <ostream>
 
 #include <boost/rdb/odbc.hpp>
+#include <boost/rdb/odbc/datetime.hpp>
 #include <boost/format.hpp>
 
 #ifdef _MSC_VER
@@ -147,5 +149,17 @@ void parameter_binder::operator ()(const fusion::vector<const dynamic::dynamic_p
 }
 
 std::ostream* trace_stream;
+
+} } }
+
+namespace boost { namespace rdb { namespace core {
+
+void literal<odbc::datetime, datetime>::str(std::ostream& os) const {
+  const SQL_TIMESTAMP_STRUCT& t = value_.value();
+  os << boost::str(boost::format("'%04d-%02d-%02d %02d:%02d:%02d'")
+    % t.year % t.month % t.day % t.hour % t.minute % t.second);
+  if (t.fraction)
+    os << ' ' << t.fraction;
+}
 
 } } }
