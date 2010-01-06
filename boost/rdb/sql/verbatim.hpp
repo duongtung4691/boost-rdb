@@ -11,7 +11,7 @@ namespace boost { namespace rdb { namespace sql {
   template<class Type, class PlaceHolders>
   struct verbatim_expression {
   
-    typedef Type sql_type;
+    typedef Type rdb_type;
     
     verbatim_expression(const std::string& expr, const PlaceHolders placeholders)
       : expr_(expr), placeholders_(placeholders) { }

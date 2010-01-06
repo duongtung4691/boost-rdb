@@ -553,7 +553,7 @@ namespace boost { namespace rdb { namespace odbc {
       typedef typename fusion::result_of::push_back<
         CliVector,
         typename core::cli_type<
-          typename remove_reference<Expr>::type::sql_type,
+          typename remove_reference<Expr>::type::rdb_type,
           Tag
         >::type
       >::type type;
@@ -677,7 +677,7 @@ namespace boost { namespace rdb { namespace odbc {
 
     template<class Expr, class CliType>
     void operator ()(const fusion::vector<const Expr&, CliType&>& zip) const {
-      BOOST_MPL_ASSERT((can_bind<typename Expr::sql_type, CliType>));
+      BOOST_MPL_ASSERT((can_bind<typename Expr::rdb_type, CliType>));
       detail::bind<CliType>::result(hstmt_, i_, fusion::at_c<1>(zip));
       ++i_;
     }

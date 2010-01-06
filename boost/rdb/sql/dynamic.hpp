@@ -33,7 +33,7 @@ namespace boost { namespace rdb { namespace sql {
 
   template<class SqlType>
   struct dynamic_expression_wrapper : dynamic::dynamic_expression {
-    typedef SqlType sql_type;
+    typedef SqlType rdb_type;
     
     typedef fusion::vector< const std::vector<dynamic::dynamic_placeholder> > placeholder_vector;
     
@@ -49,7 +49,7 @@ namespace boost { namespace rdb { namespace sql {
   template<class Expr>
   struct dynamic_expression_impl : dynamic::dynamic_expression::root {
 
-    dynamic_expression_impl(const Expr& expr) : dynamic::dynamic_expression::root(Expr::sql_type::id, Expr::sql_type::length), expr_(expr) {
+    dynamic_expression_impl(const Expr& expr) : dynamic::dynamic_expression::root(Expr::rdb_type::id, Expr::rdb_type::length), expr_(expr) {
       fusion::for_each(expr.placeholders(), make_dynamic_placeholders(this->placeholders_));
     }
 
@@ -61,13 +61,13 @@ namespace boost { namespace rdb { namespace sql {
   };
 
   template<class Expr>
-  expression< dynamic_expression_wrapper<typename Expr::sql_type> >
+  expression< dynamic_expression_wrapper<typename Expr::rdb_type> >
   make_dynamic(const expression<Expr>& expr) {
-    return expression< dynamic_expression_wrapper<typename Expr::sql_type> >(new dynamic_expression_impl<Expr>(expr));
+    return expression< dynamic_expression_wrapper<typename Expr::rdb_type> >(new dynamic_expression_impl<Expr>(expr));
   }
 
   // alas no templatized typedefs yet
-  // template<class Expr> typedef expression< dynamic_expression_wrapper<typename Expr::sql_type> > dynamic_expression<Expr>;
+  // template<class Expr> typedef expression< dynamic_expression_wrapper<typename Expr::rdb_type> > dynamic_expression<Expr>;
   typedef expression< dynamic_expression_wrapper<core::integer> > dynamic_integer;
   typedef expression< dynamic_expression_wrapper<core::boolean> > dynamic_boolean;
 
@@ -83,10 +83,10 @@ namespace boost { namespace rdb { namespace sql {
   };
 
   template<class Expr>
-  dynamic_expression_wrapper<typename Expr::sql_type>
+  dynamic_expression_wrapper<typename Expr::rdb_type>
   make_dynamic(const placeholder_mark<0>& mark, const expression<Expr>&) {
-    return dynamic_expression_wrapper<typename Expr::sql_type>(
-      new dynamic_placeholder_impl(Expr::sql_type::id, Expr::sql_type::length));
+    return dynamic_expression_wrapper<typename Expr::rdb_type>(
+      new dynamic_placeholder_impl(Expr::rdb_type::id, Expr::rdb_type::length));
   }
 
   template<class SqlType>
@@ -118,7 +118,7 @@ namespace boost { namespace rdb { namespace sql {
       cols_.push_back(col);
     }
 
-    typedef void sql_type;
+    typedef void rdb_type;
     
     void str(std::ostream& os) const {
       std::for_each(cols_.begin(), cols_.end(), detail::comma_output(os));
@@ -223,7 +223,7 @@ namespace boost { namespace rdb { namespace sql {
       updates_.push_back(update);
     }
 
-    typedef void sql_type;
+    typedef void rdb_type;
     
     void str(std::ostream& os) const {
       std::for_each(updates_.begin(), updates_.end(), detail::comma_output(os));
