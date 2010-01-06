@@ -41,7 +41,7 @@ struct fixture {
 
 }
 
-BOOST_FIXTURE_TEST_CASE(date_type, fixture) {
+BOOST_FIXTURE_TEST_CASE(test_datetime_varchar_result, fixture) {
 
   using sql::select;
 
@@ -56,4 +56,37 @@ BOOST_FIXTURE_TEST_CASE(date_type, fixture) {
   st.execute().fetch();
   BOOST_CHECK(!val.is_null());
   BOOST_CHECK_EQUAL(val.value(), "1963-08-13 03:11:17");
+}
+
+BOOST_FIXTURE_TEST_CASE(test_datetime_datetime, fixture) {
+
+  using sql::select;
+
+  test1 t;
+  
+  datetime write;
+  write.value().year = 1963;
+  write.value().month = 8;
+  write.value().day = 13;
+  write.value().hour = 3;
+  write.value().minute = 11;
+  write.value().second = 17;
+  write.value().fraction = 201;
+
+  db.execute(insert_into(t)(t.id, t.val).values(1, write));
+  BOOST_RDB_CHECK_SELECT_RESULTS(db.execute(select(t.id).from(t)), "((1))");
+
+  BOOST_AUTO(st, db.prepare(select(t.val).from(t)));
+  datetime val;
+  st.bind_results(val);
+  st.execute().fetch();
+  
+  BOOST_CHECK(!val.is_null());
+  BOOST_CHECK_EQUAL(read.value().year, 1963);
+  BOOST_CHECK_EQUAL(read.value().month, 8);
+  BOOST_CHECK_EQUAL(read.value().day, 13);
+  BOOST_CHECK_EQUAL(read.value().hour, 3);
+  BOOST_CHECK_EQUAL(read.value().minute, 11);
+  BOOST_CHECK_EQUAL(read.value().second, 17);
+  BOOST_CHECK_EQUAL(read.value().fraction, 201);
 }
