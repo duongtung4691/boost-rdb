@@ -92,6 +92,11 @@ namespace boost { namespace rdb { namespace sql {
     };
   }
   
+  template<class T>
+  struct precedence_of {
+    BOOST_STATIC_CONSTANT(int, value = T::precedence);
+  };
+  
   template<class Condition, typename Tag, class Enable = void>
   struct tag_if {
   };
@@ -205,23 +210,22 @@ namespace boost { namespace rdb { namespace sql {
     BOOST_CONCEPT_USAGE(SelectStatement) {
     }
   };
-  
-  struct any_literal {
-    BOOST_STATIC_CONSTANT(int, precedence = precedence_level::highest);
-    typedef fusion::vector<> placeholder_vector;
-    placeholder_vector placeholders() const { return fusion::make_vector(); }
-  };
 
   template<typename T, class SqlType>
-  struct literal : any_literal {
+  struct literal : core::any_literal {
     literal(const T& value) : value_(value) { }
     void str(std::ostream& os) const { os << value_; }
     typedef SqlType sql_type;
     T value_;
   };
+  
+  template<typename T, class SqlType>
+  struct precedence_of< literal<T, SqlType> > {
+    BOOST_STATIC_CONSTANT(int, value = precedence_level::highest);
+  };
 
   template<int N, class SqlType>
-  struct literal<const char[N], SqlType> : any_literal {
+  struct literal<const char[N], SqlType> : core::any_literal {
     typedef SqlType sql_type;
     literal(const char value[N]) : value_(value) { }
     void str(std::ostream& os) const { quote_text(os, value_); }
@@ -229,7 +233,7 @@ namespace boost { namespace rdb { namespace sql {
   };
 
   template<class SqlType>
-  struct literal<const char*, SqlType> : any_literal  {
+  struct literal<const char*, SqlType> : core::any_literal  {
     typedef SqlType sql_type;
     literal(const char* value) : value_(value) { }
     void str(std::ostream& os) const { quote_text(os, value_); }
@@ -237,7 +241,7 @@ namespace boost { namespace rdb { namespace sql {
   };
 
   template<class SqlType>
-  struct literal<std::string, SqlType> : any_literal  {
+  struct literal<std::string, SqlType> : core::any_literal  {
     typedef SqlType sql_type;
     literal(const char* value) : value_(value) { }
     literal(const std::string& value) : value_(value) { }
@@ -246,7 +250,7 @@ namespace boost { namespace rdb { namespace sql {
   };
 
   template<>
-  struct literal<long, core::integer> : any_literal  {
+  struct literal<long, core::integer> : core::any_literal  {
     typedef core::integer sql_type;
     literal(long value) : value_(value) { }
     void str(std::ostream& os) const { os << value_; }

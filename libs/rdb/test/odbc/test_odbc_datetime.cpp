@@ -57,7 +57,7 @@ BOOST_FIXTURE_TEST_CASE(test_datetime_varchar_result, fixture) {
   BOOST_CHECK(!val.is_null());
   BOOST_CHECK_EQUAL(val.value(), "1963-08-13 03:11:17");
 }
-
+#if 0
 BOOST_FIXTURE_TEST_CASE(test_datetime_datetime, fixture) {
 
   using sql::select;
@@ -90,3 +90,4 @@ BOOST_FIXTURE_TEST_CASE(test_datetime_datetime, fixture) {
   BOOST_CHECK_EQUAL(read.value().second, 17);
   BOOST_CHECK_EQUAL(read.value().fraction, 201);
 }
+#endif

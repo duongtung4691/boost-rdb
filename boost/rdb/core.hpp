@@ -7,6 +7,7 @@
 #include <boost/intrusive_ptr.hpp>
 
 #include <boost/fusion/include/vector.hpp>
+#include <boost/fusion/include/make_vector.hpp>
 #include <boost/fusion/include/at.hpp>
 #include <boost/fusion/include/for_each.hpp>
 
@@ -119,6 +120,12 @@ namespace boost { namespace rdb { namespace core {
     // Empty for statically typed placeholders, but dynamic placeholders
     // contain type and length information
     typedef Type rdb_type;
+  };
+  
+  struct any_literal {
+    //BOOST_STATIC_CONSTANT(int, precedence = precedence_level::highest);
+    typedef fusion::vector<> placeholder_vector;
+    placeholder_vector placeholders() const { return fusion::make_vector(); }
   };
 
 } } }
