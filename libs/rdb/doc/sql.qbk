@@ -164,7 +164,7 @@ Create an insert statement.
 
 [*Semantics]: Create an insert statement.
 
-[*Preconditions]: for n = 0 .. N : is_same<Tn::sql_type, En::sql_type>
+[*Preconditions]: for n = 0 .. N : is_same<Tn::rdb_type, En::rdb_type>
 
 [heading Example]
 

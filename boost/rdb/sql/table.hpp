@@ -12,7 +12,7 @@ namespace boost { namespace rdb { namespace sql {
   template<class Table, class SqlType, class Base>
   struct column : Base {
     enum { precedence = precedence_level::highest };
-    typedef SqlType sql_type;
+    typedef SqlType rdb_type;
     static void str_type(std::ostream& os) { SqlType::str(os); }
     
     template<class T>
@@ -159,11 +159,11 @@ namespace boost { namespace rdb { namespace sql {
   }; \
   typedef NAME##_<0> NAME;
 
-  #define BOOST_RDB_COLUMN(NAME, sql_type) \
+  #define BOOST_RDB_COLUMN(NAME, rdb_type) \
   members_before_##NAME;  \
   enum { NAME##_index = boost::mpl::size<members_before_##NAME>::value }; \
   struct NAME##_base : ::boost::rdb::sql::detail::any_column { static const char* name() { return #NAME; } }; \
-  typedef ::boost::rdb::sql::expression< ::boost::rdb::sql::column<this_table, ::boost::rdb::core::sql_type, NAME##_base> > NAME##_type;  \
+  typedef ::boost::rdb::sql::expression< ::boost::rdb::sql::column<this_table, ::boost::rdb::core::rdb_type, NAME##_base> > NAME##_type;  \
   NAME##_type NAME;  \
   struct NAME##_member {  \
     typedef std::string type;  \

@@ -6,16 +6,16 @@
 
 #include <boost/rdb/core/datetime.hpp>
 
-namespace boost { namespace rdb { namespace sql {
+namespace boost { namespace rdb { namespace core {
 
   template<>
-  struct make_literal<core::datetime, const char*> {
-    typedef literal<std::string, core::datetime> type;
+  struct make_literal<datetime, const char*> {
+    typedef literal<std::string, datetime> type;
     static type value(const std::string& val) { return type(val); }
   };
   
   template<int N>
-  struct make_literal<core::datetime, char[N]> : make_literal<core::datetime, const char*> { };
+  struct make_literal<datetime, char[N]> : make_literal<datetime, const char*> { };
   
 } } }
 

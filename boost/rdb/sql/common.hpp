@@ -97,6 +97,11 @@ namespace boost { namespace rdb { namespace sql {
     BOOST_STATIC_CONSTANT(int, value = T::precedence);
   };
   
+  template<typename T, class SqlType>
+  struct precedence_of< core::literal<T, SqlType> > {
+    BOOST_STATIC_CONSTANT(int, value = precedence_level::highest);
+  };
+  
   template<class Condition, typename Tag, class Enable = void>
   struct tag_if {
   };
@@ -130,24 +135,6 @@ namespace boost { namespace rdb { namespace sql {
     template<> struct allow<Dialect, Dialect::State, Dialect::New> : mpl::true_ { }
   
   BOOST_RDB_ALLOW(sql2003, from, where);
-
-  template<typename Iter>
-  void quote_text(std::ostream& os, Iter iter, Iter last) {
-    os << "'";
-    while (iter != last) {
-      typename Iter::value_type c = *iter++;
-      if (c == '\'')
-        os << c;
-      os << c;
-    }
-    os << "'";
-  }
-
-  inline void quote_text(std::ostream& os, const std::string& str) {
-    quote_text(os, str.begin(), str.end());
-  }
-  
-  void quote_text(std::ostream& os, const char* str);
 
   struct assign_output : detail::comma_output {
     assign_output(std::ostream& os) : comma_output(os) { }
@@ -211,90 +198,8 @@ namespace boost { namespace rdb { namespace sql {
     }
   };
 
-  template<typename T, class SqlType>
-  struct literal : core::any_literal {
-    literal(const T& value) : value_(value) { }
-    void str(std::ostream& os) const { os << value_; }
-    typedef SqlType sql_type;
-    T value_;
-  };
-  
-  template<typename T, class SqlType>
-  struct precedence_of< literal<T, SqlType> > {
-    BOOST_STATIC_CONSTANT(int, value = precedence_level::highest);
-  };
-
-  template<int N, class SqlType>
-  struct literal<const char[N], SqlType> : core::any_literal {
-    typedef SqlType sql_type;
-    literal(const char value[N]) : value_(value) { }
-    void str(std::ostream& os) const { quote_text(os, value_); }
-    const char* value_;
-  };
-
-  template<class SqlType>
-  struct literal<const char*, SqlType> : core::any_literal  {
-    typedef SqlType sql_type;
-    literal(const char* value) : value_(value) { }
-    void str(std::ostream& os) const { quote_text(os, value_); }
-    const char* value_;
-  };
-
-  template<class SqlType>
-  struct literal<std::string, SqlType> : core::any_literal  {
-    typedef SqlType sql_type;
-    literal(const char* value) : value_(value) { }
-    literal(const std::string& value) : value_(value) { }
-    void str(std::ostream& os) const { quote_text(os, value_.begin(), value_.end()); }
-    std::string value_;
-  };
-
-  template<>
-  struct literal<long, core::integer> : core::any_literal  {
-    typedef core::integer sql_type;
-    literal(long value) : value_(value) { }
-    void str(std::ostream& os) const { os << value_; }
-    int value_;
-  };
-  
-  template<class RdbType, class CppType>
-  struct make_literal;
-  
-  template<>
-  struct make_literal<core::integer, long> {
-    typedef literal<long, core::integer> type;
-    static type value(long val) { return type(val); }
-  };
-  
-  template<>
-  struct make_literal<core::integer, int> : make_literal<core::integer, long> { };
-  
-  template<class T>
-  struct make_literal<core::float_, T> {
-    typedef literal<double, core::float_> type;
-    static type value(double val) { BOOST_MPL_ASSERT((is_arithmetic<T>)); return type(val); }
-  };
-  
-  template<size_t N>
-  struct make_literal<core::varchar<N>, const char*> {
-    typedef literal<std::string, core::varchar<N>> type;
-    static type value(const std::string& val) { return type(val); }
-  };
-  
-  template<size_t N, int M>
-  struct make_literal<core::varchar<N>, const char[M]> {
-    typedef literal<std::string, core::varchar<N>> type;
-    static type value(const std::string& val) { BOOST_STATIC_ASSERT(N >= M); return type(val); }
-  };
-  
-  template<size_t N, int M>
-  struct make_literal<core::varchar<N>, char[M]> {
-    typedef literal<std::string, core::varchar<N>> type;
-    static type value(const std::string& val) { BOOST_STATIC_ASSERT(N >= M); return type(val); }
-  };
-
   struct comparison {
-    typedef core::boolean sql_type;
+    typedef core::boolean rdb_type;
     BOOST_STATIC_CONSTANT(int, precedence = precedence_level::compare);
   };
 
@@ -312,7 +217,7 @@ namespace boost { namespace rdb { namespace sql {
 
     template<typename Self, typename Expr>
     struct result<Self(Expr)> {
-      typedef typename boost::remove_reference<Expr>::type::sql_type type;
+      typedef typename boost::remove_reference<Expr>::type::rdb_type type;
     };
   };
 
@@ -329,11 +234,11 @@ namespace boost { namespace rdb { namespace sql {
   template<class Expr1, class Expr2>
   struct is_sql_compatible : mpl::or_<
     is_same<
-      typename remove_reference<Expr1>::type::sql_type::kind,
-      typename remove_reference<Expr2>::type::sql_type::kind
+      typename remove_reference<Expr1>::type::rdb_type::kind,
+      typename remove_reference<Expr2>::type::rdb_type::kind
     >,
-    is_same<typename remove_reference<Expr1>::type::sql_type::kind, core::universal>,
-    is_same<typename remove_reference<Expr2>::type::sql_type::kind, core::universal>
+    is_same<typename remove_reference<Expr1>::type::rdb_type::kind, core::universal>,
+    is_same<typename remove_reference<Expr2>::type::rdb_type::kind, core::universal>
   > {
   };
 
@@ -379,7 +284,7 @@ namespace boost { namespace rdb { namespace sql {
   // it is used.
   template<int N>
   struct placeholder_mark {
-    typedef core::placeholder_type sql_type;
+    typedef core::placeholder_type rdb_type;
     typedef fusion::vector<> placeholder_vector; // not really used; exists to please mpl::if_ which is not lazy
     placeholder_vector placeholders() const { return fusion::make_vector(); }
     BOOST_STATIC_CONSTANT(int, precedence = precedence_level::highest);
@@ -413,9 +318,9 @@ namespace boost { namespace rdb { namespace sql {
     
     template<int N>
     struct placeholders_for< placeholder_mark<N> > {
-      typedef fusion::vector< core::placeholder<typename Col::sql_type> > placeholder_vector;
+      typedef fusion::vector< core::placeholder<typename Col::rdb_type> > placeholder_vector;
       static placeholder_vector make(const set_clause& update) {
-        return fusion::make_vector(core::placeholder<typename Col::sql_type>());
+        return fusion::make_vector(core::placeholder<typename Col::rdb_type>());
       }
     };
     

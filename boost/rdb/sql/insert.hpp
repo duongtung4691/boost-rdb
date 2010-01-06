@@ -51,7 +51,7 @@ namespace boost { namespace rdb { namespace sql {
 
     //template<class Expr, int N>
     //struct make_placeholder_from_mark< expression<Expr>, expression< placeholder_mark<N> > > {
-    //  typedef typename fusion::result_of::vector< core::placeholder<typename Expr::sql_type> >::type type;
+    //  typedef typename fusion::result_of::vector< core::placeholder<typename Expr::rdb_type> >::type type;
     //};
 
     //template<class Expr1, class Expr2>

@@ -55,7 +55,7 @@ namespace boost { namespace rdb { namespace sql {
   {
     Expr expr;
     std::ostream& stream;
-    typedef typename Expr::sql_type sql_type;
+    typedef typename Expr::rdb_type rdb_type;
     typedef typename Expr::placeholder_vector placeholder_vector;
     BOOST_STATIC_CONSTANT(int, precedence = Expr::precedence);
 
@@ -68,19 +68,19 @@ namespace boost { namespace rdb { namespace sql {
   template<class Expr>
   struct NumericExpression : Expression<Expr>
   {
-    //typedef typename type_traits<typename Expr::sql_type>::is_numeric is_numeric;
+    //typedef typename type_traits<typename Expr::rdb_type>::is_numeric is_numeric;
   };
 
   template<class Expr>
   struct ComparableExpression : Expression<Expr>
   {
-    typedef typename Expr::sql_type::comparable_type comparable_type;
+    typedef typename Expr::rdb_type::comparable_type comparable_type;
   };
 
   template<class Expr>
   struct BooleanExpression : Expression<Expr> {
     BOOST_CONCEPT_USAGE(BooleanExpression) {
-      BOOST_MPL_ASSERT((boost::is_same<typename Expr::sql_type, core::boolean>));
+      BOOST_MPL_ASSERT((boost::is_same<typename Expr::rdb_type, core::boolean>));
     }
   };
 
@@ -89,21 +89,21 @@ namespace boost { namespace rdb { namespace sql {
   {
     const T& val;
     BOOST_CONCEPT_USAGE(CompatibleLiteral) {
-      make_literal<typename Expr::sql_type, T>::value(val);
+      make_literal<typename Expr::rdb_type, T>::value(val);
     }
   };
 
   template<class Expr>
-  struct is_placeholder_mark : is_same<typename Expr::sql_type, core::placeholder_type> {
+  struct is_placeholder_mark : is_same<typename Expr::rdb_type, core::placeholder_type> {
   };
     
   namespace result_of {
     template<class Expr, typename T>
     struct make_expression_ {
-      typedef typename make_literal<typename Expr::sql_type, T>::type type;
+      typedef typename core::make_literal<typename Expr::rdb_type, T>::type type;
       // TODO improve compile error when T is not compatible
       static const type make(const T& val) {
-        return make_literal<typename Expr::sql_type, T>::value(val);
+        return core::make_literal<typename Expr::rdb_type, T>::value(val);
       }
     };
   
@@ -128,7 +128,7 @@ namespace boost { namespace rdb { namespace sql {
     in_subquery(const Expr& expr, const Subquery& subquery) : expr_(expr), subquery_(subquery) { }
     const Expr& expr_;
     const Subquery& subquery_;
-    typedef core::boolean sql_type;
+    typedef core::boolean rdb_type;
     BOOST_STATIC_CONSTANT(int, precedence = precedence_level::highest);
     
     typedef typename fusion::result_of::join<
@@ -165,7 +165,7 @@ namespace boost { namespace rdb { namespace sql {
     template<class Value, class Placeholders>
     struct discriminate<Value, true_type, Placeholders> {
       typedef typename fusion::result_of::push_back<
-        Placeholders, core::placeholder<typename Expr::sql_type>
+        Placeholders, core::placeholder<typename Expr::rdb_type>
       >::type type;
       
       static type make(Value& value, Placeholders& placeholders) {
@@ -199,7 +199,7 @@ namespace boost { namespace rdb { namespace sql {
     in_values(const Expr& expr, const ExprList& alt) : expr_(expr), alt_(alt) { }
     Expr expr_;
     ExprList alt_;
-    typedef core::boolean sql_type;
+    typedef core::boolean rdb_type;
     BOOST_STATIC_CONSTANT(int, precedence = precedence_level::highest);
 
     typedef typename fusion::result_of::join<
@@ -263,11 +263,11 @@ namespace boost { namespace rdb { namespace sql {
       typedef typename fusion::result_of::as_vector<
         typename fusion::result_of::push_back<
           const typename Expr1::placeholder_vector,
-          core::placeholder<typename Expr1::sql_type>
+          core::placeholder<typename Expr1::rdb_type>
         >::type
       >::type type;
       static type make(const Expr1& expr1, const Expr2& expr2) {
-        return fusion::push_back(expr1.placeholders(), rdb::core::placeholder<typename Expr1::sql_type>());
+        return fusion::push_back(expr1.placeholders(), rdb::core::placeholder<typename Expr1::rdb_type>());
       }
     };
 
@@ -276,11 +276,11 @@ namespace boost { namespace rdb { namespace sql {
       typedef typename fusion::result_of::as_vector<
         typename fusion::result_of::push_front<
           typename Expr2::placeholder_vector,
-          core::placeholder<typename Expr2::sql_type>
+          core::placeholder<typename Expr2::rdb_type>
         >::type
       >::type type;
       static type make(const Expr1& expr1, const Expr2& expr2) {
-        return fusion::push_front(expr2.placeholders(), rdb::core::placeholder<typename Expr2::sql_type>());
+        return fusion::push_front(expr2.placeholders(), rdb::core::placeholder<typename Expr2::rdb_type>());
       }
     };
   }
@@ -317,13 +317,13 @@ namespace boost { namespace rdb { namespace sql {
     //  is_placeholder_mark<Expr1>,
     //  typename fusion::result_of::push_front<
     //    typename Expr2::placeholder_vector,
-    //    core::placeholder<typename Expr2::sql_type>
+    //    core::placeholder<typename Expr2::rdb_type>
     //  >::type,
     //  typename mpl::if_<
     //    is_placeholder_mark<Expr2>,
     //    typename fusion::result_of::push_back<
     //      typename Expr1::placeholder_vector,
-    //      core::placeholder<typename Expr1::sql_type>
+    //      core::placeholder<typename Expr1::rdb_type>
     //    >::type,
     //    typename fusion::result_of::join<
     //      typename Expr1::placeholder_vector,
@@ -343,7 +343,7 @@ namespace boost { namespace rdb { namespace sql {
   struct like : binary_operation<Expr1, Expr2, precedence_level::compare> {
     like(const Expr1& expr1, const Expr2& expr2) :
       binary_operation<Expr1, Expr2, precedence_level::compare>(expr1, expr2) { }
-    typedef core::boolean sql_type;
+    typedef core::boolean rdb_type;
     void str(std::ostream& os) const {
       this->expr1_.str(os);
       os << " like ";
@@ -368,7 +368,7 @@ namespace boost { namespace rdb { namespace sql {
     template<class Pattern>
     expression< sql::like<Expr, typename result_of::make_expression<Expr, Pattern>::type> >
     like(const Pattern& pattern) const {
-      BOOST_MPL_ASSERT((boost::is_same<typename Expr::sql_type::kind, core::char_type>));
+      BOOST_MPL_ASSERT((boost::is_same<typename Expr::rdb_type::kind, core::char_type>));
       return expression< sql::like<Expr, typename result_of::make_expression<Expr, Pattern>::type> >(*this, make_expression(pattern));
     }
     
@@ -402,7 +402,7 @@ namespace boost { namespace rdb { namespace sql {
   };
   
   struct null_expr {
-    typedef core::null_type sql_type;
+    typedef core::null_type rdb_type;
     typedef fusion::vector<> placeholder_vector;
     placeholder_vector placeholders() const { return fusion::make_vector(); }
     BOOST_STATIC_CONSTANT(int, precedence = precedence_level::highest);

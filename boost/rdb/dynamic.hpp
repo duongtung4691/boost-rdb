@@ -90,7 +90,7 @@ namespace boost { namespace rdb { namespace dynamic {
       return result;
     }
 
-    typedef dynamic_expressions sql_type;
+    typedef dynamic_expressions rdb_type;
   };
 
   struct dynamic_column : dynamic_expression {

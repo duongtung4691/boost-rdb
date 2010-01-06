@@ -128,6 +128,101 @@ namespace boost { namespace rdb { namespace core {
     placeholder_vector placeholders() const { return fusion::make_vector(); }
   };
 
+  template<typename T, class RdbType>
+  struct literal : any_literal {
+    literal(const T& value) : value_(value) { }
+    void str(std::ostream& os) const { os << value_; }
+    typedef RdbType rdb_type;
+    T value_;
+  };
+
+  template<int N, class RdbType>
+  struct literal<const char[N], RdbType> : any_literal {
+    typedef RdbType rdb_type;
+    literal(const char value[N]) : value_(value) { }
+    void str(std::ostream& os) const { quote_text(os, value_); }
+    const char* value_;
+  };
+
+  template<class RdbType>
+  struct literal<const char*, RdbType> : any_literal  {
+    typedef RdbType rdb_type;
+    literal(const char* value) : value_(value) { }
+    void str(std::ostream& os) const { quote_text(os, value_); }
+    const char* value_;
+  };
+
+  template<typename Iter>
+  void quote_text(std::ostream& os, Iter iter, Iter last) {
+    os << "'";
+    while (iter != last) {
+      typename Iter::value_type c = *iter++;
+      if (c == '\'')
+        os << c;
+      os << c;
+    }
+    os << "'";
+  }
+
+  inline void quote_text(std::ostream& os, const std::string& str) {
+    quote_text(os, str.begin(), str.end());
+  }
+  
+  void quote_text(std::ostream& os, const char* str);
+
+  template<class RdbType>
+  struct literal<std::string, RdbType> : any_literal  {
+    typedef RdbType rdb_type;
+    literal(const char* value) : value_(value) { }
+    literal(const std::string& value) : value_(value) { }
+    void str(std::ostream& os) const { quote_text(os, value_.begin(), value_.end()); }
+    std::string value_;
+  };
+
+  template<>
+  struct literal<long, integer> : any_literal  {
+    typedef integer rdb_type;
+    literal(long value) : value_(value) { }
+    void str(std::ostream& os) const { os << value_; }
+    int value_;
+  };
+  
+  template<class RdbType, class CppType>
+  struct make_literal;
+  
+  template<>
+  struct make_literal<integer, long> {
+    typedef literal<long, integer> type;
+    static type value(long val) { return type(val); }
+  };
+  
+  template<>
+  struct make_literal<integer, int> : make_literal<integer, long> { };
+  
+  template<class T>
+  struct make_literal<float_, T> {
+    typedef literal<double, float_> type;
+    static type value(double val) { BOOST_MPL_ASSERT((is_arithmetic<T>)); return type(val); }
+  };
+  
+  template<size_t N>
+  struct make_literal<varchar<N>, const char*> {
+    typedef literal<std::string, varchar<N>> type;
+    static type value(const std::string& val) { return type(val); }
+  };
+  
+  template<size_t N, int M>
+  struct make_literal<varchar<N>, const char[M]> {
+    typedef literal<std::string, varchar<N>> type;
+    static type value(const std::string& val) { BOOST_STATIC_ASSERT(N >= M); return type(val); }
+  };
+  
+  template<size_t N, int M>
+  struct make_literal<varchar<N>, char[M]> {
+    typedef literal<std::string, varchar<N>> type;
+    static type value(const std::string& val) { BOOST_STATIC_ASSERT(N >= M); return type(val); }
+  };
+
 } } }
 
 #endif
