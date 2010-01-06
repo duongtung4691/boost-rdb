@@ -97,7 +97,7 @@ namespace boost { namespace rdb { namespace sql {
     BOOST_STATIC_CONSTANT(int, precedence = precedence_level::logical_not);
     
     void str(std::ostream& os) const {
-      this->write(os, boost::mpl::bool_<static_cast<int>(Expr::precedence) < static_cast<int>(precedence)>());
+      this->write(os, boost::mpl::bool_<precedence_of<Expr>::value < precedence>());
     }
 
     void write(std::ostream& os, boost::mpl::true_) const {

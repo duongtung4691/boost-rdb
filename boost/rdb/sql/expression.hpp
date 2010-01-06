@@ -141,7 +141,7 @@ namespace boost { namespace rdb { namespace sql {
     }
 
     void str(std::ostream& os) const {
-      if (Expr::precedence < precedence) {
+      if (precedence_of<Expr>::value < precedence) {
         os << "(";
         expr_.str(os);
         os << ")";
@@ -220,7 +220,7 @@ namespace boost { namespace rdb { namespace sql {
     }
 
     void str(std::ostream& os) const {
-      if (Expr::precedence < precedence) {
+      if (precedence_of<Expr>::value < precedence) {
         os << "(";
         expr_.str(os);
         os << ")";
@@ -296,9 +296,9 @@ namespace boost { namespace rdb { namespace sql {
     Expr2 expr2_;
 
     static void write(std::ostream& os, const Expr1& expr1, const char* op, const Expr2& expr2) {
-      write(os, expr1, boost::mpl::bool_<static_cast<int>(Expr1::precedence) < precedence>());
+      write(os, expr1, boost::mpl::bool_<precedence_of<Expr1>::value < precedence>());
       os << op;
-      write(os, expr2, boost::mpl::bool_<static_cast<int>(Expr2::precedence) < precedence>());
+      write(os, expr2, boost::mpl::bool_<precedence_of<Expr2>::value < precedence>());
     }
 
     template<class Expr>

@@ -248,7 +248,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="&quot;$(TargetPath)&quot;  --log_level=test_suite --run_test=date_type"
+				CommandLine="&quot;$(TargetPath)&quot;  --log_level=test_suite"
 			/>
 		</Configuration>
 	</Configurations>
