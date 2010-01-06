@@ -8,13 +8,11 @@
 
 namespace boost { namespace rdb { namespace odbc {
 
-  struct datetime {
-    typedef boost::posix_time::ptime cpp_type;
-  };
-
   template<int N>
   struct can_bind< core::datetime, odbc::varchar<N> > : mpl::true_ {
   };
+
+  typedef simple_numeric_type<core::datetime, SQL_TIMESTAMP_STRUCT, boost::posix_time::ptime> datetime;
 
 } } }
 

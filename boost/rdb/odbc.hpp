@@ -132,7 +132,7 @@ namespace boost { namespace rdb { namespace odbc {
 
   typedef std::vector< intrusive_ptr<dynamic_value> > dynamic_values;
 
-  template<class RdbType, class CliType>  
+  template<class RdbType, class CliType, class CppType = CliType>
   class simple_numeric_type {
   public:
     simple_numeric_type() : value_(CliType()), length_(SQL_NULL_DATA) { }
@@ -149,11 +149,12 @@ namespace boost { namespace rdb { namespace odbc {
     
     void set_null() { length_ = SQL_NULL_DATA; }
     bool is_null() const { return length_ == SQL_NULL_DATA; }
-    CliType value() const { return value_; }
-    CliType cpp_value() const { return value_; }
+    const CliType& value() const { return value_; }
+    CliType& value() { return value_; }
+    CppType cpp_value() const { return value_; }
     
     typedef RdbType rdb_type;
-    typedef CliType cpp_type;
+    typedef CppType cpp_type;
   
   //private:
     CliType value_;
