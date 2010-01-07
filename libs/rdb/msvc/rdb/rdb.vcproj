@@ -349,6 +349,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\boost\rdb\sql\time.hpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\boost\rdb\sql\update.hpp"
 				>
 			</File>
@@ -370,6 +374,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\boost\rdb\core\datetime.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\boost\rdb\core\time.hpp"
 				>
 			</File>
 		</Filter>

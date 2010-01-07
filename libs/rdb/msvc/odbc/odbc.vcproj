@@ -245,6 +245,10 @@
 			RelativePath="..\..\..\..\boost\rdb\odbc.hpp"
 			>
 		</File>
+		<File
+			RelativePath="..\..\..\..\boost\rdb\odbc\time.hpp"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

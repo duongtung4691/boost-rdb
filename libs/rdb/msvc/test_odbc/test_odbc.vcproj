@@ -319,6 +319,10 @@
 				/>
 			</FileConfiguration>
 		</File>
+		<File
+			RelativePath="..\..\test\odbc\test_odbc_time.cpp"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>
