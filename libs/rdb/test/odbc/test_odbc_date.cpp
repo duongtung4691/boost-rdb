@@ -1,6 +1,5 @@
 #include "test_odbc.hpp"
 #include <boost/test/unit_test.hpp>
-#include <boost/rdb/sql/date.hpp>
 #include <boost/rdb/odbc/date.hpp>
 #include <boost/date_time/gregorian/gregorian_io.hpp>
 
