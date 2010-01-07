@@ -296,6 +296,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\test\odbc\test_odbc_date.cpp"
+			>
+		</File>
+		<File
 			RelativePath="..\..\test\odbc\test_odbc_datetime.cpp"
 			>
 		</File>
