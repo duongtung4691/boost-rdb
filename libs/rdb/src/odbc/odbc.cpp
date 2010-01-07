@@ -9,6 +9,7 @@
 #include <boost/rdb/odbc.hpp>
 #include <boost/rdb/odbc/datetime.hpp>
 #include <boost/rdb/odbc/date.hpp>
+#include <boost/rdb/odbc/time.hpp>
 #include <boost/format.hpp>
 
 #ifdef _MSC_VER
@@ -165,6 +166,11 @@ std::ostream& operator <<(std::ostream& os, const date& val) {
   return os << boost::str(boost::format("'%04d-%02d-%02d'") % t.year % t.month % t.day);
 }
 
+std::ostream& operator <<(std::ostream& os, const time& val) {
+  const SQL_TIME_STRUCT& t = val.value();
+  return os << boost::str(boost::format("'%02d:%02d:%02d'") % t.hour % t.minute % t.second);
+}
+
 } } }
 
 namespace boost { namespace rdb { namespace core {
@@ -174,6 +180,10 @@ void literal<odbc::datetime, datetime>::str(std::ostream& os) const {
 }
 
 void literal<odbc::date, date>::str(std::ostream& os) const {
+  os << value_;
+}
+
+void literal<odbc::time, time>::str(std::ostream& os) const {
   os << value_;
 }
 
