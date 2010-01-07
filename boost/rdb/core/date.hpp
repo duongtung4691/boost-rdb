@@ -17,6 +17,15 @@ namespace boost { namespace rdb { namespace core {
     static void str(std::ostream& os) { os << "date"; }
   };
 
+  template<>
+  struct make_literal<date, const char*> {
+    typedef literal<std::string, date> type;
+    static type value(const std::string& val) { return type(val); }
+  };
+  
+  template<int N>
+  struct make_literal<date, char[N]> : make_literal<date, const char*> { };
+
 } } }
 
 #endif

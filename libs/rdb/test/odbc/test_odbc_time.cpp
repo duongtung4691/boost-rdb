@@ -1,6 +1,5 @@
 #include "test_odbc.hpp"
 #include <boost/test/unit_test.hpp>
-#include <boost/rdb/sql/time.hpp>
 #include <boost/rdb/odbc/time.hpp>
 #include <boost/date_time/posix_time/posix_time_io.hpp>
 
