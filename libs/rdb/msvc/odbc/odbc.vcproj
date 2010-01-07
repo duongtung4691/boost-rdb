@@ -226,6 +226,10 @@
 			</File>
 		</Filter>
 		<File
+			RelativePath="..\..\..\..\boost\rdb\odbc\date.hpp"
+			>
+		</File>
+		<File
 			RelativePath="..\..\..\..\boost\rdb\odbc\datetime.hpp"
 			>
 		</File>
