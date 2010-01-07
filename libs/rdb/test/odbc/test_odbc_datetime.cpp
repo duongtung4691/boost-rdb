@@ -2,6 +2,7 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/rdb/sql/datetime.hpp>
 #include <boost/rdb/odbc/datetime.hpp>
+#include <boost/date_time/posix_time/posix_time_io.hpp>
 
 using namespace std;
 using namespace boost;
@@ -41,29 +42,19 @@ struct fixture {
 
 }
 
-BOOST_FIXTURE_TEST_CASE(test_datetime_varchar_result, fixture) {
+BOOST_FIXTURE_TEST_CASE(test_datetime_bind_varchar, fixture) {
 
   using sql::select;
 
   test1 t;
 
-  db.execute(insert_into(t)(t.id, t.val).values(1, "1963-08-13 03:11:17"));
-  BOOST_RDB_CHECK_SELECT_RESULTS(db.execute(select(t.id).from(t)), "((1))");
+  varchar<30> write = "1963-08-13 03:11:17";
+  db.prepare(insert_into(t)(t.id, t.val).values(1, _)).bind_parameters(write).execute();
 
-  BOOST_AUTO(st, db.prepare(select(t.val).from(t)));
-  varchar<30> val;
-  st.bind_results(val);
-  st.execute().fetch();
-  BOOST_CHECK(!val.is_null());
-  BOOST_CHECK_EQUAL(val.value(), "1963-08-13 03:11:17");
-}
-
-BOOST_FIXTURE_TEST_CASE(test_datetime_insert_datetime, fixture) {
-  using sql::select;
-  test1 t;
-  datetime write(1963, 8, 13, 3, 11, 17);
-  db.execute(insert_into(t)(t.id, t.val).values(1, write));
-  BOOST_RDB_CHECK_SELECT_RESULTS(db.execute(select(t.id).from(t)), "((1))");
+  varchar<30> read;
+  db.prepare(select(t.val).from(t)).bind_results(read).execute().fetch();
+  BOOST_CHECK(!read.is_null());
+  BOOST_CHECK_EQUAL(read.value(), "1963-08-13 03:11:17");
 }
 
 BOOST_FIXTURE_TEST_CASE(test_datetime_bind_datetime, fixture) {
@@ -74,12 +65,9 @@ BOOST_FIXTURE_TEST_CASE(test_datetime_bind_datetime, fixture) {
   
   datetime write(1963, 8, 13, 3, 11, 17, 201);
   db.prepare(insert_into(t)(t.id, t.val).values(1, _)).bind_parameters(write).execute();
-  BOOST_RDB_CHECK_SELECT_RESULTS(db.execute(select(t.id).from(t)), "((1))");
 
-  BOOST_AUTO(st, db.prepare(select(t.val).from(t)));
   datetime read;
-  st.bind_results(read);
-  st.execute().fetch();
+  db.prepare(select(t.val).from(t)).bind_results(read).execute().fetch();
   
   BOOST_CHECK(!read.is_null());
   BOOST_CHECK_EQUAL(read.value().year, 1963);
@@ -89,4 +77,19 @@ BOOST_FIXTURE_TEST_CASE(test_datetime_bind_datetime, fixture) {
   BOOST_CHECK_EQUAL(read.value().minute, 11);
   BOOST_CHECK_EQUAL(read.value().second, 17);
   BOOST_CHECK_EQUAL(read.value().fraction, 201);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_datetime_insert_datetime_select, fixture) {
+  using sql::select;
+  test1 t;
+  datetime write(1963, 8, 13, 3, 11, 17);
+  db.execute(insert_into(t)(t.id, t.val).values(1, write));
+  BOOST_RDB_CHECK_SELECT_RESULTS(db.execute(select(t.id, t.val).from(t)), "((1 1963-Aug-13 03:11:17))");
+}
+
+BOOST_FIXTURE_TEST_CASE(test_datetime_insert_string_select, fixture) {
+  using sql::select;
+  test1 t;
+  db.execute(insert_into(t)(t.id, t.val).values(1, "1963-08-13 03:11:17"));
+  BOOST_RDB_CHECK_SELECT_RESULTS(db.execute(select(t.id, t.val).from(t)), "((1 1963-Aug-13 03:11:17))");
 }

@@ -707,10 +707,11 @@ namespace boost { namespace rdb { namespace odbc {
     #include BOOST_PP_ITERATE()
 
     template<class Results>
-    void bind_results_(const Results& results) {
+    prepared_select_statement& bind_results_(const Results& results) {
       typedef fusion::vector<const select_list&, Results&> zip;
       fusion::for_each(fusion::zip_view<zip>(zip(exprs_, const_cast<Results&>(results))),
         results_binder(this->hstmt_));
+      return *this;
     }
 
     #define BOOST_RDB_ADD_REF(z, n, type) BOOST_PP_COMMA_IF(n) type##n&

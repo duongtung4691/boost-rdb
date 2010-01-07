@@ -4,7 +4,8 @@
 #include <boost/rdb/odbc.hpp>
 #include <boost/rdb/core/datetime.hpp>
 
-#include "boost/date_time/posix_time/posix_time_types.hpp"
+#include <boost/date_time/posix_time/posix_time_types.hpp>
+#include <boost/date_time/gregorian/gregorian_types.hpp>
 
 namespace boost { namespace rdb { namespace odbc {
 
@@ -29,7 +30,13 @@ namespace boost { namespace rdb { namespace odbc {
     bool is_null() const { return length_ == SQL_NULL_DATA; }
     const SQL_TIMESTAMP_STRUCT& value() const { return value_; }
     SQL_TIMESTAMP_STRUCT& value() { return value_; }
-    boost::posix_time::ptime cpp_value() const; /* later */
+    
+    boost::posix_time::ptime cpp_value() const {
+      using namespace boost::gregorian;
+      using namespace boost::posix_time;
+      return ptime(date(value_.year, value_.month, value_.day),
+        time_duration(value_.hour, value_.minute, value_.second, value_.fraction));
+    }
     
     typedef core::datetime rdb_type;
     typedef boost::posix_time::ptime cpp_type;
@@ -38,6 +45,8 @@ namespace boost { namespace rdb { namespace odbc {
     SQL_TIMESTAMP_STRUCT value_;
     SQLLEN length_;
   };
+  
+  std::ostream& operator <<(std::ostream& os, const datetime& t);
 
   template<int N>
   struct can_bind< core::datetime, odbc::varchar<N> > : mpl::true_ {

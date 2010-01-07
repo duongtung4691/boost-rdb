@@ -105,6 +105,6 @@ struct object_model_fixture {
   }
 };
 
-#define BOOST_RDB_CHECK_SELECT_RESULTS(expr, expected) BOOST_CHECK(str_result_set(expr) == expected)
+#define BOOST_RDB_CHECK_SELECT_RESULTS(expr, expected) BOOST_CHECK_EQUAL(str_result_set(expr), expected)
 
 #endif

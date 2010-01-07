@@ -150,16 +150,21 @@ void parameter_binder::operator ()(const fusion::vector<const dynamic::dynamic_p
 
 std::ostream* trace_stream;
 
+std::ostream& operator <<(std::ostream& os, const datetime& val) {
+  const SQL_TIMESTAMP_STRUCT& t = val.value();
+  os << boost::str(boost::format("'%04d-%02d-%02d %02d:%02d:%02d'")
+    % t.year % t.month % t.day % t.hour % t.minute % t.second);
+  if (t.fraction)
+    os << ' ' << t.fraction;
+  return os;
+}
+
 } } }
 
 namespace boost { namespace rdb { namespace core {
 
 void literal<odbc::datetime, datetime>::str(std::ostream& os) const {
-  const SQL_TIMESTAMP_STRUCT& t = value_.value();
-  os << boost::str(boost::format("'%04d-%02d-%02d %02d:%02d:%02d'")
-    % t.year % t.month % t.day % t.hour % t.minute % t.second);
-  if (t.fraction)
-    os << ' ' << t.fraction;
+  os << value_;
 }
 
 } } }
