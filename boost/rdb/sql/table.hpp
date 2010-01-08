@@ -146,7 +146,7 @@ namespace boost { namespace rdb { namespace sql {
     typedef NAME##_<Alias> this_table;  \
     typedef NAME##_<1> _1; typedef NAME##_<2> _2; typedef NAME##_<3> _3;  \
     NAME##_() { initialize(); }  \
-    NAME##_(const std::string& alias) : table_<NAME##_base, Alias == -1>(alias) { initialize(); }  \
+    NAME##_(const std::string& alias) : ::boost::rdb::sql::detail::table_<NAME##_base, Alias == -1>(alias) { initialize(); }  \
     NAME##_(const this_table& other) { initialize(); }  \
     typedef NAME##_<-1> qualified;  \
     typedef ::boost::mpl::vector0<>

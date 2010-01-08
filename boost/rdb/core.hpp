@@ -136,22 +136,6 @@ namespace boost { namespace rdb { namespace core {
     T value_;
   };
 
-  template<int N, class RdbType>
-  struct literal<const char[N], RdbType> : any_literal {
-    typedef RdbType rdb_type;
-    literal(const char value[N]) : value_(value) { }
-    void str(std::ostream& os) const { quote_text(os, value_); }
-    const char* value_;
-  };
-
-  template<class RdbType>
-  struct literal<const char*, RdbType> : any_literal  {
-    typedef RdbType rdb_type;
-    literal(const char* value) : value_(value) { }
-    void str(std::ostream& os) const { quote_text(os, value_); }
-    const char* value_;
-  };
-
   template<typename Iter>
   void quote_text(std::ostream& os, Iter iter, Iter last) {
     os << "'";
@@ -169,6 +153,22 @@ namespace boost { namespace rdb { namespace core {
   }
   
   void quote_text(std::ostream& os, const char* str);
+
+  template<int N, class RdbType>
+  struct literal<const char[N], RdbType> : any_literal {
+    typedef RdbType rdb_type;
+    literal(const char value[N]) : value_(value) { }
+    void str(std::ostream& os) const { quote_text(os, value_); }
+    const char* value_;
+  };
+
+  template<class RdbType>
+  struct literal<const char*, RdbType> : any_literal  {
+    typedef RdbType rdb_type;
+    literal(const char* value) : value_(value) { }
+    void str(std::ostream& os) const { quote_text(os, value_); }
+    const char* value_;
+  };
 
   template<class RdbType>
   struct literal<std::string, RdbType> : any_literal  {
@@ -207,21 +207,18 @@ namespace boost { namespace rdb { namespace core {
   
   template<size_t N>
   struct make_literal<varchar<N>, const char*> {
-    typedef literal<std::string, varchar<N>> type;
+    typedef literal< std::string, varchar<N> > type;
     static type value(const std::string& val) { return type(val); }
   };
   
-  template<size_t N, int M>
+  template<size_t N, size_t M>
   struct make_literal<varchar<N>, const char[M]> {
-    typedef literal<std::string, varchar<N>> type;
-    static type value(const std::string& val) { BOOST_STATIC_ASSERT(N >= M); return type(val); }
+    typedef literal< std::string, const varchar<N> > type;
+    static type value(const char val[M]) { return type(std::string(val)); }
   };
   
-  template<size_t N, int M>
-  struct make_literal<varchar<N>, char[M]> {
-    typedef literal<std::string, varchar<N>> type;
-    static type value(const std::string& val) { BOOST_STATIC_ASSERT(N >= M); return type(val); }
-  };
+  template<size_t N, size_t M>
+  struct make_literal<varchar<N>, char[M]> : make_literal<varchar<N>, const char[M]> { };
 
 } } }
 

@@ -94,13 +94,13 @@ namespace boost { namespace rdb { namespace sql {
 
 } } }
 
-namespace boost { namespace rdb {
+namespace boost { namespace rdb { namespace core {
 
   template<class Dialect, class State, class Data, class Subdialect>
-  struct core::statement_result_type< sql::select_statement<Dialect, State, Data, Subdialect> > {
+  struct statement_result_type< sql::select_statement<Dialect, State, Data, Subdialect> > {
     typedef typename ct::result_of::value_at_key<Data, sql::sql2003::exprs>::type type;
   };
 
-} }
+} } }
 
 #endif

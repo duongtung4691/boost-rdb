@@ -75,7 +75,7 @@ BOOST_FIXTURE_TEST_CASE(test_datetime_bind_datetime, fixture) {
   BOOST_CHECK_EQUAL(read.value().hour, 3);
   BOOST_CHECK_EQUAL(read.value().minute, 11);
   BOOST_CHECK_EQUAL(read.value().second, 17);
-  BOOST_CHECK_EQUAL(read.value().fraction, 201);
+  BOOST_CHECK_EQUAL(read.value().fraction, SQLUINTEGER(201));
 }
 
 BOOST_FIXTURE_TEST_CASE(test_datetime_insert_datetime_select, fixture) {
