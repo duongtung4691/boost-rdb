@@ -119,6 +119,7 @@ namespace boost { namespace rdb { namespace sql {
     struct from;
     struct where;
     struct insert;
+    struct insert_select;
     struct update;
     struct cols;
     struct values;
@@ -134,6 +135,8 @@ namespace boost { namespace rdb { namespace sql {
   #define BOOST_RDB_ALLOW(Dialect, State, New) \
     template<> struct allow<Dialect, Dialect::State, Dialect::New> : mpl::true_ { }
   
+  BOOST_RDB_ALLOW(sql2003, select, exprs);
+  BOOST_RDB_ALLOW(sql2003, exprs, from);
   BOOST_RDB_ALLOW(sql2003, from, where);
 
   struct assign_output : detail::comma_output {

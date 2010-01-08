@@ -5,19 +5,19 @@
 
     template<BOOST_PP_ENUM_PARAMS(n, class Expr)>
     typename transition<
-      typename Subdialect::select,
+      typename Subdialect::insert_select,
       fusion::vector<
         BOOST_PP_ENUM_PARAMS(n, Expr)
       >
     >::type
     select(BOOST_PP_ENUM_BINARY_PARAMS(n, const Expr, &expr)) {
-      BOOST_MPL_ASSERT((allow<Subdialect, State, typename Subdialect::select>));
+      BOOST_MPL_ASSERT((allow<Subdialect, State, typename Subdialect::insert_select>));
       return typename transition<
-        typename Subdialect::select,
+        typename Subdialect::insert_select,
         fusion::vector<
           BOOST_PP_ENUM_PARAMS(n, Expr)
         >
-      >::type(ct::add_key<typename Subdialect::select>(this->data_,
+      >::type(ct::add_key<typename Subdialect::insert_select>(this->data_,
         fusion::vector<
           BOOST_PP_ENUM_PARAMS(n, Expr)
         >(
