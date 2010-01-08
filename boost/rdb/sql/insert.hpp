@@ -30,7 +30,7 @@ namespace boost { namespace rdb { namespace sql {
   }
 
   template<class ExprList>
-  inline void str(std::ostream& os, const ct::map_entry<sql2003::select, ExprList>& p) {
+  inline void str(std::ostream& os, const ct::map_entry<sql2003::insert_select, ExprList>& p) {
     os << " select ";
     fusion::for_each(p.value, detail::comma_output(os));
   }
@@ -130,13 +130,13 @@ namespace boost { namespace rdb { namespace sql {
   template<class Dialect, class State, class Data, class Subdialect>
   struct insert_statement : insert_impl<Data,
     typename ct::result_of::has_key<Data, typename Subdialect::values>::type,
-    typename ct::result_of::has_key<Data, typename Subdialect::select>::type,
+    typename ct::result_of::has_key<Data, typename Subdialect::insert_select>::type,
     Subdialect
   > {
 
     explicit insert_statement(const Data& data) : insert_impl<Data,
       typename ct::result_of::has_key<Data, typename Subdialect::values>::type,
-      typename ct::result_of::has_key<Data, typename Subdialect::select>::type,
+      typename ct::result_of::has_key<Data, typename Subdialect::insert_select>::type,
       Subdialect
     >(data) { }
 
@@ -261,7 +261,10 @@ namespace boost { namespace rdb { namespace sql {
 
   };
   
-  BOOST_RDB_ALLOW(sql2003, cols, select);
+  BOOST_RDB_ALLOW(sql2003, cols, insert_select);
+  BOOST_RDB_ALLOW(sql2003, insert_select, from);
+  BOOST_RDB_ALLOW(sql2003, insert_select, distinct);
+  BOOST_RDB_ALLOW(sql2003, insert_select, all);
 
   template<class Table>
   insert_statement<
