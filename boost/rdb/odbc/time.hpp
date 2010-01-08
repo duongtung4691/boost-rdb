@@ -40,7 +40,7 @@ namespace boost { namespace rdb { namespace odbc {
   
   std::ostream& operator <<(std::ostream& os, const time& t);
 
-  template<int N>
+  template<size_t N>
   struct can_bind< core::time, odbc::varchar<N> > : mpl::true_ {
   };
 

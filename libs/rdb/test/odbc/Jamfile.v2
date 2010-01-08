@@ -27,6 +27,7 @@ project
 
     test-suite "test-odbc"
       : [ run test_odbc.cpp test_odbc_static.cpp test_odbc_dynamic.cpp
+          test_odbc_bind.cpp test_odbc_datetime.cpp test_odbc_date.cpp test_odbc_time.cpp
           ../../build//boost_rdb ../../build/odbc//boost_rdb_odbc /boost/test//boost_test_exec_monitor ]
 	    ;
 

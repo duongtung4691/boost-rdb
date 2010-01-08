@@ -89,7 +89,7 @@ namespace boost { namespace rdb { namespace sql {
   {
     const T& val;
     BOOST_CONCEPT_USAGE(CompatibleLiteral) {
-      make_literal<typename Expr::rdb_type, T>::value(val);
+      core::make_literal<typename Expr::rdb_type, T>::value(val);
     }
   };
 

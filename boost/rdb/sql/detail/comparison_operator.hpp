@@ -23,7 +23,7 @@ BOOST_CONCEPT_REQUIRES(
   ((ComparableExpression<Expr>)),
   (expression< BOOST_RDB_OPERATOR_CLASS<typename core::make_literal<typename Expr::rdb_type, T>::type, Expr> >))
 operator BOOST_RDB_OPERATOR(const T& val, const expression<Expr>& expr) {
-  return expression< BOOST_RDB_OPERATOR_CLASS<typename core::make_literal<typename Expr::rdb_type, T>::type, Expr> >(make_literal<typename Expr::rdb_type, T>::value(val), expr);
+  return expression< BOOST_RDB_OPERATOR_CLASS<typename core::make_literal<typename Expr::rdb_type, T>::type, Expr> >(core::make_literal<typename Expr::rdb_type, T>::value(val), expr);
 }
 
 template<class Expr1, class Expr2>
