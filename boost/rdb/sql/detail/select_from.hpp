@@ -4,6 +4,7 @@
       fusion::vector<BOOST_PP_REPEAT(n, BOOST_RDB_PP_REFERENCE, const Table)>
     >::type
     from(BOOST_PP_ENUM_BINARY_PARAMS(n, const Table, &table)) {
+      BOOST_MPL_ASSERT((allow<Subdialect, State, typename Subdialect::select>));
       return typename transition<
         typename Subdialect::from,
         fusion::vector<BOOST_PP_REPEAT(n, BOOST_RDB_PP_REFERENCE, const Table)>
